@@ -7,7 +7,7 @@
  *
  */
 
-#define VERSION "1.42-cvs"
+#define VERSION "1.42"
 
 #define ETHHDR_SIZE 14
 #define TOKENRING_SIZE 22
