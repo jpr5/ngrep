@@ -27,6 +27,13 @@
 #include <sys/mbuf.h>
 #endif
 
+#if defined(AIX)
+#include <sys/machine.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <time.h>
+#endif
+
 #if defined(LINUX)
 #include <getopt.h>
 #include <arpa/inet.h>
