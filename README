@@ -1,7 +1,7 @@
 
 Program: ngrep 
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.39.1 (4.18.2001)
+Version: 1.39.1 (4.24.2001)
 
 
 Goal: 
@@ -24,8 +24,8 @@ Description:
   
 Usage:
 
-  ngrep <-hXViwqevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>
-			 <match expression> <bpf filter>
+  ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>
+			  <match expression> <bpf filter>
 
   -h  is help/usage
   -X  is interpret match expression as hexadecimal
@@ -33,6 +33,7 @@ Usage:
   -i  is ignore case
   -w  is word-regex (expression must match as a word)
   -q  is be quiet
+  -p  is don't go into promiscuous mode
   -e  is show empty packets
   -v  is invert match
   -x  is print in alternate hexdump format
