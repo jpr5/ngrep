@@ -97,12 +97,12 @@ SOCKET delay_socket = 0;
 static char rcsver[] = "$Revision$";
 
 unsigned snaplen = 65535, limitlen = 65535, promisc = 1, to = 1000;
-int show_empty = 0, show_hex = 0, quiet = 0;
-int match_after = 0, keep_matching = 0;
-int invert_match = 0, bin_match = 0;
-int matches = 0, max_matches = 0;
-int live_read = 1, want_delay = 0;
-int no_dropprivs = 0;
+unsigned show_empty = 0, show_hex = 0, quiet = 0;
+unsigned match_after = 0, keep_matching = 0;
+unsigned invert_match = 0, bin_match = 0;
+unsigned matches = 0, max_matches = 0;
+unsigned live_read = 1, want_delay = 0;
+unsigned no_dropprivs = 0;
 
 char nonprint_char = '.';
 
@@ -114,7 +114,7 @@ char *re_err = NULL;
 const char *re_err = NULL;
 #endif
 
-int re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
+unsigned re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
 
 #if USE_PCRE
 pcre *pattern = NULL;
@@ -126,13 +126,13 @@ struct re_pattern_buffer pattern;
 char *match_data = NULL, *bin_data = NULL, *filter = NULL, *filter_file = NULL;
 int (*match_func)() = &blank_match_func;
 void (*dump_func)(char *, unsigned) = &dump_formatted;
-int match_len = 0;
+unsigned match_len = 0;
 
 struct bpf_program pcapfilter;
 struct in_addr net, mask;
 pcap_t *pd = NULL;
 char *usedev = NULL;
-int link_offset;
+unsigned link_offset;
 
 char *read_file = NULL, *dump_file = NULL;
 pcap_dumper_t *pd_dump = NULL;
@@ -378,7 +378,7 @@ int main(int argc, char **argv) {
 
     if (match_data) {
         if (bin_match) {
-            int i = 0, n;
+            unsigned i = 0, n;
             char *s, *d;
             unsigned len;
 
@@ -413,7 +413,7 @@ int main(int argc, char **argv) {
         } else {
 
 #if USE_PCRE
-            int pcre_options = PCRE_UNGREEDY;
+            unsigned pcre_options = PCRE_UNGREEDY;
 
             if (re_ignore_case)
                 pcre_options |= PCRE_CASELESS;
@@ -429,7 +429,7 @@ int main(int argc, char **argv) {
 
             if (re_ignore_case) {
                 char *s;
-                int i;
+                unsigned i;
 
                 pattern.translate = (char*)malloc(256);
                 s = pattern.translate;
@@ -861,7 +861,7 @@ int re_match_func(char *data, unsigned len) {
 
 
 int bin_match_func(char *data, unsigned len) {
-    int stop = len - match_len;
+    signed stop = len - match_len;
     unsigned i = 0;
 
     if (stop < 0)
@@ -950,12 +950,12 @@ void dump_formatted(char *data, unsigned len) {
 
 char *get_filter_from_string(char *str) {
     char *mine;
-    int len;
+    unsigned len;
 
     if (!str || !*str)
         return NULL;
 
-    len = (int)strlen(str);
+    len = (unsigned)strlen(str);
 
     {
         char *s;
