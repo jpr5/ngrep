@@ -1012,7 +1012,9 @@ void drop_privs(void) {
 
     if (newuid != olduid) {
 #if !defined(LINUX)
+#if !defined(MACOSX)
         seteuid(newuid);
+#endif
         if (setuid(newuid) == -1)
 #else
         if (setreuid(newuid, newuid) == -1)
