@@ -106,16 +106,16 @@ different patterns over the same packet stream.
 Output matched packets to a pcap-compatible dump file.  This feature
 does not interfere with normal output to stdout.
 
-.IP -n
+.IP "-n num"
 Match only
 .I \fInum\fP
 packets total, then exit.
 
-.IP -d
+.IP "-d dev"
 By default ngrep will select a default interface to listen on.  Use
 this option to force ngrep to listen on interface \fIdev\fP.
 
-.IP -A
+.IP "-A num"
 Dump \fInum\fP packets of trailing context after matching a packet. 
 
 .IP "\fI match expression\fP"
