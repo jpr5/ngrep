@@ -1,0 +1,30 @@
+A note on PCRE vs GNU regex:
+
+      I ran several tests comparing GNU regex to the PCRE library
+      using 10 million loop iterations: optimized vs. non-optimized,
+      match vs. non-match.  The conclusion I came to was that an
+      unoptimized PCRE program is almost double the match and
+      non-match times of the GNU regex library yields, and when using
+      optimization a PCRE program would perform almost the same in the
+      non-match case, but again almost twice that of the match case.  
+
+      The test subject was "how now brown cow", and the pattern we
+      were searching for in the match case was "now brown", and in the
+      non-match case "not brown".  Obviously, the speed of matches is
+      directly related to the actual regex itself, and a
+      well-formulated regex certainly performs more efficiently than a
+      simple substring match.  However, this test is indicative of how
+      most people use ngrep, so the test results are still important.
+
+      Granted, on the single-match level the time difference is
+      absolutely unnoticeable (it took 10 million loop iterations to
+      compute it), so this may not mean anything to you.  Likewise,
+      the stripped binary sizes are also within 10k of each other on
+      the test compile box.  
+
+      If absolute speed is not the issue, then compile against PCRE
+      since it has better licensing.  If you're after the fastest you
+      can get (for you netops and netadmins out there, you know who
+      you are), then compile against GNU regex.  The speed really
+      helps when piping those 500MB pcap dump files through ngrep over
+      and over.
