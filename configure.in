@@ -188,6 +188,8 @@ case "$target_os" in
 #define _BSD_SOURCE 1
 #endif
 
+#undef _GNU_SOURCE
+
 #include <netinet/udp.h>
 
 struct udphdr foo;
