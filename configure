@@ -3000,6 +3000,18 @@ rm -f conftest.$ac_objext conftest.$ac_ext
 *bsd*)
 	OS=BSD
 
+	echo
+        { echo "$as_me:$LINENO: WARNING: Your OS ($target_os) may have an old libpcap installation.
+If the resulting ngrep binary segfaults when a BPF filter is specified
+without an ngrep match string then you should reconfigure ngrep with
+the option \`\`--disable-pcap-restart''.
+" >&5
+echo "$as_me: WARNING: Your OS ($target_os) may have an old libpcap installation.
+If the resulting ngrep binary segfaults when a BPF filter is specified
+without an ngrep match string then you should reconfigure ngrep with
+the option \`\`--disable-pcap-restart''.
+" >&2;}
+	sleep 3
 
         ;;
 

@@ -257,7 +257,6 @@ If the resulting ngrep binary segfaults when a BPF filter is specified
 without an ngrep match string then you should reconfigure ngrep with 
 the option ``--disable-pcap-restart''.
 )
-	echo
 	sleep 3
 
         ;;
