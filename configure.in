@@ -254,7 +254,7 @@ struct udphdr foo;
 unsigned short bar = foo.uh_sport;
 ,
 	echo "no";  dumb_udphdr="0",
-        echo "yes"; dump_udphdr="1")
+        echo "yes"; dumb_udphdr="1")
 
         ;;
 
