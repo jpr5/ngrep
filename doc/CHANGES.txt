@@ -1,7 +1,43 @@
+$Id$
+
+v1.43
+
+        o healed the win32 code fork: ngrep now builds from the same
+          source tree for all platforms including Windows
+
+        o re-wrote the privilege revocation logic after problems were
+          reported with the SPC version, and removed non-root
+          drop_privs capability altogether
+
+        o fix off-by-one bug which caused ngrep to exit 1 packet early
+          when ``-A'' as invoked
+
+        o removed ``-O2'' optimizations which were causing ngrep with
+          ``-i'' engaged to eat the first character of the match
+          string on certain early GNU 3.x compiler toolchains
+
+        o ngrep now sets a pcap filter "ip" by default, if one is not
+          specified
+
+        o header offset fix to 802.11 processing
+
+        o support IGMP and Raw (unknown IP protocol) type packets
+
+        o support for latest versions of libpcap (0.8.3) and winpcap
+          (3.1 beta 4)
+
+        o updated configure to autoconf 2.59, and config.guess and
+          config.sub to latest versions
+
+        o updated PCRE from 3.4 to 5.0
+
+        o and various minor changes and updates to improve ngrep
+
+
 v1.42
         o rewrote the entire configure.in/config.h.in to autoconf 2.57
           to be more consistent with normal autoconf'd programs.
-          corrects bugs around packaging impediments and typos.
+          corrects bugs around packaging impediments and typos
 
         o improved privilege dropping code and added more options to
           configure to govern its behaviour
@@ -18,10 +54,10 @@ v1.42
         o added two new output modes: ``byline'', whose output
           respects embedded carriage returns (useful for http dumps),
           and ``none'', which prints out each dump as a single line no
-          matter what.
+          matter what
 
         o added ability to specify alternate nonprintable character
-          (default is ``.'').
+          (default is ``.'')
 
         o made ``-q'' effects more consistent and usable for scenarios
           where ``-I'' and/or ``-O'' are being employed
@@ -71,7 +107,7 @@ v1.39
         o added configure option '--without-restart', which will
           remove the pcap restart API call.  Newer versions of libpcap
           don't need it, and on certain platforms the API call
-          segfaults.
+          segfaults
         o win32: compiled with winpcap's pcap.h, which apparently
           breaks the pcap standard and introduces its own data link
           layer types.  fixes the 'unsupported interface' error folks
@@ -103,7 +139,7 @@ v1.36
 v1.35
         o appears that the release of 1.34 had only one of the
           match optimizations: somehow only the tcp match was updated;
-          udp change was omitted.  fixed.
+          udp change was omitted.  fixed
         o moved -v (version) to -V
         o added -v (grep -v), invert match
         o added -d lo (null linktype)
