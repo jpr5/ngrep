@@ -74,7 +74,7 @@ On UNIX, if you still have problems compiling or are compiling on an
 unsupported OS, try playing with other build types -- i.e. if you have
 a BSD derived system, try the BSD build type.
 
-Please email me for help if you If you still have problems, however
+Please email me for help if you if you still have problems, however
 please try to help yourself first and search Google for possible
 answers before contacting me.
 
