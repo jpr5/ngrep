@@ -1169,7 +1169,6 @@ void usage(int e) {
            "   -I  is read packet stream from pcap format file pcap_dump\n"
            "   -O  is dump matched packets in pcap format to pcap_dump\n"
            "   -n  is look at only num packets\n"
-           "   -d  is use specified device instead of the pcap default\n"
            "   -A  is dump num packets after a match\n"
            "   -s  is set the bpf caplen\n"
            "   -S  is set the limitlen on matched packets\n"
@@ -1177,6 +1176,12 @@ void usage(int e) {
            "   -c  is force the column width to the specified size\n"
            "   -P  is set the non-printable display char to what is specified\n"
            "   -F  is read the bpf filter from the specified file\n"
+#if defined(_WIN32)
+           "   -d  is use specified device (index) instead of the pcap default\n"
+           "   -L  is show winpcap device list index\n"
+#else
+           "   -d  is use specified device instead of the pcap default\n"
+#endif
            "");
 
     exit(e);
