@@ -7,7 +7,7 @@
  *
  */
 
-#define VERSION "1.42"
+#define VERSION "1.43-cvs"
 
 #define ETHHDR_SIZE 14
 #define TOKENRING_SIZE 22
@@ -17,7 +17,7 @@
 #define LOOPHDR_SIZE 4
 #define FDDIHDR_SIZE 21
 #define ISDNHDR_SIZE 16
-#define IEEE80211HDR_SIZE 24
+#define IEEE80211HDR_SIZE 32
 
 #ifndef IP_OFFMASK
 #define IP_OFFMASK 0x1fff
