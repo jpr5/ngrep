@@ -3,6 +3,8 @@ v1.40
 	o fixed bug from not considering caplen in payload length
 	  calculations
 	o added -s (set bpf caplen)
+	o fixed header include for linux glibc 2.2 (time.h wasn't
+	  being included)
 
 v1.39.2
 	o typographical error, -p works now
