@@ -155,8 +155,8 @@ case "$target_os" in
 *linux*)
 	AC_SUBST(OS, LINUX)
 
-	AC_MSG_CHECKING(for a dumb udphdr declaration)
-	AC_TRY_COMPILE(
+	AC_MSG_CHECKING(for a broken redhat glibc udphdr declaration)
+	AC_TRY_COMPILE([
 #ifndef __FAVOR_BSD
 #define __FAVOR_BSD
 #endif
@@ -168,12 +168,12 @@ case "$target_os" in
 #undef _GNU_SOURCE
 
 #include <netinet/udp.h>
-,
+],[
 struct udphdr foo;
-unsigned short bar = foo.uh_sport;
-,
-	HAVE_DUMB_UDPHDR="0" && echo "no",
-	HAVE_DUMB_UDPHDR="1" && echo "yes")
+unsigned short bar = foo.source;
+],
+	HAVE_DUMB_UDPHDR="1" && echo "yes",
+	HAVE_DUMB_UDPHDR="0" && echo "no")
 
         ;;
 

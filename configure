@@ -812,7 +812,6 @@ Optional Features:
   --disable-pcap-restart       disable libpcap restart in parser
   --enable-pcre                use PCRE instead of GNU regex
   --disable-dropprivs          disable privilege dropping logic
-  --enable-dropprivs-onlyroot  drop privileges only from root
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2872,25 +2871,6 @@ else
 fi
 
 
-# Check whether --enable-dropprivs-onlyroot or --disable-dropprivs-onlyroot was given.
-if test "${enable_dropprivs_onlyroot+set}" = set; then
-  enableval="$enable_dropprivs_onlyroot"
-
-  use_dropprivs_onlyroot="$enableval"
-
-else
-
-  use_dropprivs_onlyroot="no"
-
-fi;
-
-if test $use_dropprivs_onlyroot = yes; then
-   DROPPRIVS_ONLY_ROOT="1"
-else
-   DROPPRIVS_ONLY_ROOT="0"
-fi
-
-
 
 if test $use_pcre = yes; then
 
@@ -2937,14 +2917,15 @@ case "$target_os" in
 	OS=LINUX
 
 
-	echo "$as_me:$LINENO: checking for a dumb udphdr declaration" >&5
-echo $ECHO_N "checking for a dumb udphdr declaration... $ECHO_C" >&6
+	echo "$as_me:$LINENO: checking for a broken redhat glibc udphdr declaration" >&5
+echo $ECHO_N "checking for a broken redhat glibc udphdr declaration... $ECHO_C" >&6
 	cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
+
 #ifndef __FAVOR_BSD
 #define __FAVOR_BSD
 #endif
@@ -2960,8 +2941,9 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
+
 struct udphdr foo;
-unsigned short bar = foo.uh_sport;
+unsigned short bar = foo.source;
 
   ;
   return 0;
@@ -2989,12 +2971,12 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  HAVE_DUMB_UDPHDR="0" && echo "no"
+  HAVE_DUMB_UDPHDR="1" && echo "yes"
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-HAVE_DUMB_UDPHDR="1" && echo "yes"
+HAVE_DUMB_UDPHDR="0" && echo "no"
 fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 
@@ -3404,10 +3386,6 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define DROPPRIVS_USER "$DROPPRIVS_USER"
-_ACEOF
-
-cat >>confdefs.h <<_ACEOF
-#define DROPPRIVS_ONLY_ROOT $DROPPRIVS_ONLY_ROOT
 _ACEOF
 
 
