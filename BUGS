@@ -4,13 +4,13 @@ Known bugs:
 
         Not a bug in ngrep.  Upgrade to the latest libpcap:
 
-	    http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
+            http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
 
       o ngrep reports duplicate packets on the local loopback interface
- 
-	Not a bug in ngrep.  Upgrade to the latest libpcap:
 
-	    http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
+        Not a bug in ngrep.  Upgrade to the latest libpcap:
+
+            http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
 
       o 'ngrep host foo.com' segfaults after displaying interface info
 
@@ -19,9 +19,10 @@ Known bugs:
         one).  Newer versions of libpcap obviate the need to use that
         particular API.  You can get it at:
 
-	    http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
+            http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
 
-	For the time being, a configure switch '--without-restart' is
-	provided to turn off the API call.  If your copy of ngrep
-	segfaults after displaying the interface info, try recompiling
-	with this switch.   
+        For the time being, a configure switch '--without-restart' is
+        provided to turn off the API call.  If your copy of ngrep
+        segfaults after displaying the interface info, try recompiling
+        with this switch.
+

@@ -1,14 +1,24 @@
 Todo:
 
-	o add non-ip protocols           (IPX and Appletalk are up next, maybe NetBeui?)
+        o add force ws_col flag (Vili Lehdonvirta <vili.lehdonvirta@hut.fi>)
 
-	o add "Extra info", i.e. display ToS, seq, id, etc.
+        o add do not wrap text flag (Vili Lehdonvirta <vili.lehdonvirta@hut.fi>)
 
-	o add ability for end user to use functional groupings and backreferences
+        o add timerange functionality for replaying pcap_dumps ala -r
+          date-date using 'date' format MMDDhhmmCCYY
 
-	o add force ws_col flag
+        o investigate mac os x re setreuid/setregid
 
-	o add timerange functionality for replaying pcap_dumps ala -r
-	  date-date using 'date' format MMDDhhmmCCYY
+          might need to special define it out and do manual
+          setgid/setegid/setuid/seteuid.. (several reports that the
+          damn functions are simply not working:
 
-	o investigate "cooked sockets" in BPF
+          (vili)
+          Tried with 1.41, same problem: "attempt to drop privileges failed:
+          Operation not permitted".
+
+        o investiage rh9 static bin crash (maybe not)
+
+
+
+
