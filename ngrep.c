@@ -63,15 +63,6 @@
 #include <netinet/igmp.h>
 #endif
 
-#if defined(_WIN32)
-#define strcasecmp stricmp
-struct timeval delay_tv;
-FD_SET delay_fds;
-SOCKET delay_socket = 0;
-#endif
-
-#include <pcap.h>
-
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -81,9 +72,7 @@ SOCKET delay_socket = 0;
 #include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <pcap.h>
 
 #if USE_PCRE
 #include "pcre-5.0/pcre.h"
@@ -91,8 +80,19 @@ SOCKET delay_socket = 0;
 #include "regex-0.12/regex.h"
 #endif
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "ngrep.h"
 
+
+#if defined(_WIN32)
+#define strcasecmp stricmp
+struct timeval delay_tv;
+FD_SET delay_fds;
+SOCKET delay_socket = 0;
+#endif
 
 static char rcsver[] = "$Revision$";
 
