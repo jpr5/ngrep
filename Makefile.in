@@ -41,10 +41,10 @@ all: $(TARGET)
 $(TARGET): $(REGEX_TARGET) $(OBJS) 
 	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
-debug: $(OBJS)
+debug: $(REGEX_TARGET) $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -g -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
-static: $(OBJS)
+static: $(REGEX_TARGET) $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET).static -static $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 install: $(TARGET)
