@@ -85,6 +85,8 @@ int invert_match = 0, bin_match = 0;
 int matches = 0, max_matches = 0;
 int live_read = 1, want_delay = 0;
 
+char nonprint_char = '.';
+
 char pc_err[PCAP_ERRBUF_SIZE];
 #if USE_PCRE
 int err_offset;
@@ -104,6 +106,7 @@ struct re_pattern_buffer pattern;
 
 char *match_data = NULL, *bin_data = NULL, *filter = NULL;
 int (*match_func)() = &blank_match_func;
+void (*dump_func)(char *, int) = &dump_formatted;
 int match_len = 0;
 
 struct bpf_program pcapfilter;
@@ -124,14 +127,30 @@ unsigned ws_row, ws_col;
 int main(int argc, char **argv) {
     int c;
 
-    signal(SIGINT,  clean_exit);
-    signal(SIGQUIT, clean_exit);
-    signal(SIGABRT, clean_exit);
-    signal(SIGPIPE, clean_exit);
+    signal(SIGINT,   clean_exit);
+    signal(SIGQUIT,  clean_exit);
+    signal(SIGABRT,  clean_exit);
+    signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
 
-    while ((c = getopt(argc, argv, "hXViwqpevxlDtTs:n:d:A:I:O:S:")) != EOF) {
+    while ((c = getopt(argc, argv, "hXViwqpevxlDtTs:n:d:A:I:O:S:P:W:")) != EOF) {
         switch (c) {
+            case 'W': {
+                if (!strcasecmp(optarg, "normal"))
+                    dump_func = &dump_formatted;
+                else if (!strcasecmp(optarg, "byline"))
+                    dump_func = &dump_byline;
+                else if (!strcasecmp(optarg, "none"))
+                    dump_func = &dump_unwrapped;
+                else {
+                    printf("fatal: unknown wrap method '%s'\n", optarg);
+                    usage(-1);
+                }
+            } break;
+
+            case 'P':
+                nonprint_char = *optarg;
+                break;
             case 'S':
                 limitlen = atoi(optarg);
                 break;
@@ -513,11 +532,10 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 
                 if (pd_dump) {
                     pcap_dump((u_char*)pd_dump, h, p);
-                    if (!quiet) dump(data, len);
-                } else dump(data, len);
+                    if (!quiet) dump_func(data, len);
+                } else dump_func(data, len);
             }
-        }
-            break;
+        } break;
 
         case IPPROTO_UDP: {
             struct udphdr* udp = (struct udphdr *)(((char *)ip_packet) + ip_hl);
@@ -567,11 +585,10 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 
                 if (pd_dump) {
                     pcap_dump((u_char*)pd_dump, h, p);
-                    if (!quiet) dump(data, len);
-                } else dump(data, len);
+                    if (!quiet) dump_func(data, len);
+                } else dump_func(data, len);
             }
-        }
-            break;
+        } break;
 
         case IPPROTO_ICMP: {
             struct icmp* ic = (struct icmp *)(((char *)ip_packet) + ip_hl);
@@ -614,11 +631,10 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 
                 if (pd_dump) {
                     pcap_dump((u_char*)pd_dump, h, p);
-                    if (!quiet) dump(data, len);
-                } else dump(data, len);
+                    if (!quiet) dump_func(data, len);
+                } else dump_func(data, len);
             }
-        }
-            break;
+        } break;
 
     }
 
@@ -692,7 +708,35 @@ int blank_match_func(char *data, int len) {
 }
 
 
-void dump(char *data, int len) {
+void dump_byline(char *data, int len) {
+    if (len > 0) {
+        const char *s = data;
+        unsigned width;
+
+        while (s < data + len) {
+            printf("%c", (*s == '\n' || isprint(*s))? *s : nonprint_char);
+            s++;
+        }
+
+        printf("\n");
+    }
+}
+
+void dump_unwrapped(char *data, int len) {
+    if (len > 0) {
+        const char *s = data;
+        unsigned width;
+
+        while (s < data + len) {
+            printf("%c", isprint(*s) ? *s : nonprint_char);
+            s++;
+        }
+
+        printf("\n");
+    }
+}
+
+void dump_formatted(char *data, int len) {
     if (len > 0) {
         unsigned width = show_hex?16:(ws_col-5);
         char *str = data;
@@ -713,7 +757,7 @@ void dump(char *data, int len) {
 
             for (j = 0; j < width; j++)
                 if (i+j < len)
-                    printf("%c", isprint(str[j])?str[j]:'.');
+                    printf("%c", isprint(str[j]) ? str[j] : nonprint_char);
                 else printf(" ");
 
             str += width;
@@ -918,8 +962,8 @@ void drop_privs(void) {
 
 void usage(int e) {
     printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
-           "                               <-s snaplen> <-S limitlen> <match expression>\n"
-           "                               <bpf filter>\n");
+           "                        <-s snaplen> <-S limitlen> <-W normal|byline|none>\n"
+           "                        <-P char> <match expression> <bpf filter>\n");
 
     exit(e);
 }

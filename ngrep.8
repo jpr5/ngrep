@@ -96,6 +96,18 @@ a packet is matched.
 Print a timestamp in the form of +S.UUUUUU, indicating the delta
 between packet matches.
 
+.IP "-P char"
+Specify an alternate character to signify non-printable characters
+when displayed.  The default is ``.''.
+
+.IP "-W normal|byline|none"
+Specify an alternate manner for displaying packets, when not in
+hexadecimal mode.  The ``byline'' mode honors embedded linefeeds,
+wrapping text only when a linefeed is encountered.  The ``none'' mode
+doesn't wrap under any circumstance (entire payload is displayed on
+one line).  ``normal'' is the default mode and is only included for
+completeness.  This option is incompatible with ``-x''.
+
 .IP "-s snaplen"
 Set the bpf caplen to snaplen (default 65536).
 

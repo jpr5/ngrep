@@ -37,7 +37,6 @@
 
 char *get_filter(char **);
 void process(u_char *, struct pcap_pkthdr*, u_char *);
-void dump(char *, int);
 void clean_exit(int);
 void usage(int);
 void version(void);
@@ -45,6 +44,10 @@ void version(void);
 int re_match_func(char *, int);
 int bin_match_func(char *, int);
 int blank_match_func(char *, int);
+
+void dump_unwrapped(char *, int);
+void dump_byline(char *, int);
+void dump_formatted(char *, int);
 
 int strishex(char *);
 
