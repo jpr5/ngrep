@@ -10,6 +10,9 @@ In orer to compile ngrep on any platform, the relevant packet capture
 
 On UNIX, this is called ``libpcap'' and can be installed either from
 source or from a distribution's particular package management system.
+Some distributions separate the library itself from its development
+headers (i.e. libpcap-devel), so make sure to install both if this is
+the case.
 
 On Windows, the client support library is called ``WinPcap Developer's
 Pack'' and should be unpacked inside the parent directory of the ngrep
