@@ -808,16 +808,16 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --disable-pcap-restart             disable libpcap restart in parser
+  --disable-pcap-restart       disable libpcap restart in parser
   --enable-pcre                use PCRE instead of GNU regex
-  --disable-dropprivs       disable privilege dropping logic
-  --enable-dropprivs-onlyroot   drop privileges only from root
+  --disable-dropprivs          disable privilege dropping logic
+  --enable-dropprivs-onlyroot  drop privileges only from root
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-dropprivs-user=user        use different user for dropprivs
-  --with-pcap-includes       specify the pcap include directory
+  --with-dropprivs-user=user  use different user for dropprivs
+  --with-pcap-includes        specify the pcap include directory
 
 Some influential environment variables:
   CC          C compiler command
@@ -2627,7 +2627,7 @@ fi
 
 
 
-if test -n "`which tcpdump`"; then
+if test -n "`which tcpdump 2> /dev/null`"; then
    if test "x$prefix" = xNONE; then
   echo $ECHO_N "checking for prefix by $ECHO_C" >&6
   # Extract the first word of "tcpdump", so it can be a program name with args.
@@ -3028,7 +3028,7 @@ else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-echo "yes"; dump_udphdr="1"
+echo "yes"; dumb_udphdr="1"
 fi
 rm -f conftest.$ac_objext conftest.$ac_ext
 

@@ -18,7 +18,7 @@ AC_PROG_CC
 AC_HEADER_STDC
 
 AC_PREFIX_DEFAULT(/usr/local) 
-if test -n "`which tcpdump`"; then
+if test -n "`which tcpdump 2> /dev/null`"; then
    AC_PREFIX_PROGRAM(tcpdump)
 fi
 
@@ -45,7 +45,7 @@ dnl was wrong because this is still needed).
 dnl
 
 AC_ARG_ENABLE(pcap-restart,
-[  --disable-pcap-restart             disable libpcap restart in parser],
+[  --disable-pcap-restart       disable libpcap restart in parser],
 [ 
   use_pcap_restart="$enableval"
 ],
@@ -62,7 +62,7 @@ dnl
 dnl Allow user to specify alternate ``nobody'' user.
 dnl
 AC_ARG_WITH(dropprivs-user,
-[  --with-dropprivs-user[=user]        use different user for dropprivs],
+[  --with-dropprivs-user[=user]  use different user for dropprivs],
 [
   DROPPRIVS_USER="$withval"
 ],
@@ -89,7 +89,7 @@ dnl Enable or disable the drop privileges logic.
 dnl
 
 AC_ARG_ENABLE(dropprivs,
-[  --disable-dropprivs       disable privilege dropping logic],
+[  --disable-dropprivs          disable privilege dropping logic],
 [
   use_dropprivs="$enableval"
 ],
@@ -112,7 +112,7 @@ dnl privileges if they're not root, hence this flag.
 dnl
 
 AC_ARG_ENABLE(dropprivs-onlyroot,
-[  --enable-dropprivs-onlyroot   drop privileges only from root],
+[  --enable-dropprivs-onlyroot  drop privileges only from root],
 [
   use_dropprivs_onlyroot="$enableval"
 ],
@@ -329,7 +329,7 @@ possible_dirs="`eval echo -n ${includedir}` \
                /usr/share/include /usr/share/include/pcap"
 
 AC_ARG_WITH(pcap-includes,
-[  --with-pcap-includes       specify the pcap include directory],
+[  --with-pcap-includes        specify the pcap include directory],
 [PCAP_DIR=$withval],
 [PCAP_DIR=$possible_dirs])
 
