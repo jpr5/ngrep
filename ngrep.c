@@ -771,7 +771,7 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
         } break;
 
         default: {
-            data = ((char*)((char *)ip_packet) + ip_hl);;
+            data = (char*)(((char*)ip_packet) + ip_hl);
 
             if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
                 len -= ip_hl;
