@@ -297,10 +297,13 @@ int main(int argc, char **argv) {
 
   switch(pcap_datalink(pd)) {
   case DLT_EN10MB:
-  case DLT_IEEE802:
     link_offset = ETHHDR_SIZE;
     break;
 
+  case DLT_IEEE802:
+    link_offset = TOKENRING_SIZE;
+    break;
+    
   case DLT_FDDI:
     link_offset = FDDIHDR_SIZE;
     break;
@@ -713,6 +716,6 @@ void usage(int e) {
 
 
 void version(void) {
-  printf("ngrep: %s\n", rcsver);
+  printf("ngrep: V%s, %s\n", VERSION, rcsver);
   exit(0);
 }
