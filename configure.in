@@ -4,27 +4,319 @@ dnl
 dnl Copyright (c) 2001  Jordan Ritter <jpr5@darkridge.com>
 dnl
 dnl Please refer to the COPYRIGHT file for more information.
+dnl
+dnl NOTE: configure.in requires autoconf 2.57 or more recent.
 
 AC_INIT(ngrep.c)
+
+echo
+echo 'Configuring System ...'
+echo
 
 AC_CANONICAL_SYSTEM
 
 AC_PROG_CC
-AC_PREFIX(gcc)
+AC_PREFIX_PROGRAM(tcpdump)
 
 AC_HEADER_STDC
-AC_C_CONST
-AC_TYPE_SIZE_T
-AC_TYPE_SIGNAL
-AC_FUNC_ALLOCA
 
-AC_CHECK_HEADER(strings.h,,echo need strings header; exit)
-AC_CHECK_HEADER(netinet/if_ether.h,AC_DEFINE(HAVE_IF_ETHER_H,1),)
+dnl
+dnl The following are globals that we tack on to the associated
+dnl variables in the makefile.  They get AC_SUBST'd at the end.
+dnl
+
+EXTRA_DEFINES=""
+EXTRA_INCLUDES=""
+EXTRA_LIBS=""
 
 
 dnl
-dnl Find ourselves some usable pcap headers.
+dnl Define the arguments that we accept.
 dnl
+
+dnl
+dnl For libpcap's that don't need the restart function called for 
+dnl multiple lexer passes, allow them to turn it off here.  This option
+dnl exists solely to address a very rude email from the maintainer 
+dnl indicating that it shouldn't be called directly (and of course he
+dnl was wrong because this is still needed). 
+dnl
+
+AC_ARG_ENABLE(pcap-restart,
+[  --disable-pcap-restart             disable libpcap restart in parser],
+[ 
+  use_pcap_restart="$enableval"
+],
+[
+  use_pcap_restart="yes"
+])
+
+if test $use_pcap_restart = yes; then
+   AC_DEFINE(USE_PCAP_RESTART, 1)
+fi
+
+
+dnl
+dnl Allow user to specify alternate ``nobody'' user.
+dnl
+AC_ARG_WITH(dropprivs-user,
+[  --with-dropprivs-user[=user]        use different user for dropprivs],
+[
+  DROPPRIVS_USER="$withval"
+],
+[
+  DROPPRIVS_USER="nobody"
+])
+AC_DEFINE_UNQUOTED(DROPPRIVS_USER, "$DROPPRIVS_USER")
+
+dnl 
+dnl pcre library compatibility stuff
+dnl
+AC_ARG_ENABLE(pcre,
+[  --enable-pcre                use PCRE instead of GNU regex],
+[ 
+  use_pcre="$enableval"
+],
+[ 
+  use_pcre="no"
+])
+
+
+dnl
+dnl Enable or disable the drop privileges logic.
+dnl
+
+AC_ARG_ENABLE(dropprivs,
+[  --disable-dropprivs       disable privilege dropping logic],
+[
+  use_dropprivs="$enableval"
+],
+[
+  use_dropprivs="yes"
+])
+
+if test $use_dropprivs = yes; then
+   USE_DROPPRIVS="1"
+else 
+   USE_DROPPRIVS="0"
+fi
+
+AC_DEFINE_UNQUOTED(USE_DROPPRIVS, $USE_DROPPRIVS)
+
+
+dnl
+dnl Some people have complained that they don't care to drop
+dnl privileges if they're not root, hence this flag.
+dnl
+
+AC_ARG_ENABLE(dropprivs-onlyroot,
+[  --enable-dropprivs-onlyroot   drop privileges only from root],
+[
+  use_dropprivs_onlyroot="$enableval"
+],
+[
+  use_dropprivs_onlyroot="no"
+])
+
+if test $use_dropprivs_onlyroot = yes; then
+   DROPPRIVS_ONLY_ROOT="1"
+else 
+   DROPPRIVS_ONLY_ROOT="0"
+fi
+
+AC_DEFINE_UNQUOTED(DROPPRIVS_ONLY_ROOT, $DROPPRIVS_ONLY_ROOT)
+
+
+dnl
+dnl Configure the regular expression library.
+dnl
+
+if test $use_pcre = yes; then
+
+  echo 
+  echo 'Configuring Perl-Compatible Regular Expression (PCRE) library ...' 
+  echo 
+
+  ( cd pcre-3.4; ./configure && make libtool chartables.c )
+
+  REGEX_TARGET='pcre'
+  REGEX_OBJS='pcre.o study.o'
+  USE_PCRE="1"
+
+else
+
+  echo
+  echo 'Configuring GNU Regular Expression library ...'
+  echo
+
+  ( cd regex-0.12; ./configure )
+
+  REGEX_TARGET='regex'
+  REGEX_OBJS='regex.o'
+  USE_PCRE="0"
+
+fi
+
+AC_SUBST(REGEX_TARGET)
+AC_SUBST(REGEX_OBJS)
+AC_DEFINE_UNQUOTED(USE_PCRE, $USE_PCRE)
+
+echo
+echo 'Configuring Network Grep (ngrep) ...'
+echo 
+
+dnl
+dnl Check for DLT_* types that might not have existed in older
+dnl libpcap's
+dnl
+
+present=""
+AC_MSG_CHECKING(for DLT_LINUX_SLL in bpf.h)
+AC_EGREP_CPP(yes,
+[
+#include <net/bpf.h>
+#ifdef DLT_LINUX_SLL
+yes
+#endif
+],
+[present=1 && echo yes], [present=0 && echo no])
+AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL, $present) 
+
+
+present=""
+AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
+AC_EGREP_CPP(yes,
+[
+#include <net/bpf.h>
+#ifdef DLT_LOOP
+yes
+#endif
+],
+[present=1 && echo yes], [present=0 && echo no])
+AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP, $present) 
+
+
+present=""
+AC_MSG_CHECKING(for DLT_IEEE802_11 in bpf.h)
+AC_EGREP_CPP(yes,
+[
+#include <net/bpf.h>
+#ifdef DLT_IEEE802_11
+yes
+#endif
+],
+[present=1 && echo yes], [present=0 && echo no])
+AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11, $present) 
+
+
+present=""
+AC_MSG_CHECKING(for DLT_RAW in bpf.h)
+AC_EGREP_CPP(yes,
+[
+#include <net/bpf.h>
+#ifdef DLT_RAW
+yes
+#endif
+],
+[present=1 && echo yes], [present=0 && echo no])
+AC_DEFINE_UNQUOTED(HAVE_DLT_RAW, $present) 
+
+
+dnl
+dnl OS-specific options
+dnl
+STRIPFLAG="-s"
+
+case "$target_os" in
+
+*linux*)
+	AC_SUBST(OS, LINUX)
+
+	AC_MSG_CHECKING(for a dumb udphdr declaration)
+	AC_TRY_COMPILE(
+#ifndef __FAVOR_BSD
+#define __FAVOR_BSD
+#endif
+
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE 1
+#endif
+
+#undef _GNU_SOURCE
+
+#include <netinet/udp.h>
+,
+struct udphdr foo;
+unsigned short bar = foo.uh_sport;
+,
+	echo "no";  dumb_udphdr="0",
+        echo "yes"; dump_udphdr="1")
+
+        ;;
+
+*bsd*)
+	AC_SUBST(OS, BSD)
+
+        ;;
+
+*solaris*)
+	AC_SUBST(OS, SOLARIS)
+
+        AC_CHECK_LIB(socket, socket,,
+                     echo no socket in -lsocket\?; exit)
+        AC_CHECK_LIB(nsl, gethostbyname,,
+                     echo no gethostbyname in -lnsl\?; exit)
+
+	LIBS="$LIBS -lnsl -lsocket"
+
+	EXTRA_LIBS="$EXTRA_LIBS -lnsl -lsocket"
+
+	;;
+
+*osf*)
+	AC_SUBST(OS, OSF1)
+	EXTRA_DEFINES="$EXTRA_DEFINES -D__STDC__=2"
+
+	;;
+
+*hpux11*) 
+        AC_SUBST(OS, BSD)
+	
+	;;
+
+*aix*)
+	AC_SUBST(OS, AIX)
+	
+	;;
+
+*darwin*)
+	AC_SUBST(OS, MACOSX)
+	STRIPFLAG=""
+
+	;;
+
+*)
+	AC_SUBST(OS, UNKNOWN_OS)
+        AC_MSG_WARN(
+Your OS ($target_os) is not supported yet.  
+Try playing with the build host and target options.
+)
+	sleep 3
+
+        ;;
+
+esac
+
+AC_SUBST(STRIPFLAG)
+AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR, $dumb_udphdr)
+
+EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
+
+
+dnl
+dnl Find ourselves some usable PCAP headers.
+dnl
+
 AC_MSG_CHECKING(for a complete set of pcap headers)
 
 possible_dirs="`eval echo -n ${includedir}` \
@@ -38,7 +330,6 @@ AC_ARG_WITH(pcap-includes,
 [PCAP_DIR=$possible_dirs])
 
 pcap_dir=""
-v
 for dir in $PCAP_DIR ; do 
     if test -d $dir -a -r "$dir/pcap.h" -a \
                        -r "$dir/net/bpf.h" ; then 
@@ -66,248 +357,50 @@ else
 
    AC_SUBST(PCAP_INCLUDE)
    AC_SUBST(PCAP_LINK)
-   
-   AC_MSG_CHECKING(for usable bpf.h)
-   if test -n "`grep DLT_RAW $pcap_dir/net/bpf.h`" ; then
-      echo yep
-   else 
-
-echo nope
-echo '***************************************************************'
-echo an important define is missing from the bpf.h I found.  this
-echo probably means that your installation of pcap is outdated and
-echo needs upgrading.  I\'ll go ahead and add the define for you but
-echo understand that matching certain types of packets may not 
-echo function properly.
-echo '***************************************************************'
-sleep 3
-
-AC_DEFINE(DLT_RAW, 12)
-
-   fi
+  
 fi
 
-
-dnl 
-dnl pcre library compatibility stuff
 dnl
-AC_ARG_WITH(pcre,
-[  --with-pcre                use PCRE instead of GNU regex],
-[ 
-  ( cd pcre-3.4; ./configure && make libtool chartables.c )
-  AC_DEFINE(USE_PCRE)
-  REGEX_TARGET='pcre'
-  REGEX_OBJS='pcre.o study.o'
-],
-[ 
-  ( cd regex-0.12; ./configure )
-  REGEX_TARGET='regex'
-  REGEX_OBJS='regex.o'
-]
-)
-AC_SUBST(REGEX_TARGET)
-AC_SUBST(REGEX_OBJS)
-
-
+dnl And the library..
 dnl
-dnl Allow user to specify alternate ``nobody'' user.
-dnl
-AC_ARG_WITH(safe-user,
-[  --with-safe-user           use user instead of "nobody" for dropprivs],
-[
-  SAFE_USER="$withval"
-],
-[
-  SAFE_USER="nobody"
-]
-)
-AC_SUBST(SAFE_USER)
-
-
-dnl
-dnl Some people have complained that they don't care to drop
-dnl privileges if they're not root, hence this flag.
-dnl
-
-AC_ARG_WITH(nonroot-dropprivs,
-[  --with-nonroot-dropprivs   drop privs even if not root],
-[
-  DROP_ONLY_ROOT="1"
-],
-[
-  DROP_ONLY_ROOT="0"
-]
-)
-AC_SUBST(DROP_ONLY_ROOT)
-
-dnl
-dnl Check for DLT_* types that might not have existed in older
-dnl libpcap's
-dnl
-
-present=""
-AC_MSG_CHECKING(for DLT_LINUX_SLL in bpf.h)
-AC_EGREP_CPP(yes,
-[
-#include <net/bpf.h>
-#ifdef DLT_LINUX_SLL
-yes
-#endif
-],
-[present=1 && echo yes], [present=0 && echo no])
-AC_DEFINE_UNQUOTED(HAVE_SLL, $present) 
-
-
-present=""
-AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
-AC_EGREP_CPP(yes,
-[
-#include <net/bpf.h>
-#ifdef DLT_LOOP
-yes
-#endif
-],
-[present=1 && echo yes], [present=0 && echo no])
-AC_DEFINE_UNQUOTED(HAVE_LOOP, $present) 
-
-
-present=""
-AC_MSG_CHECKING(for DLT_IEEE802_11 in bpf.h)
-AC_EGREP_CPP(yes,
-[
-#include <net/bpf.h>
-#ifdef DLT_IEEE802_11
-yes
-#endif
-],
-[present=1 && echo yes], [present=0 && echo no])
-AC_DEFINE_UNQUOTED(HAVE_802_11, $present) 
-
-
-
-dnl
-dnl OS-specific options
-dnl
-AC_DEFINE(_BSD_SOURCE)
-AC_DEFINE(__FAVOR_BSD)
-STRIPFLAG="-s"
-
-
-case "$target_os" in
-
-*linux*)
-	AC_DEFINE(LINUX)
-
-	AC_MSG_CHECKING(for a dumb udphdr declaration)
-	AC_TRY_COMPILE(
-#ifndef __FAVOR_BSD
-#define __FAVOR_BSD
-#endif
-
-#ifndef _BSD_SOURCE
-#define _BSD_SOURCE 1
-#endif
-
-#undef _GNU_SOURCE
-
-#include <netinet/udp.h>
-,
-struct udphdr foo;
-unsigned short bar = foo.uh_sport;
-,
-	echo nope,
-        echo yep dumb; AC_DEFINE(HAVE_DUMB_UDPHDR))
-
-        ;;
-
-*bsd*)
-	AC_DEFINE(BSD)
-
-        ;;
-
-*solaris*)
-	AC_DEFINE(SOLARIS)
-
-        AC_CHECK_LIB(socket, socket,,
-                     echo no socket in -lsocket\?; exit)
-        AC_CHECK_LIB(nsl, gethostbyname,,
-                     echo no gethostbyname in -lnsl\?; exit)
-
-	LIBS="$LIBS -lnsl -lsocket"
-
-        AC_SUBST(EXTRA_LIBS)
-	EXTRA_LIBS='-lnsl -lsocket'
-
-	;;
-
-*osf*)
-	AC_DEFINE(OSF1)
-	AC_DEFINE(__STDC__, 2)
-
-	;;
-
-*hpux11*) 
-        AC_DEFINE(BSD)
-	
-	;;
-
-*aix*)
-	AC_DEFINE(AIX)
-	
-	;;
-
-*darwin*)
-	AC_DEFINE(MACOSX)
-	STRIPFLAG=""
-
-	;;
-
-*)
-        AC_MSG_WARN(Your OS ($target_os) is not supported yet.  Try\
-                    playing with the build host and target options.)
-
-        ;;
-
-esac
-
-AC_SUBST(STRIPFLAG)
 
 AC_CHECK_LIB(pcap, pcap_open_live,,echo need pcap lib; exit)
 
+dnl
+dnl And the restart function.
+dnl
 
-dnl
-dnl Here's where we should check to see if we require the use of a
-dnl PCAP_RESTART function.  Should run a test program that calls
-dnl pcap_compile() twice and checks the exit value, or something.  For
-dnl now, just let the user the flag itself, until I come up with a
-dnl working methodology.
-dnl
-AC_ARG_WITH(restart,
-[  --with-restart             use libpcap restart func],
-[ 
-  if test "$withval" = "yes"; then 
-    AC_DEFINE(NEED_RESTART)     
-    need_restart="yes"
-  else
-    need_restart="no"
-  fi
-],
-[
-  AC_DEFINE(NEED_RESTART)     
-  need_restart="yes"
-])
-
-dnl
-dnl Now find the function in the lib..
-dnl
-if test "$need_restart" = "yes" ; then 
-   AC_CHECK_LIB(pcap, pcap_restart, AC_DEFINE(PCAP_RESTART,pcap_restart),
-    AC_CHECK_LIB(pcap, pcap_yyrestart, AC_DEFINE(PCAP_RESTART,pcap_yyrestart),
-      AC_CHECK_LIB(pcap, yyrestart, AC_DEFINE(PCAP_RESTART,yyrestart),
+pcap_restart_func=""
+if test "$use_pcap_restart" = "yes" ; then 
+   AC_CHECK_LIB(pcap, pcap_restart, pcap_restart_func="pcap_restart",
+     AC_CHECK_LIB(pcap, pcap_yyrestart, pcap_restart_func="pcap_yyrestart",
+       AC_CHECK_LIB(pcap, yyrestart, pcap_restart_func="yyrestart",
          echo no yacc restart func found
-	 echo perhaps libpcap wasn\'t compiled with bison/flex\?
-	 exit)))
+         echo perhaps libpcap wasn\'t compiled with bison/flex\?
+         exit)))
 fi
 
+if test -z "$pcap_restart_func"; then
+   pcap_restart_func="unused"
+fi
 
-AC_OUTPUT(Makefile)
+AC_DEFINE_UNQUOTED(PCAP_RESTART_FUNC, $pcap_restart_func)
+
+dnl
+dnl AC_SUBST in the tack-on globals..
+dnl
+
+AC_SUBST(EXTRA_DEFINES)
+AC_SUBST(EXTRA_INCLUDES)
+AC_SUBST(EXTRA_LIBS)
+
+
+dnl
+dnl And we're done.
+dnl
+
+echo
+
+AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_FILES(Makefile)
+AC_OUTPUT

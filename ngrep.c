@@ -62,7 +62,12 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 
-#ifdef USE_PCRE
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#if USE_PCRE
 #include "pcre-3.4/pcre.h"
 #else
 #include "regex-0.12/regex.h"
@@ -81,7 +86,7 @@ int matches = 0, max_matches = 0;
 int live_read = 1, want_delay = 0;
 
 char pc_err[PCAP_ERRBUF_SIZE];
-#ifdef USE_PCRE
+#if USE_PCRE
 int err_offset;
 char *re_err = NULL;
 #else
@@ -90,7 +95,7 @@ const char *re_err = NULL;
 
 int re_match_word = 0, re_ignore_case = 0;
 
-#ifdef USE_PCRE
+#if USE_PCRE
 pcre *pattern = NULL;
 pcre_extra *pattern_extra = NULL;
 #else
@@ -248,8 +253,8 @@ int main(int argc, char **argv) {
             free(filter);
             filter = get_filter(&argv[optind-1]);
 
-#ifdef NEED_RESTART
-            PCAP_RESTART();
+#if USE_PCAP_RESTART
+            PCAP_RESTART_FUNC();
 #endif
             if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
                 pcap_perror(pd, "pcap compile");
@@ -301,7 +306,7 @@ int main(int argc, char **argv) {
 
         } else {
 
-#ifdef USE_PCRE
+#if USE_PCRE
             int pcre_options = PCRE_UNGREEDY;
 
             if (re_ignore_case)
@@ -334,7 +339,7 @@ int main(int argc, char **argv) {
                 match_data = word_regex;
             }
 
-#ifdef USE_PCRE
+#if USE_PCRE
             pattern = pcre_compile(match_data, pcre_options, (const char **)&re_err, &err_offset, 0);
             if (!pattern) {
                 fprintf(stderr, "compile failed: %s\n", re_err);
@@ -393,24 +398,26 @@ int main(int argc, char **argv) {
             link_offset = PPPHDR_SIZE;
             break;
 
-        case DLT_RAW:
-            link_offset = RAWHDR_SIZE;
-            break;
-
-#if HAVE_LOOP
+#if HAVE_DLT_LOOP
         case DLT_LOOP:
 #endif
         case DLT_NULL:
             link_offset = LOOPHDR_SIZE;
             break;
 
-#if HAVE_SLL
+#if HAVE_DLT_RAW
+        case DLT_RAW:
+            link_offset = RAWHDR_SIZE;
+            break;
+#endif
+
+#if HAVE_DLT_LINUX_SLL
         case DLT_LINUX_SLL:
             link_offset = ISDNHDR_SIZE;
             break;
 #endif
 
-#if HAVE_802_11
+#if HAVE_DLT_IEEE802_11
         case DLT_IEEE802_11:
             link_offset = IEEE80211HDR_SIZE;
             break;
@@ -541,7 +548,7 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                     print_time(h);
 
                 if (udphdr_offset || !frag_offset) {
-#ifdef HAVE_DUMB_UDPHDR
+#if HAVE_DUMB_UDPHDR
                     printf("%s:%d -", inet_ntoa(ip_packet->ip_src), ntohs(udp->source));
                     printf("> %s:%d", inet_ntoa(ip_packet->ip_dst), ntohs(udp->dest));
 #else
@@ -621,7 +628,7 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 
 
 int re_match_func(char *data, int len) {
-#ifdef USE_PCRE
+#if USE_PCRE
     switch(pcre_exec(pattern, 0, data, len, 0, 0, 0, 0)) {
         case PCRE_ERROR_NULL:
         case PCRE_ERROR_BADOPTION:
@@ -846,14 +853,29 @@ void update_windowsize(int e) {
 
 
 void drop_privs(void) {
-#if DROP_ONLY_ROOT
-    if (getuid() != 0 && geteuid() != 0 &&
-        getgid() != 0 && getegid() != 0)
+#if !USE_DROPPRIVS
+    return;
+#endif
+
+#if DROPPRIVS_ONLY_ROOT
+    /*
+     * We have a choice as to whether we drop privs only if the user
+     * is absolutely root, or if any root privilege in part or whole
+     * is present.  It would be implausible at best to devise logic
+     * that would be valid for every individual semantic of all
+     * supported OSes, i.e. certain syscalls on certain platforms
+     * might or might not rely on real vs. effective privileges to
+     * allow the call to complete.  So, we take the safer route here
+     * which is to drop privs if any root privilege exists.
+     */
+
+    if (!(getuid() == 0 || geteuid() == 0 ||
+          getgid() == 0 || getegid() == 0))
         return;
 #endif
 
  {
-    struct passwd *pw = getpwnam(SAFE_USER);
+    struct passwd *pw = getpwnam(DROPPRIVS_USER);
     gid_t newgid = pw->pw_uid, oldgid = getegid();
     uid_t newuid = pw->pw_gid, olduid = geteuid();
 
@@ -894,20 +916,6 @@ void drop_privs(void) {
  }
 }
 
-void drop_privs_old(void) {
-
-    {
-        struct passwd *pw = getpwnam(SAFE_USER);
-
-        if (setregid(pw->pw_gid, pw->pw_gid) == -1 ||
-            setreuid(pw->pw_uid, pw->pw_uid) == -1) {
-            perror("attempt to drop privileges failed");
-            clean_exit(-1);
-        }
-    }
-}
-
-
 void usage(int e) {
     printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "                               <-s snaplen> <-S limitlen> <match expression>\n"
@@ -927,7 +935,7 @@ void clean_exit(int sig) {
     struct pcap_stat s;
     if (!quiet && sig >= 0) printf("exit\n");
 
-#ifdef USE_PCRE
+#if USE_PCRE
     if (re_err) free(re_err);
     if (pattern) pcre_free(pattern);
     if (pattern_extra) pcre_free(pattern_extra);

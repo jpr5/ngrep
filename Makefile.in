@@ -5,13 +5,14 @@
 #
 # Please refer to the COPYRIGHT file for more information.
 
-
 CC=@CC@
 
-INCLUDES=-I@srcdir@ @PCAP_INCLUDE@
-CFLAGS=@CFLAGS@ @DEFS@ -DSAFE_USER='"@SAFE_USER@"' -DDROP_ONLY_ROOT=@DROP_ONLY_ROOT@
+CFLAGS=@CFLAGS@ -D@OS@ @DEFS@ @EXTRA_DEFINES@ 
+INCLUDES=-I@srcdir@ @PCAP_INCLUDE@ @EXTRA_INCLUDES@
+
 LDFLAGS=@LDFLAGS@ @PCAP_LINK@
-LIBS=-lpcap @EXTRA_LIBS@
+LIBS=-lpcap @EXTRA_LIBS@ 
+
 STRIPFLAG=@STRIPFLAG@
 
 SRC=ngrep.c 
@@ -57,7 +58,7 @@ clean:
 	rm -f *~ $(OBJS) $(REGEX_OBJS) $(TARGET) 
 
 distclean: clean clean-$(REGEX_TARGET)
-	rm -f config.status config.cache config.log Makefile .depends
+	rm -f config.status config.cache config.log config.h Makefile .depends
 
 clean-pcre:
 	( cd pcre-3.4; if [ -f ./Makefile ]; then make distclean; fi )
