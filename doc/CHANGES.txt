@@ -12,9 +12,8 @@ v1.43
         o fix off-by-one bug which caused ngrep to exit 1 packet early
           when ``-A'' as invoked
 
-        o removed ``-O2'' optimizations which were causing ngrep with
-          ``-i'' engaged to eat the first character of the match
-          string on certain early GNU 3.x compiler toolchains
+        o Fixed problematic configtest for old broken-redhat-glibc UDP
+          header
 
         o ngrep now sets a pcap filter "ip" by default, if one is not
           specified
