@@ -802,8 +802,8 @@ void update_windowsize(int e) {
 
 
 void usage(int e) {
-  printf("usage: ngrep <-hXViwqpevxlDtTs> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
-	 "                                <match expression> <bpf filter>\n");
+  printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+	 "                               <-s snaplen> <match expression> <bpf filter>\n");
   exit(e);
 }
 
