@@ -1,7 +1,7 @@
 
 Program: ngrep 
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.39 (2.25.2001)
+Version: 1.39.1 (4.18.2001)
 
 
 Goal: 
@@ -125,3 +125,4 @@ Known Working Platforms:
   o Digital Unix V4.0D (OSF/1)
   o HPUX 11
   o IRIX
+  o AIX
