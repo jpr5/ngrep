@@ -1,7 +1,7 @@
 
 Program: ngrep 
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.39.2 (4.23.2001)
+Version: 1.40 (6.6.2001)
 
 
 Goal: 
@@ -24,8 +24,8 @@ Description:
   
 Usage:
 
-  ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>
-			  <match expression> <bpf filter>
+  ngrep <-hXViwqpevxlDtTs> <-IO pcap_dump> <-n num> <-d dev> <-A num>
+			   <match expression> <bpf filter>
 
   -h  is help/usage
   -X  is interpret match expression as hexadecimal
@@ -41,6 +41,7 @@ Usage:
   -D  is replay pcap_dumps with their recorded time intervals
   -t  is print timestamp every time a packet is matched
   -T  is print delta timestamp every time a packet is matched
+  -s  is set the bpf caplen
   -I  is dump matched packets in pcap format to pcap_dump
   -O  is read packet stream from pcap format file pcap_dump 
   -n  is look at only num packets
