@@ -429,7 +429,10 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
     }
     
     data = ((char*)tcp) + tcphdr_offset;
-    len = ntohs(ip_packet->ip_len) - ip_hl - tcphdr_offset;
+
+    if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
+      len -= ip_hl + tcphdr_offset;
+    else len = h->caplen - link_offset - ip_hl - tcphdr_offset;
 
     if (((len || show_empty) && (((int)(*match_func)(data, len)) != invert_match))
 	|| keep_matching) { 
@@ -480,7 +483,10 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
     }
 
     data = ((char*)udp) + udphdr_offset;
-    len = ntohs(ip_packet->ip_len) - ip_hl - udphdr_offset;
+
+    if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
+      len -= ip_hl + udphdr_offset;
+    else len = h->caplen - link_offset - ip_hl - udphdr_offset;
 
     if (((len || show_empty) && (((int)(*match_func)(data, len)) != invert_match))
 	|| keep_matching) { 
@@ -529,7 +535,10 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
     }
 
     data = ((char*)ic) + icmphdr_offset;
-    len = ntohs(ip_packet->ip_len) - ip_hl - icmphdr_offset;
+
+    if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
+      len -= ip_hl + icmphdr_offset;
+    else len = h->caplen - link_offset - ip_hl - icmphdr_offset;
 
     if (((len || show_empty) && (((int)(*match_func)(data, len)) != invert_match))
 	|| keep_matching) { 
