@@ -22,8 +22,13 @@ MANPAGE=ngrep.8
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
-BINDIR      = @bindir@
-MANDIR      = @mandir@/man8
+
+bindir      = $(prefix)/bin
+datadir     = $(prefix)/share
+mandir      = $(datadir)/man
+
+BINDIR_INSTALL = $(prefix)/bin
+MANDIR_INSTALL = $(mandir)/man8
 
 INSTALL = ./install-sh
 
@@ -43,8 +48,8 @@ static: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET).static -static $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 install: $(TARGET)
-	$(INSTALL) -c -m 0755 $(TARGET)  $(DESTDIR)/$(BINDIR)/$(TARGET)
-	$(INSTALL) -c -m 0644 $(MANPAGE) $(DESTDIR)/$(MANDIR)/$(MANPAGE)
+	$(INSTALL) -c -m 0755 $(TARGET)  $(DESTDIR)/$(BINDIR_INSTALL)/$(TARGET)
+	$(INSTALL) -c -m 0644 $(MANPAGE) $(DESTDIR)/$(MANDIR_INSTALL)/$(MANPAGE)
 
 pcre: 
 	@( cd pcre-3.4; make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. )
