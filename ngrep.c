@@ -1149,7 +1149,35 @@ void drop_privs(void) {
 void usage(int e) {
     printf("usage: ngrep <-LhXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "             <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>\n"
-           "             <-P char> <-F file> <match expression> <bpf filter>\n");
+           "             <-P char> <-F file> <match expression> <bpf filter>\n"
+           "   -h  is help/usage\n"
+           "   -V  is version information\n"
+           "   -q  is be quiet (don't print packet reception hash marks)\n"
+           "   -e  is show empty packets\n"
+           "   -i  is ignore case\n"
+           "   -v  is invert match\n"
+           "   -R  is don't do privilege revocation logic\n"
+           "   -x  is print in alternate hexdump format\n"
+           "   -X  is interpret match expression as hexadecimal\n"
+           "   -w  is word-regex (expression must match as a word)\n"
+           "   -p  is don't go into promiscuous mode\n"
+           "   -l  is make stdout line buffered\n"
+           "   -D  is replay pcap_dumps with their recorded time intervals\n"
+           "   -t  is print timestamp every time a packet is matched\n"
+           "   -T  is print delta timestamp every time a packet is matched\n"
+           "   -M  is don't do multi-line match (do single-line match instead)\n"
+           "   -I  is read packet stream from pcap format file pcap_dump\n"
+           "   -O  is dump matched packets in pcap format to pcap_dump\n"
+           "   -n  is look at only num packets\n"
+           "   -d  is use specified device instead of the pcap default\n"
+           "   -A  is dump num packets after a match\n"
+           "   -s  is set the bpf caplen\n"
+           "   -S  is set the limitlen on matched packets\n"
+           "   -W  is set the dump format (normal, byline, none)\n"
+           "   -c  is force the column width to the specified size\n"
+           "   -P  is set the non-printable display char to what is specified\n"
+           "   -F  is read the bpf filter from the specified file\n"
+           "");
 
     exit(e);
 }
@@ -1175,8 +1203,8 @@ void clean_exit(int sig) {
 
     if (bin_data) free(bin_data);
 
-    if (!quiet && sig >= 0 && !read_file &&
-        pd && !pcap_stats(pd, &s))
+    if (!quiet && sig >= 0 && !read_file
+     && pd && !pcap_stats(pd, &s))
         printf("%u received, %u dropped\n", s.ps_recv, s.ps_drop);
 
     if (pd)      pcap_close(pd);
