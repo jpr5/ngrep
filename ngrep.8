@@ -14,7 +14,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hXViwqpevxlDtTs> <-IO 
+.B ngrep <-hXViwqpevxlDtT> <-IO 
 .I pcap_dump
 .B > < -n
 .I num
@@ -22,6 +22,8 @@ ngrep \- network grep
 .I dev
 .B > < -A 
 .I num
+.B > < -s 
+.I snaplen
 .B > < 
 .I match expression
 .B > < 
@@ -92,8 +94,8 @@ a packet is matched.
 Print a timestamp in the form of +S.UUUUUU, indicating the delta 
 between packet matches.
 
-.IP -s
-Set the bpf caplen (default 65536).
+.IP "-s snaplen"
+Set the bpf caplen to snaplen (default 65536).
 
 .IP "-I pcap_dump"
 Input file pcap_dump into ngrep.  Works with any pcap-compatible dump

@@ -24,8 +24,8 @@ Description:
   
 Usage:
 
-  ngrep <-hXViwqpevxlDtTs> <-IO pcap_dump> <-n num> <-d dev> <-A num>
-			   <match expression> <bpf filter>
+  ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>
+			  <-s snaplen> <match expression> <bpf filter>
 
   -h  is help/usage
   -X  is interpret match expression as hexadecimal
