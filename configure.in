@@ -14,12 +14,13 @@ echo 'Configuring System ...'
 echo
 
 AC_CANONICAL_SYSTEM
-
 AC_PROG_CC
-AC_PREFIX_DEFAULT(/usr/local)
-AC_PREFIX_PROGRAM(tcpdump)
-
 AC_HEADER_STDC
+
+AC_PREFIX_DEFAULT(/usr/local) 
+if test -n "`which tcpdump`"; then
+   AC_PREFIX_PROGRAM(tcpdump)
+fi
 
 dnl
 dnl The following are globals that we tack on to the associated

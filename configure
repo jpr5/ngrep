@@ -272,7 +272,7 @@ PACKAGE_BUGREPORT=
 
 ac_unique_file="ngrep.c"
 ac_default_prefix=/usr/local
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT ac_prefix_program CPP EGREP REGEX_TARGET REGEX_OBJS OS STRIPFLAG PCAP_INCLUDE PCAP_LINK EXTRA_DEFINES EXTRA_INCLUDES EXTRA_LIBS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP ac_prefix_program REGEX_TARGET REGEX_OBJS OS STRIPFLAG PCAP_INCLUDE PCAP_LINK EXTRA_DEFINES EXTRA_INCLUDES EXTRA_LIBS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1346,7 +1346,6 @@ test -n "$target_alias" &&
   test "$program_prefix$program_suffix$program_transform_name" = \
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -2216,77 +2215,6 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-if test "x$prefix" = xNONE; then
-  echo $ECHO_N "checking for prefix by $ECHO_C" >&6
-  # Extract the first word of "tcpdump", so it can be a program name with args.
-set dummy tcpdump; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_path_ac_prefix_program+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $ac_prefix_program in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_ac_prefix_program="$ac_prefix_program" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_ac_prefix_program="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-  ;;
-esac
-fi
-ac_prefix_program=$ac_cv_path_ac_prefix_program
-
-if test -n "$ac_prefix_program"; then
-  echo "$as_me:$LINENO: result: $ac_prefix_program" >&5
-echo "${ECHO_T}$ac_prefix_program" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-  if test -n $ac_prefix_program; then
-    prefix=`(dirname "$ac_prefix_program") 2>/dev/null ||
-$as_expr X"$ac_prefix_program" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-         X"$ac_prefix_program" : 'X\(//\)[^/]' \| \
-         X"$ac_prefix_program" : 'X\(//\)$' \| \
-         X"$ac_prefix_program" : 'X\(/\)' \| \
-         .     : '\(.\)' 2>/dev/null ||
-echo X"$ac_prefix_program" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{ s//\1/; q; }
-  	  /^X\(\/\/\)[^/].*/{ s//\1/; q; }
-  	  /^X\(\/\/\)$/{ s//\1/; q; }
-  	  /^X\(\/\).*/{ s//\1/; q; }
-  	  s/.*/./; q'`
-    prefix=`(dirname "$prefix") 2>/dev/null ||
-$as_expr X"$prefix" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-         X"$prefix" : 'X\(//\)[^/]' \| \
-         X"$prefix" : 'X\(//\)$' \| \
-         X"$prefix" : 'X\(/\)' \| \
-         .     : '\(.\)' 2>/dev/null ||
-echo X"$prefix" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{ s//\1/; q; }
-  	  /^X\(\/\/\)[^/].*/{ s//\1/; q; }
-  	  /^X\(\/\/\)$/{ s//\1/; q; }
-  	  /^X\(\/\).*/{ s//\1/; q; }
-  	  s/.*/./; q'`
-  fi
-fi
-
-
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -2697,6 +2625,79 @@ _ACEOF
 
 fi
 
+
+
+if test -n "`which tcpdump`"; then
+   if test "x$prefix" = xNONE; then
+  echo $ECHO_N "checking for prefix by $ECHO_C" >&6
+  # Extract the first word of "tcpdump", so it can be a program name with args.
+set dummy tcpdump; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_ac_prefix_program+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $ac_prefix_program in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_prefix_program="$ac_prefix_program" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_prefix_program="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+ac_prefix_program=$ac_cv_path_ac_prefix_program
+
+if test -n "$ac_prefix_program"; then
+  echo "$as_me:$LINENO: result: $ac_prefix_program" >&5
+echo "${ECHO_T}$ac_prefix_program" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+  if test -n $ac_prefix_program; then
+    prefix=`(dirname "$ac_prefix_program") 2>/dev/null ||
+$as_expr X"$ac_prefix_program" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+         X"$ac_prefix_program" : 'X\(//\)[^/]' \| \
+         X"$ac_prefix_program" : 'X\(//\)$' \| \
+         X"$ac_prefix_program" : 'X\(/\)' \| \
+         .     : '\(.\)' 2>/dev/null ||
+echo X"$ac_prefix_program" |
+    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{ s//\1/; q; }
+  	  /^X\(\/\/\)[^/].*/{ s//\1/; q; }
+  	  /^X\(\/\/\)$/{ s//\1/; q; }
+  	  /^X\(\/\).*/{ s//\1/; q; }
+  	  s/.*/./; q'`
+    prefix=`(dirname "$prefix") 2>/dev/null ||
+$as_expr X"$prefix" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+         X"$prefix" : 'X\(//\)[^/]' \| \
+         X"$prefix" : 'X\(//\)$' \| \
+         X"$prefix" : 'X\(/\)' \| \
+         .     : '\(.\)' 2>/dev/null ||
+echo X"$prefix" |
+    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{ s//\1/; q; }
+  	  /^X\(\/\/\)[^/].*/{ s//\1/; q; }
+  	  /^X\(\/\/\)$/{ s//\1/; q; }
+  	  /^X\(\/\).*/{ s//\1/; q; }
+  	  s/.*/./; q'`
+  fi
+fi
+
+fi
 
 
 EXTRA_DEFINES=""
@@ -4182,9 +4183,9 @@ s,@CPPFLAGS@,$CPPFLAGS,;t t
 s,@ac_ct_CC@,$ac_ct_CC,;t t
 s,@EXEEXT@,$EXEEXT,;t t
 s,@OBJEXT@,$OBJEXT,;t t
-s,@ac_prefix_program@,$ac_prefix_program,;t t
 s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
+s,@ac_prefix_program@,$ac_prefix_program,;t t
 s,@REGEX_TARGET@,$REGEX_TARGET,;t t
 s,@REGEX_OBJS@,$REGEX_OBJS,;t t
 s,@OS@,$OS,;t t
