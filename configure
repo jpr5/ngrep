@@ -2720,12 +2720,10 @@ else
 fi;
 
 if test $use_pcap_restart = yes; then
-   cat >>confdefs.h <<\_ACEOF
-#define USE_PCAP_RESTART 1
-_ACEOF
-
+   USE_PCAP_RESTART="1"
+else
+   USE_PCAP_RESTART="0"
 fi
-
 
 
 # Check whether --with-dropprivs-user or --without-dropprivs-user was given.
@@ -2739,10 +2737,6 @@ else
   DROPPRIVS_USER="nobody"
 
 fi;
-cat >>confdefs.h <<_ACEOF
-#define DROPPRIVS_USER "$DROPPRIVS_USER"
-_ACEOF
-
 
 # Check whether --enable-pcre or --disable-pcre was given.
 if test "${enable_pcre+set}" = set; then
@@ -2776,12 +2770,6 @@ else
    USE_DROPPRIVS="0"
 fi
 
-cat >>confdefs.h <<_ACEOF
-#define USE_DROPPRIVS $USE_DROPPRIVS
-_ACEOF
-
-
-
 
 # Check whether --enable-dropprivs-onlyroot or --disable-dropprivs-onlyroot was given.
 if test "${enable_dropprivs_onlyroot+set}" = set; then
@@ -2800,11 +2788,6 @@ if test $use_dropprivs_onlyroot = yes; then
 else
    DROPPRIVS_ONLY_ROOT="0"
 fi
-
-cat >>confdefs.h <<_ACEOF
-#define DROPPRIVS_ONLY_ROOT $DROPPRIVS_ONLY_ROOT
-_ACEOF
-
 
 
 
@@ -2836,9 +2819,6 @@ fi
 
 
 
-cat >>confdefs.h <<_ACEOF
-#define USE_PCRE $USE_PCRE
-_ACEOF
 
 
 echo
@@ -2865,16 +2845,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then
-  present=1 && echo yes
+  HAVE_DLT_LINUX_SLL="1" && echo yes
 else
-  present=0 && echo no
+  HAVE_DLT_LINUX_SLL="0" && echo no
 fi
 rm -f conftest*
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DLT_LINUX_SLL $present
-_ACEOF
-
 
 
 present=""
@@ -2896,15 +2871,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then
-  present=1 && echo yes
+  HAVE_DLT_LOOP="1" && echo yes
 else
-  present=0 && echo no
+  HAVE_DLT_LOOP="0" && echo no
 fi
 rm -f conftest*
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DLT_LOOP $present
-_ACEOF
 
 
 
@@ -2927,15 +2898,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then
-  present=1 && echo yes
+  HAVE_DLT_IEEE802_11="1" && echo yes
 else
-  present=0 && echo no
+  HAVE_DLT_IEEE802_11="0" && echo no
 fi
 rm -f conftest*
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DLT_IEEE802_11 $present
-_ACEOF
 
 
 
@@ -2958,21 +2925,17 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then
-  present=1 && echo yes
+  HAVE_DLT_RAW="1" && echo yes
 else
-  present=0 && echo no
+  HAVE_DLT_RAW="0" && echo no
 fi
 rm -f conftest*
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DLT_RAW $present
-_ACEOF
 
 
 
 
 STRIPFLAG="-s"
-dumb_udphdr="0"
+HAVE_DUMB_UDPHDR="0"
 
 case "$target_os" in
 
@@ -3023,12 +2986,12 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  echo "no";  dumb_udphdr="0"
+  HAVE_DUMB_UDPHDR="0" && echo "no"
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-echo "yes"; dumb_udphdr="1"
+HAVE_DUMB_UDPHDR="1" && echo "yes"
 fi
 rm -f conftest.$ac_objext conftest.$ac_ext
 
@@ -3225,12 +3188,55 @@ Try playing with the build host and target options.
 esac
 
 
+
+EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
+
+
+
 cat >>confdefs.h <<_ACEOF
-#define HAVE_DUMB_UDPHDR $dumb_udphdr
+#define USE_PCAP_RESTART $USE_PCAP_RESTART
 _ACEOF
 
 
-EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
+cat >>confdefs.h <<_ACEOF
+#define USE_PCRE $USE_PCRE
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define USE_DROPPRIVS $USE_DROPPRIVS
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define DROPPRIVS_USER "$DROPPRIVS_USER"
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define DROPPRIVS_ONLY_ROOT $DROPPRIVS_ONLY_ROOT
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DUMB_UDPHDR $HAVE_DUMB_UDPHDR
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DLT_RAW $HAVE_DLT_RAW
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DLT_IEEE802_11 $HAVE_DLT_IEEE802_11
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DLT_LOOP $HAVE_DLT_LOOP
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DLT_LINUX_SLL $HAVE_DLT_LINUX_SLL
+_ACEOF
+
 
 
 
