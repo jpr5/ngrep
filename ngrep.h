@@ -7,7 +7,11 @@
  *
  */
 
+#define VERSION "1.38"
+
+
 #define ETHHDR_SIZE 14 
+#define TOKENRING_SIZE 22
 #define PPPHDR_SIZE 4 
 #define SLIPHDR_SIZE 16
 #define RAWHDR_SIZE 0
