@@ -1,7 +1,7 @@
 
 Program: ngrep
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.41 (8.9.2003)
+Version: 1.42 (3.28.2004)
 
 
 Goal:
@@ -24,16 +24,16 @@ Description:
 
 Usage:
 
-  ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>
-                          <-s snaplen> <-S limitlen> <match expression>
-                          <bpf filter>
+  ngrep <-hXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>
+                <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>
+                <-P char> <-F file> <match expression> <bpf filter>
 
   -h  is help/usage
   -X  is interpret match expression as hexadecimal
   -V  is version information
   -i  is ignore case
   -w  is word-regex (expression must match as a word)
-  -q  is be quiet
+  -q  is be quiet (don't print packet reception hash marks)
   -p  is don't go into promiscuous mode
   -e  is show empty packets
   -v  is invert match
@@ -42,13 +42,19 @@ Usage:
   -D  is replay pcap_dumps with their recorded time intervals
   -t  is print timestamp every time a packet is matched
   -T  is print delta timestamp every time a packet is matched
-  -s  is set the bpf caplen
-  -S  is set the limitlen on matched packets
+  -R  is don't do privilege revocation logic
+  -M  is don't do multi-line match (do single-line match instead)
   -O  is dump matched packets in pcap format to pcap_dump
   -I  is read packet stream from pcap format file pcap_dump
   -n  is look at only num packets
   -d  is use a device different from the default (pcap)
   -A  is dump num packets after a match
+  -s  is set the bpf caplen
+  -S  is set the limitlen on matched packets
+  -W  is set the dump format (normal, byline, none)
+  -c  is force the column width to the specified size
+  -P  is set the non-printable display char to what is specified
+  -F  is read the bpf filter from the specified file
 
   <match expression>   is either an extended regular expression or a
                        hexadecimal string.  see the man page for more
@@ -87,6 +93,10 @@ Tips:
   % ngrep '' not port 80
   interface: eth0 (192.168.1.0/255.255.255.0)
   filter: ip and ( not port 80 )
+
+
+  Please see http://ngrep.sourceforge.net/usage.html for more detailed
+  examples describing ngrep usage.
 
 
 Miscellany:
