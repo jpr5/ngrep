@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000  Jordan Ritter <jpr5@darkridge.com>
+ * Copyright (c) 2001  Jordan Ritter <jpr5@darkridge.com>
  *
  * Please refer to the COPYRIGHT file for more information. 
  * 
@@ -217,7 +217,9 @@ int main(int argc, char **argv) {
       free(filter); 
       filter = get_filter(&argv[optind-1]); 
 
+#ifdef NEED_RESTART
       PCAP_RESTART();
+#endif
       if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
 	pcap_perror(pd, "pcap compile");
 	clean_exit(-1);
@@ -565,11 +567,12 @@ int re_match_func(char *data, int len) {
   }
 #else
   switch (re_search(&pattern, data, len, 0, len, 0)) {
-    case -2: 
-      perror("she's dead, jim\n");
-      clean_exit(-2);
-    case -1:
-      return 0;
+   case -2: 
+     perror("she's dead, jim\n");
+     clean_exit(-2);
+
+   case -1:
+     return 0;
   }
 #endif
   

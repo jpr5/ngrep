@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2000  Jordan Ritter <jpr5@darkridge.com>
+ * Copyright (c) 2001  Jordan Ritter <jpr5@darkridge.com>
  *
  * Please refer to the COPYRIGHT file for more information. 
  *
