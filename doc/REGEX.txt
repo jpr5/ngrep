@@ -21,7 +21,7 @@ A note about PCRE vs. GNU regex:
       well-formulated regex certainly performs more efficiently than a
       simple substring match.  However, this test is reasonably
       indicative of how most people use ngrep, so the test results are
-      still important.
+      still useful.
 
       Granted, on the single-match level the time difference is
       absolutely unnoticeable (it took 100 million loop iterations to
@@ -29,8 +29,8 @@ A note about PCRE vs. GNU regex:
       you.  Likewise, the stripped binary sizes are also within 10k of
       each other on the test compile box.
 
-      If licensing terms are more sensitive for you than speed, then
-      compile against PCRE which is available under the Artistic
+      If licensing terms are more sensitive for you than speed then
+      compile against PCRE, which is available under the Artistic
       License (Free as in Beer).  Otherwise, in all other cases the
       GNU regex library is the best candidate, and the speed can
       really help when piping those 500MB pcap dump files through
