@@ -1,6 +1,7 @@
 v1.39.1	
 	o added in AIX includes
 	o added BSD* includes for display updates
+	o added -p (don't go into promiscuous mode)
 
 v1.39
 	o in standard match mode, the display now updates when window
