@@ -1178,7 +1178,7 @@ void usage(int e) {
            "   -F  is read the bpf filter from the specified file\n"
 #if defined(_WIN32)
            "   -d  is use specified device (index) instead of the pcap default\n"
-           "   -L  is show winpcap device list index\n"
+           "   -L  is show the winpcap device list index\n"
 #else
            "   -d  is use specified device instead of the pcap default\n"
 #endif
