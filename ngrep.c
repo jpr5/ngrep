@@ -56,7 +56,7 @@ int show_empty = 0, show_hex = 0, quiet = 0;
 int match_after = 0, keep_matching = 0;
 int invert_match = 0, bin_match = 0;
 int matches = 0, max_matches = 0;
-int live_read = 1, want_delay = 0;;
+int live_read = 1, want_delay = 0;
 
 char pc_err[PCAP_ERRBUF_SIZE];
 const char *re_err;
