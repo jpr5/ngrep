@@ -380,14 +380,18 @@ int main(int argc, char **argv) {
     link_offset = RAWHDR_SIZE;
     break;
 
+#ifdef HAVE_LOOP
   case DLT_LOOP:
+#endif
   case DLT_NULL:
     link_offset = LOOPHDR_SIZE;
     break;
 
+#ifdef HAVE_SLL
   case DLT_LINUX_SLL:
     link_offset = ISDNHDR_SIZE;
     break;
+#endif
 
   default:
     fprintf(stderr, "fatal: unsupported interface type %d\n", pcap_datalink(pd));
