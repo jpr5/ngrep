@@ -60,6 +60,7 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
+#include <netinet/igmp.h>
 #endif
 
 #if defined(_WIN32)
@@ -713,6 +714,86 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                     printf(" %s%d@%d:%d\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
                            frag_offset, len);
                 else printf("\n");
+
+                if (pd_dump)
+                    pcap_dump((u_char*)pd_dump, h, p);
+
+                if (quiet < 2)
+                    dump_func(data, len);
+            }
+        } break;
+
+        case IPPROTO_IGMP: {
+            struct igmp* ig = (struct igmp *)(((char *)ip_packet) + ip_hl);
+            unsigned igmphdr_offset = fragmented?0:4;
+
+            if (!quiet) {
+                printf("#");
+                fflush(stdout);
+            }
+
+            data = ((char*)ig) + igmphdr_offset;
+
+            if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
+                len -= ip_hl + igmphdr_offset;
+            else len = h->caplen - link_offset - ip_hl - igmphdr_offset;
+
+            if (len > limitlen) len = limitlen;
+
+            if (((len || show_empty) && (((int)(*match_func)(data, len)) != invert_match))
+                || keep_matching) {
+
+                if (!live_read && want_delay)
+                    dump_delay(h);
+
+                printf("\nG ");
+
+                if (print_time)
+                    print_time(h);
+
+                printf("%s -", inet_ntoa(ip_packet->ip_src));
+                printf("> %s", inet_ntoa(ip_packet->ip_dst));
+
+                if (igmphdr_offset || !frag_offset)
+                    printf(" %d:%d", ig->igmp_type, ig->igmp_code);
+
+                if (fragmented)
+                    printf(" %s%d@%d:%d\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
+                           frag_offset, len);
+                else printf("\n");
+
+                if (pd_dump)
+                    pcap_dump((u_char*)pd_dump, h, p);
+
+                if (quiet < 2)
+                    dump_func(data, len);
+            }
+        } break;
+
+        default: {
+            data = ((char*)((char *)ip_packet) + ip_hl);;
+
+            if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
+                len -= ip_hl;
+            else len = h->caplen - link_offset - ip_hl;
+
+            if (len > limitlen) len = limitlen;
+
+            if (((len || show_empty) && (((int)(*match_func)(data, len)) != invert_match))
+                || keep_matching) {
+
+                if (!live_read && want_delay)
+                    dump_delay(h);
+
+                printf("\n? ");
+
+                if (print_time)
+                    print_time(h);
+
+                printf("%s -", inet_ntoa(ip_packet->ip_src));
+                printf("> %s ", inet_ntoa(ip_packet->ip_dst));
+
+                printf("[proto %d]\n", ip_packet->ip_p);
 
                 if (pd_dump)
                     pcap_dump((u_char*)pd_dump, h, p);
