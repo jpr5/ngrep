@@ -26,6 +26,7 @@
 #include <netinet/in_systm.h>
 #include <net/route.h>
 #include <sys/mbuf.h>
+#include <arpa/inet.h>
 #include <unistd>
 #include <pwd.h>
 #endif

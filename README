@@ -1,10 +1,10 @@
 
-Program: ngrep 
+Program: ngrep
 Author: Jordan Ritter <jpr5@darkridge.com>
 Version: 1.41-cvs (1.21.2003)
 
 
-Goal: 
+Goal:
 
   A program that mimicks as much functionality in GNU grep as
   possible, applied at the network layer.
@@ -21,12 +21,12 @@ Description:
   same fashion as more common packet sniffing tools, such as tcpdump
   and snoop.
 
-  
+
 Usage:
 
   ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>
-			  <-s snaplen> <-S limitlen> <match expression> 
-			  <bpf filter>
+                          <-s snaplen> <-S limitlen> <match expression>
+                          <bpf filter>
 
   -h  is help/usage
   -X  is interpret match expression as hexadecimal
@@ -45,15 +45,15 @@ Usage:
   -s  is set the bpf caplen
   -S  is set the limitlen on matched packets
   -O  is dump matched packets in pcap format to pcap_dump
-  -I  is read packet stream from pcap format file pcap_dump 
+  -I  is read packet stream from pcap format file pcap_dump
   -n  is look at only num packets
   -d  is use a device different from the default (pcap)
   -A  is dump num packets after a match
 
   <match expression>   is either an extended regular expression or a
                        hexadecimal string.  see the man page for more
-                       information. 
-                       
+                       information.
+
   <bpf filter>         is any bpf filter statement.
 
 
@@ -72,7 +72,7 @@ Tips:
   o Hexadecimal expressions can be in straight numeric form,
     'DEADBEEF', or in symbolic form, '0xDEADBEEF'.  A byte is the
     smallest unit of measure you can match against.
- 
+
   o As of v1.28, ngrep doesn't require a match expression.  There are
     cases where it will be confused and think part of your bpf filter
     is the match expression, as in:
@@ -112,21 +112,23 @@ Useful sites:
   o Windows libpcap:
 
       http://netgroup-serv.polito.it/winpcap/install/
-  
+
 
 Known Working Platforms:
 
   o Linux 2.0 - 2.4
      (RH6+, SuSE, TurboLinux, Debian)/x86
      RedHat/alpha
-     Debian/powerpc
      Cobalt (Qube2) Linux/MIPS
-     Slackware 7
-  o Solaris 2.5.1, 2.6/SPARC, Solaris 7, Solaris 8/SPARC
+     Slackware 7, 8.1
+     Gentoo
+  o Solaris 2.5.1, 2.6/SPARC, Solaris 7, Solaris 8/SPARC, Solaris 9/SPARC
   o FreeBSD 2.2.5, 3.1, 3.2, 3.4-RC, 3.4-RELEASE, 4.0
-  o OpenBSD 2.4 (after upgrading pcap from 0.2), 2.9, 3.0
+  o OpenBSD 2.4 (after upgrading pcap from 0.2), 2.9, 3.0, 3.1
   o NetBSD 1.5/SPARC
-  o Digital Unix V4.0D (OSF/1)
+  o Digital Unix V4.0D (OSF/1), Tru64 5.1A
   o HPUX 11
   o IRIX
   o AIX 4.3.3.0/PowerPC
+  o BeOS R5
+  o Mac OS X 10.2, 10.2.6
