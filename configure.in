@@ -54,9 +54,10 @@ AC_ARG_ENABLE(pcap-restart,
 ])
 
 if test $use_pcap_restart = yes; then
-   AC_DEFINE(USE_PCAP_RESTART, 1)
+   USE_PCAP_RESTART="1"
+else
+   USE_PCAP_RESTART="0"
 fi
-
 
 dnl
 dnl Allow user to specify alternate ``nobody'' user.
@@ -69,7 +70,6 @@ AC_ARG_WITH(dropprivs-user,
 [
   DROPPRIVS_USER="nobody"
 ])
-AC_DEFINE_UNQUOTED(DROPPRIVS_USER, "$DROPPRIVS_USER")
 
 dnl 
 dnl pcre library compatibility stuff
@@ -103,9 +103,6 @@ else
    USE_DROPPRIVS="0"
 fi
 
-AC_DEFINE_UNQUOTED(USE_DROPPRIVS, $USE_DROPPRIVS)
-
-
 dnl
 dnl Some people have complained that they don't care to drop
 dnl privileges if they're not root, hence this flag.
@@ -125,8 +122,6 @@ if test $use_dropprivs_onlyroot = yes; then
 else 
    DROPPRIVS_ONLY_ROOT="0"
 fi
-
-AC_DEFINE_UNQUOTED(DROPPRIVS_ONLY_ROOT, $DROPPRIVS_ONLY_ROOT)
 
 
 dnl
@@ -161,7 +156,7 @@ fi
 
 AC_SUBST(REGEX_TARGET)
 AC_SUBST(REGEX_OBJS)
-AC_DEFINE_UNQUOTED(USE_PCRE, $USE_PCRE)
+
 
 echo
 echo 'Configuring Network Grep (ngrep) ...'
@@ -181,9 +176,7 @@ AC_EGREP_CPP(yes,
 yes
 #endif
 ],
-[present=1 && echo yes], [present=0 && echo no])
-AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL, $present) 
-
+[HAVE_DLT_LINUX_SLL="1" && echo yes], [HAVE_DLT_LINUX_SLL="0" && echo no])
 
 present=""
 AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
@@ -194,8 +187,7 @@ AC_EGREP_CPP(yes,
 yes
 #endif
 ],
-[present=1 && echo yes], [present=0 && echo no])
-AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP, $present) 
+[HAVE_DLT_LOOP="1" && echo yes], [HAVE_DLT_LOOP="0" && echo no])
 
 
 present=""
@@ -207,8 +199,7 @@ AC_EGREP_CPP(yes,
 yes
 #endif
 ],
-[present=1 && echo yes], [present=0 && echo no])
-AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11, $present) 
+[HAVE_DLT_IEEE802_11="1" && echo yes], [HAVE_DLT_IEEE802_11="0" && echo no])
 
 
 present=""
@@ -220,8 +211,7 @@ AC_EGREP_CPP(yes,
 yes
 #endif
 ],
-[present=1 && echo yes], [present=0 && echo no])
-AC_DEFINE_UNQUOTED(HAVE_DLT_RAW, $present) 
+[HAVE_DLT_RAW="1" && echo yes], [HAVE_DLT_RAW="0" && echo no])
 
 
 dnl
@@ -229,7 +219,7 @@ dnl OS-specific options
 dnl
 
 STRIPFLAG="-s"
-dumb_udphdr="0"
+HAVE_DUMB_UDPHDR="0"
 
 case "$target_os" in
 
@@ -253,8 +243,8 @@ case "$target_os" in
 struct udphdr foo;
 unsigned short bar = foo.uh_sport;
 ,
-	echo "no";  dumb_udphdr="0",
-        echo "yes"; dumb_udphdr="1")
+	HAVE_DUMB_UDPHDR="0" && echo "no",
+	HAVE_DUMB_UDPHDR="1" && echo "yes")
 
         ;;
 
@@ -312,9 +302,29 @@ Try playing with the build host and target options.
 esac
 
 AC_SUBST(STRIPFLAG)
-AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR, $dumb_udphdr)
 
 EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
+
+
+dnl
+dnl Now that we're past the OS-specific stuff, which could have
+dnl modified our USE_* and other defines, define them all now.
+dnl 
+
+AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,    $USE_PCAP_RESTART)
+
+AC_DEFINE_UNQUOTED(USE_PCRE,            $USE_PCRE)
+
+AC_DEFINE_UNQUOTED(USE_DROPPRIVS,       $USE_DROPPRIVS)
+AC_DEFINE_UNQUOTED(DROPPRIVS_USER,     "$DROPPRIVS_USER")
+AC_DEFINE_UNQUOTED(DROPPRIVS_ONLY_ROOT, $DROPPRIVS_ONLY_ROOT)
+
+AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR,    $HAVE_DUMB_UDPHDR)
+
+AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,        $HAVE_DLT_RAW) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11, $HAVE_DLT_IEEE802_11) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,       $HAVE_DLT_LOOP) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,  $HAVE_DLT_LINUX_SLL) 
 
 
 dnl
