@@ -1,10 +1,10 @@
 .\" $Id$
-.\" 
+.\"
 .\" All content, except portions of the bpf filter explanation, are:
 .\"
-.\" Copyright (c) 2001  Jordan Ritter <jpr5@darkridge.com> 
+.\" Copyright (c) 2001  Jordan Ritter <jpr5@darkridge.com>
 .\"
-.\" Please refer to the COPYRIGHT file for more information.  
+.\" Please refer to the LICENSE file for more information.
 
 .TH NGREP 8 "December 2001" Linux "User Manuals"
 
@@ -14,21 +14,21 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hXViwqpevxlDtT> <-IO 
+.B ngrep <-hXViwqpevxlDtT> <-IO
 .I pcap_dump
 .B > < -n
 .I num
-.B > < -d 
+.B > < -d
 .I dev
-.B > < -A 
+.B > < -A
 .I num
-.B > < -s 
+.B > < -s
 .I snaplen
-.B > < -S 
+.B > < -S
 .I limitlen
-.B > < 
+.B > <
 .I match expression
-.B > < 
+.B > <
 .I bpf filter
 .B >
 
@@ -42,7 +42,7 @@ Ethernet, PPP, SLIP, FDDI and null interfaces, and understands bpf
 filter logic in the same fashion as more common packet sniffing tools,
 such as
 .BR tcpdump (8)
-and 
+and
 .BR snoop (1).
 
 
@@ -57,25 +57,25 @@ explanation of \fImatch expression\fP below.
 .IP -V
 Display version information.
 
-.IP -i 
-Ignore case for the regex expression. 
+.IP -i
+Ignore case for the regex expression.
 
 .IP -w
 Match the regex expression as a word.
 
-.IP -q 
+.IP -q
 Be quiet; don't output any information other than packet headers and
 their payloads (if relevant).
 
 .IP -p
 Don't put the interface into promiscuous mode.
 
-.IP -e 
+.IP -e
 Show empty packets.  Normally empty packets are discarded because they
 have no payload to search.  If specified, empty packets will be shown,
 regardless of the specified regex expression.
 
-.IP -v 
+.IP -v
 Invert the match; only display packets that don't match.
 
 .IP -x
@@ -86,14 +86,14 @@ Make stdout line buffered.
 
 .IP -D
 When reading pcap_dump files, replay them at their recorded time
-intervals (mimic realtime).  
+intervals (mimic realtime).
 
 .IP -t
 Print a timestamp in the form of YYYY/MM/DD HH:MM:SS.UUUUUU everytime
 a packet is matched.
 
-.IP -T 
-Print a timestamp in the form of +S.UUUUUU, indicating the delta 
+.IP -T
+Print a timestamp in the form of +S.UUUUUU, indicating the delta
 between packet matches.
 
 .IP "-s snaplen"
@@ -123,13 +123,13 @@ By default ngrep will select a default interface to listen on.  Use
 this option to force ngrep to listen on interface \fIdev\fP.
 
 .IP "-A num"
-Dump \fInum\fP packets of trailing context after matching a packet. 
+Dump \fInum\fP packets of trailing context after matching a packet.
 
 .IP "\fI match expression\fP"
 A match expression is either an extended regular expression, or if the
 \fI-X\fP option is specified, a string signifying a hexadecimal value.
 An extended regular expression follows the rules as implemented by the
-.B GNU regex 
+.B GNU regex
 .BR library .
 Hexadecimal expressions can optionally be preceded by `0x'.  E.g.,
 `DEADBEEF', `0xDEADBEEF'.
@@ -425,11 +425,11 @@ are concatenated with spaces before being parsed.
 
 .SH DIAGNOSTICS
 
-Errors from 
+Errors from
 .B ngrep, libpcap,
 and the
 .B GNU regex library
-are all output to stderr. 
+are all output to stderr.
 
 .SH AUTHOR
 

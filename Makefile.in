@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2001  Jordan Ritter <jpr5@darkridge.com>
 #
-# Please refer to the COPYRIGHT file for more information.
+# Please refer to the LICENSE file for more information.
 
 CC=@CC@
 
