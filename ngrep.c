@@ -44,8 +44,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/ioctl.h>
 
-#include "regex.h"
+#ifdef USE_PCRE
+#include "pcre-3.4/pcre.h"
+#else
+#include "regex-0.12/regex.h"
+#endif
+
 #include "ngrep.h"
 
 
@@ -59,10 +65,21 @@ int matches = 0, max_matches = 0;
 int live_read = 1, want_delay = 0;
 
 char pc_err[PCAP_ERRBUF_SIZE];
-const char *re_err;
+#ifdef USE_PCRE
+int err_offset;
+char *re_err = NULL;
+#else
+const char *re_err = NULL;
+#endif
 
 int re_match_word = 0, re_ignore_case = 0;
+
+#ifdef USE_PCRE
+pcre *pattern = NULL;
+pcre_extra *pattern_extra = NULL;
+#else 
 struct re_pattern_buffer pattern;
+#endif
 
 char *match_data = NULL, *bin_data = NULL, *filter = NULL;
 int (*match_func)() = &blank_match_func;
@@ -80,6 +97,8 @@ pcap_dumper_t *pd_dump = NULL;
 struct timeval prev_ts = {0, 0}, prev_delay_ts = {0,0};
 void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
+unsigned ws_row, ws_col;
+
 
 int main(int argc, char **argv) {
   int c;
@@ -88,6 +107,7 @@ int main(int argc, char **argv) {
   signal(SIGQUIT, clean_exit);
   signal(SIGABRT, clean_exit);
   signal(SIGPIPE, clean_exit);
+  signal(SIGWINCH, update_windowsize);
 
   while ((c = getopt(argc, argv, "hXViwqevxlDtTn:d:A:I:O:")) != EOF) {
     switch (c) {
@@ -247,6 +267,23 @@ int main(int argc, char **argv) {
       match_func = &bin_match_func;
 
     } else {
+
+#ifdef USE_PCRE
+      int pcre_options = PCRE_UNGREEDY;
+
+      // lowercase pattern
+      if (re_ignore_case) {
+	char *s = match_data;
+
+	while (*s) 
+	  *s++ = tolower(*s);
+
+	// do ignore case stuff for pcre
+	pcre_options |= PCRE_CASELESS;
+      }	
+      
+      re_err = malloc(512);
+#else
       re_syntax_options = RE_SYNTAX_EGREP;
       
       if (re_ignore_case) {
@@ -264,24 +301,40 @@ int main(int argc, char **argv) {
 	while (*s) 
 	  *s++ = tolower(*s);
       } else pattern.translate = NULL;
-      
+#endif
+
       if (re_match_word) {
 	char *word_regex = malloc(strlen(match_data) * 3 + strlen(WORD_REGEX));
 	sprintf(word_regex, WORD_REGEX, match_data, match_data, match_data);
 	match_data = word_regex;
       }
+
+#ifdef USE_PCRE
+      // compile pattern
+      pattern = pcre_compile(match_data, PCRE_UNGREEDY, (const char **)&re_err, &err_offset, 0);
+      if (!pattern) {
+	fprintf(stderr, "compile failed: %s\n", re_err);
+	clean_exit(-1);
+      }
+
+      // do extra study
+      pattern_extra = pcre_study(pattern, 0, (const char **)&re_err);
       
+      free(re_err);
+      re_err = NULL;
+#else
       re_err = re_compile_pattern(match_data, strlen(match_data), &pattern);
       if (re_err) {
 	fprintf(stderr, "regex compile: %s\n", re_err);
 	clean_exit(-1);
       }
-     
+
       pattern.fastmap = (char*)malloc(256);
       if (re_compile_fastmap(&pattern)) {
 	perror("fastmap compile failed");
 	clean_exit(-1);
       }
+#endif
 
       match_func = &re_match_func;
     }
@@ -336,6 +389,8 @@ int main(int argc, char **argv) {
       clean_exit(-1);
     } else printf("output: %s\n", dump_file);
   }
+
+  update_windowsize(0);
 
   while (pcap_loop(pd, 0, (pcap_handler)process, 0));
 
@@ -505,6 +560,12 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 
 
 int re_match_func(char *data, int len) {
+#ifdef USE_PCRE
+  switch(pcre_exec(pattern, 0, data, len, 0, 0, 0, 0)) {
+
+
+  }
+#else
   switch (re_search(&pattern, data, len, 0, len, 0)) {
     case -2: 
       perror("she's dead, jim\n");
@@ -512,6 +573,7 @@ int re_match_func(char *data, int len) {
     case -1:
       return 0;
   }
+#endif
   
   if (max_matches && ++matches > max_matches)
     clean_exit(0);
@@ -555,7 +617,7 @@ int blank_match_func(char *data, int len) {
 
 void dump(char *data, int len) {  
   if (len > 0) {
-    unsigned width = show_hex?16:70;
+    unsigned width = show_hex?16:(ws_col-5);
     char *str = data;
     int j, i = 0;
 
@@ -623,8 +685,14 @@ void clean_exit(int sig) {
   struct pcap_stat s;
   if (!quiet && sig >= 0) printf("exit\n");
 
+#ifdef USE_PCRE
+  if (re_err) free(re_err);
+  if (pattern) pcre_free(pattern);
+  if (pattern_extra) pcre_free(pattern_extra);
+#else
   if (pattern.translate) free(pattern.translate);
   if (pattern.fastmap) free(pattern.fastmap);
+#endif
 
   if (bin_data) free(bin_data);
   
@@ -726,4 +794,17 @@ void usage(int e) {
 void version(void) {
   printf("ngrep: V%s, %s\n", VERSION, rcsver);
   exit(0);
+}
+
+
+void update_windowsize(int e) {
+  const struct winsize ws;
+  
+  if (!ioctl(0, TIOCGWINSZ, &ws)) {
+    ws_row = ws.ws_row;
+    ws_col = ws.ws_col;
+  } else {
+    ws_row = 24;
+    ws_col = 80;
+  }
 }

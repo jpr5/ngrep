@@ -2,7 +2,7 @@ Todo:
 
 	o add non-ip protocols           (IPX and Appletalk are up next, maybe NetBeui?)
 
-        o switch to pcre for regex support  (TBC for next release)
+        o switch to pcre for regex support  (completed)
 
 	o add "Extra info", i.e. display ToS, seq, id, etc.
 
@@ -11,5 +11,5 @@ Todo:
 	o add ability for end user to use functional groupings and backreferences
 
 	o add detection of size of screen and adjust normal (non hex
-	  dump) format accordingly
+	  dump) format accordingly (complete)
 

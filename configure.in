@@ -19,7 +19,8 @@ AC_CHECK_HEADER(netinet/if_ether.h,AC_DEFINE(HAVE_IF_ETHER_H,1),)
 
 
 AC_MSG_CHECKING(for a complete set of pcap headers)
-possible_dirs="/usr/include /usr/include/pcap \
+possible_dirs="`eval echo -n ${includedir}` \
+	       /usr/include /usr/include/pcap \
                /usr/local/include /usr/local/include/pcap \
                /usr/share/include /usr/share/include/pcap"
 pcap_dir=""
@@ -68,6 +69,11 @@ AC_DEFINE(DLT_RAW, 12)
    fi
 fi
 
+pcap_prefix=`dirname $pcap_dir`
+CFLAGS="-L$pcap_prefix/lib $CFLAGS"
+
+dnl gcc reports -R as unknown option..
+dnl LDFLAGS="-R$pcap_prefix/lib $LDFLAGS"
 
 
 AC_C_CONST
@@ -76,6 +82,29 @@ AC_TYPE_SIGNAL
 AC_FUNC_ALLOCA
 
 
+dnl 
+dnl pcre library compatibility stuff
+dnl
+AC_ARG_WITH(pcre,
+[  --with-pcre             use libnet build directory],
+[ 
+  ( cd pcre-3.4; ./configure && make libtool chartables.c )
+  AC_DEFINE(USE_PCRE)
+  REGEX_TARGET='pcre'
+  REGEX_OBJS='pcre.o study.o'
+],
+[ 
+  ( cd regex-0.12; ./configure )
+  REGEX_TARGET='regex'
+  REGEX_OBJS='regex.o'
+]
+)
+AC_SUBST(REGEX_TARGET)
+AC_SUBST(REGEX_OBJS)
+
+dnl
+dnl OS-specific options
+dnl
 AC_DEFINE(_BSD_SOURCE)
 AC_DEFINE(__FAVOR_BSD)
 

@@ -1,3 +1,13 @@
+v1.39
+	o in standard match mode, display now updates when window
+	  sizes change
+        o win32: compiled with winpcap's pcap.h, which apparently
+	  breaks the pcap standard and introduces its own data link
+	  layer types, fixing the 'unsupported interface' errors folks
+	  got when used with a 100bT adapter
+	o configure now gives the user the option to compile with the
+	  pcre library, which is more license-friendly (albeit slower)   
+
 v1.38
 	o binary matching
 	o windows compilation support
