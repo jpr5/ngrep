@@ -385,7 +385,7 @@ int main(int argc, char **argv) {
     break;
 
   default:
-    fprintf(stderr, "fatal: unsupported interface type\n");
+    fprintf(stderr, "fatal: unsupported interface type %d\n", pcap_datalink(pd));
     clean_exit(-1);
   }
   
