@@ -380,6 +380,7 @@ int main(int argc, char **argv) {
     link_offset = RAWHDR_SIZE;
     break;
 
+  case DLT_LOOP:
   case DLT_NULL:
     link_offset = LOOPHDR_SIZE;
     break;
