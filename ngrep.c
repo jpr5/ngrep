@@ -368,27 +368,26 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (filter) {
-        if (!quiet) printf("filter: %s\n", filter);
+    if (filter && !quiet)
+        printf("filter: %s\n", filter);
 
-        if (pcap_setfilter(pd, &pcapfilter)) {
-            pcap_perror(pd, "pcap set");
-            clean_exit(-1);
-        }
+    if (pcap_setfilter(pd, &pcapfilter)) {
+        pcap_perror(pd, "pcap set");
+        clean_exit(-1);
     }
 
     if (match_data) {
         if (bin_match) {
             int i = 0, n;
             char *s, *d;
-            int len;
+            unsigned len;
 
             if (re_match_word || re_ignore_case) {
                 fprintf(stderr, "fatal: regex switches are incompatible with binary matching\n");
                 clean_exit(-1);
             }
 
-            len = (int)strlen(match_data);
+            len = (unsigned)strlen(match_data);
             if (len % 2 != 0 || !strishex(match_data)) {
                 fprintf(stderr, "fatal: invalid hex string specified\n");
                 clean_exit(-1);
@@ -399,7 +398,7 @@ int main(int argc, char **argv) {
             d = bin_data;
 
             if ((s = strchr(match_data, 'x')))
-                len -= (int)(++s - match_data - 1);
+                len -= (unsigned)(++s - match_data - 1);
             else s = match_data;
 
             while (i <= len) {
