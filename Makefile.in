@@ -52,10 +52,10 @@ install: $(TARGET)
 	$(INSTALL) -c -m 0644 $(MANPAGE) $(DESTDIR)/$(MANDIR_INSTALL)/$(MANPAGE)
 
 pcre: 
-	@( cd pcre-3.4; make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. )
+	@cd pcre-3.4   && make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. 
 
 regex: 
-	@( cd regex-0.12; make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. )
+	@cd regex-0.12 && make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. 
 
 $(OBJS): Makefile
 
