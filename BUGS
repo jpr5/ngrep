@@ -1,16 +1,20 @@
 Known bugs:
 
-      o RedHat-modified libpcap issue
+      o error message: ngrep uses obsolete (PF_INET,SOCK_PACKET)
 
-        This is not a bug, but a "feature" of the RedHat-modified
-        libpcap (included in at least RedHat 6.2).  Apparently,
-        specifying a filter to the library is a programmatic
-        requirement, whether the bpf expression is empty or not.  
+        Not a bug in ngrep.  Upgrade to the latest libpcap:
 
-	This issue is verified by running ngrep without a bpf filter
-	expression and not observing any traffic when traffic is known
-	to exist.
+	    http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
 
-	Uninstall RedHat's modified libpcap, and replace with the
-	latest libpcap, located at: ftp://ftp.ee.lbl.gov/libpcap.tar.Z
+      o ngrep reports duplicate packets on the local loopback interface
+ 
+	Not a bug in ngrep.  Upgrade to the latest libpcap:
+
+	    http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
+
+      o 'ngrep host foo.com' segfaults after displaying interface info
+
+        Not a bug in ngrep.  Upgrade to the latest libpcap:
+
+	    http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
 
