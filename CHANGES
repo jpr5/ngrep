@@ -1,3 +1,6 @@
+v1.39.2
+	o typographical error, -p works now
+
 v1.39.1	
 	o added in AIX includes
 	o added BSD* includes for display updates
