@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <net/if.h>
+#include <sys/tty.h>
 #endif
 
 #if defined(OSF1)
