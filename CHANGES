@@ -1,3 +1,9 @@
+v1.40
+	o license change, amends the BSD advertising clause
+	o fixed bug from not considering caplen in payload length
+	  calculations
+	o added -s (set bpf caplen)
+
 v1.39.2
 	o typographical error, -p works now
 
