@@ -852,6 +852,50 @@ void drop_privs(void) {
         return;
 #endif
 
+ {
+    struct passwd *pw = getpwnam(SAFE_USER);
+    gid_t newgid = pw->pw_uid, oldgid = getegid();
+    uid_t newuid = pw->pw_gid, olduid = geteuid();
+
+    if (!olduid)
+        setgroups(1, &newgid);
+
+    if (newgid != oldgid) {
+#if !defined(LINUX)
+        setegid(newgid);
+        if (setgid(newgid) == -1)
+#else
+        if (setregid(newgid, newgid) == -1)
+#endif
+        {
+            perror("attempt to drop privileges failed");
+            clean_exit(-1);
+        }
+    }
+
+    if (newuid != olduid) {
+#if !defined(LINUX)
+        seteuid(newuid);
+        if (setuid(newuid) == -1)
+#else
+        if (setreuid(newuid, newuid) == -1)
+#endif
+        {
+            perror("attempt to drop privileges failed");
+            clean_exit(-1);
+        }
+    }
+
+    if ((newgid != oldgid && (setegid(oldgid) != -1 || getegid() != newgid)) ||
+        (newuid != olduid && (seteuid(olduid) != -1 || geteuid() != newuid))) {
+        perror("attempt to drop privileges failed");
+        clean_exit(-1);
+    }
+ }
+}
+
+void drop_privs_old(void) {
+
     {
         struct passwd *pw = getpwnam(SAFE_USER);
 
