@@ -35,11 +35,13 @@
 #define TH_CWR 0x80
 #endif
 
-char *get_filter(char **);
 void process(u_char *, struct pcap_pkthdr*, u_char *);
 void clean_exit(int);
 void usage(int);
 void version(void);
+
+char *get_filter_from_string(char *);
+char *get_filter_from_argv(char **);
 
 int re_match_func(char *, int);
 int bin_match_func(char *, int);

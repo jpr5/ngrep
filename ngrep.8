@@ -96,6 +96,12 @@ a packet is matched.
 Print a timestamp in the form of +S.UUUUUU, indicating the delta
 between packet matches.
 
+.IP "-F file"
+Read in the bpf filter from the specified filename.  This is a
+compatibility option for users familiar with tcpdump.  Please note
+that specifying ``-F'' will override any bpf filter specified on the
+command-line.
+
 .IP "-P char"
 Specify an alternate character to signify non-printable characters
 when displayed.  The default is ``.''.

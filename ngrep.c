@@ -60,6 +60,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 
 
@@ -104,7 +105,7 @@ pcre_extra *pattern_extra = NULL;
 struct re_pattern_buffer pattern;
 #endif
 
-char *match_data = NULL, *bin_data = NULL, *filter = NULL;
+char *match_data = NULL, *bin_data = NULL, *filter = NULL, *filter_file = NULL;
 int (*match_func)() = &blank_match_func;
 void (*dump_func)(char *, int) = &dump_formatted;
 int match_len = 0;
@@ -133,7 +134,7 @@ int main(int argc, char **argv) {
     signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
 
-    while ((c = getopt(argc, argv, "hXViwqpevxlDtTs:n:d:A:I:O:S:P:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "hXViwqpevxlDtTs:n:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -148,6 +149,9 @@ int main(int argc, char **argv) {
                 }
             } break;
 
+            case 'F':
+                filter_file = optarg;
+                break;
             case 'P':
                 nonprint_char = *optarg;
                 break;
@@ -268,13 +272,30 @@ int main(int argc, char **argv) {
         }
     }
 
+    if (filter_file) {
+        char buf[1024] = {0};
+        FILE *f = fopen(filter_file, "r");
 
-    if (argv[optind]) {
-        filter = get_filter(&argv[optind]);
+        if (!f || !fgets(buf, sizeof(buf)-1, f)) {
+            fprintf(stderr, "fatal: unable to get filter from %s: %s\n", filter_file, strerror(errno));
+            usage(-1);
+        }
+
+        fclose(f);
+
+        filter = get_filter_from_string(buf);
+
+        if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
+            pcap_perror(pd, "pcap compile");
+            clean_exit(-1);
+        }
+
+    } else if (argv[optind]) {
+        filter = get_filter_from_argv(&argv[optind]);
 
         if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
             free(filter);
-            filter = get_filter(&argv[optind-1]);
+            filter = get_filter_from_argv(&argv[optind-1]);
 
 #if USE_PCAP_RESTART
             PCAP_RESTART_FUNC();
@@ -284,7 +305,9 @@ int main(int argc, char **argv) {
                 clean_exit(-1);
             } else match_data = NULL;
         }
+    }
 
+    if (filter) {
         if (!quiet) printf("filter: %s\n", filter);
 
         if (pcap_setfilter(pd, &pcapfilter)) {
@@ -772,8 +795,33 @@ void dump_formatted(char *data, int len) {
     }
 }
 
+char *get_filter_from_string(char *str) {
+    char *mine;
+    int len;
 
-char *get_filter(char **argv) {
+    if (!str || !*str)
+        return NULL;
+
+    len = strlen(str);
+
+    {
+        char *s;
+        for (s = str; *s; s++)
+            if (*s == '\r' || *s == '\n')
+                *s = ' ';
+    }
+
+    if (!(mine = (char*)malloc(len + sizeof(IP_ONLY))))
+        return NULL;
+
+    memset(mine, 0, len + sizeof(IP_ONLY));
+
+    sprintf(mine, IP_ONLY, str);
+
+    return mine;
+}
+
+char *get_filter_from_argv(char **argv) {
     char **arg = argv, *theirs, *mine;
     char *from, *to;
     int len = 0;
@@ -967,7 +1015,7 @@ void drop_privs(void) {
 void usage(int e) {
     printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "                        <-s snaplen> <-S limitlen> <-W normal|byline|none>\n"
-           "                        <-P char> <match expression> <bpf filter>\n");
+           "                        <-P char> <-F file> <match expression> <bpf filter>\n");
 
     exit(e);
 }
