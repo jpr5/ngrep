@@ -1,7 +1,0 @@
-Todo:
-
-        o add timerange functionality for replaying pcap_dumps ala -r
-          date-date using 'date' format MMDDhhmmCCYY
-
-        o IPv6 support
-

@@ -1,4 +1,6 @@
-A note on PCRE vs GNU regex:
+$Id$
+
+A quick note on PCRE vs GNU regex:
 
       I ran several tests comparing GNU regex to the PCRE library
       using 10 million loop iterations: optimized vs. non-optimized,
@@ -6,7 +8,7 @@ A note on PCRE vs GNU regex:
       unoptimized PCRE program is almost double the match and
       non-match times of the GNU regex library yields, and when using
       optimization a PCRE program would perform almost the same in the
-      non-match case, but again almost twice that of the match case.  
+      non-match case, but again almost twice that of the match case.
 
       The test subject was "how now brown cow", and the pattern we
       were searching for in the match case was "now brown", and in the
@@ -20,7 +22,7 @@ A note on PCRE vs GNU regex:
       absolutely unnoticeable (it took 10 million loop iterations to
       compute it), so this may not mean anything to you.  Likewise,
       the stripped binary sizes are also within 10k of each other on
-      the test compile box.  
+      the test compile box.
 
       If absolute speed is not the issue, then compile against PCRE
       since it has better licensing.  If you're after the fastest you
