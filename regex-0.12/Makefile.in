@@ -54,8 +54,9 @@ regex.o: regex.c regex.h
 clean mostlyclean::
 	rm -f *.o
 
-distclean:: clean
-	rm -f Makefile config.status
+# (6/26/01) jpr5: moved this to end of other distclean target below
+#distclean:: clean
+#	rm -f Makefile config.status
 
 extraclean:: distclean
 	rm -f patch* *~* *\#* *.orig *.rej *.bak core a.out
@@ -76,7 +77,10 @@ default all install \
 mostlyclean clean distclean extraclean realclean \
 TAGS check::
 	for d in $(subdirs); do (cd $$d; $(MAKE) $(makeargs) $@); done
+	rm -f Makefile config.status
+
 .PHONY: install mostlyclean clean distclean extraclean realclean TAGS check
+
 
 # Prevent GNU make 3 from overflowing arg limit on system V.
 .NOEXPORT:
