@@ -1,4 +1,4 @@
-cvs-current
+v1.41
         o added -S (set limitlen)
         o added LOOP and SLL tests for portability/old libpcap'en
         o added configure --safe-user and dropprivs code
