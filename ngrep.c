@@ -85,6 +85,7 @@ int match_after = 0, keep_matching = 0;
 int invert_match = 0, bin_match = 0;
 int matches = 0, max_matches = 0;
 int live_read = 1, want_delay = 0;
+int no_dropprivs = 0;
 
 char nonprint_char = '.';
 
@@ -122,7 +123,7 @@ pcap_dumper_t *pd_dump = NULL;
 struct timeval prev_ts = {0, 0}, prev_delay_ts = {0,0};
 void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
-unsigned ws_row, ws_col;
+unsigned ws_row, ws_col, ws_col_forced = 0;
 
 
 int main(int argc, char **argv) {
@@ -134,7 +135,7 @@ int main(int argc, char **argv) {
     signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
 
-    while ((c = getopt(argc, argv, "hXViwqpevxlDtTs:n:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "hXViwqpevxlDtTRs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -170,11 +171,17 @@ int main(int argc, char **argv) {
             case 'd':
                 dev = optarg;
                 break;
+            case 'c':
+                ws_col_forced = atoi(optarg);
+                break;
             case 'n':
                 max_matches = atoi(optarg);
                 break;
             case 's':
                 snaplen = atoi(optarg);
+                break;
+            case 'R':
+                no_dropprivs = 1;
                 break;
             case 'T':
                 print_time = &print_time_diff_init;
@@ -939,14 +946,20 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
 
 
 void update_windowsize(int e) {
-    const struct winsize ws;
+    if (e == 0 && ws_col_forced)
 
-    if (!ioctl(0, TIOCGWINSZ, &ws)) {
-        ws_row = ws.ws_row;
-        ws_col = ws.ws_col;
-    } else {
-        ws_row = 24;
-        ws_col = 80;
+        ws_col = ws_col_forced;
+
+    else if (!ws_col_forced) {
+        const struct winsize ws;
+
+        if (!ioctl(0, TIOCGWINSZ, &ws)) {
+            ws_row = ws.ws_row;
+            ws_col = ws.ws_col;
+        } else {
+            ws_row = 24;
+            ws_col = 80;
+        }
     }
 }
 
@@ -955,6 +968,9 @@ void drop_privs(void) {
 #if !USE_DROPPRIVS
     return;
 #endif
+
+    if (no_dropprivs)
+        return;
 
 #if DROPPRIVS_ONLY_ROOT
     /*
@@ -1016,9 +1032,9 @@ void drop_privs(void) {
 }
 
 void usage(int e) {
-    printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
-           "                        <-s snaplen> <-S limitlen> <-W normal|byline|none>\n"
-           "                        <-P char> <-F file> <match expression> <bpf filter>\n");
+    printf("usage: ngrep <-hXViwqpevxlDtTR> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+           "                <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>\n"
+           "                <-P char> <-F file> <match expression> <bpf filter>\n");
 
     exit(e);
 }
