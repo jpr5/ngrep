@@ -7,7 +7,7 @@ For most, installation of ngrep will be as simple as typing:
 
 Those of you looking for the quick way out, there you have it.  Keep
 in mind, you need libpcap installed before you can compile ngrep.  You
-can get it at ftp://ftp.ee.lbl.gov/libpcap.tar.Z.
+can get it at http://www.tcpdump.org/.
 
 If you still have problems compiling or are compiling on an
 unsupported OS, try playing with other build types -- i.e. if you have
