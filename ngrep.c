@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
   signal(SIGPIPE, clean_exit);
   signal(SIGWINCH, update_windowsize);
 
-  while ((c = getopt(argc, argv, "hXViwqpevxlDtTn:d:A:I:O:")) != EOF) {
+  while ((c = getopt(argc, argv, "hXViwqpevxlDtTs:n:d:A:I:O:")) != EOF) {
     switch (c) {
     case 'I':  
       read_file = optarg;
@@ -133,6 +133,9 @@ int main(int argc, char **argv) {
       break;
     case 'n':
       max_matches = atoi(optarg);
+      break;
+    case 's':
+      snaplen = atoi(optarg);
       break;
     case 'T':
       print_time = &print_time_diff_init;
@@ -799,8 +802,8 @@ void update_windowsize(int e) {
 
 
 void usage(int e) {
-  printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
-	 "                               <match expression> <bpf filter>\n");
+  printf("usage: ngrep <-hXViwqpevxlDtTs> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+	 "                                <match expression> <bpf filter>\n");
   exit(e);
 }
 
