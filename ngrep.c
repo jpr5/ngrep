@@ -1152,8 +1152,8 @@ void drop_privs(void) {
 
 void usage(int e) {
     printf("usage: ngrep <-LhXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
-           "                <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>\n"
-           "                <-P char> <-F file> <match expression> <bpf filter>\n");
+           "             <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>\n"
+           "             <-P char> <-F file> <match expression> <bpf filter>\n");
 
     exit(e);
 }
@@ -1187,9 +1187,9 @@ void clean_exit(int sig) {
     if (pd_dump) pcap_dump_close(pd_dump);
 
 #if defined(_WIN32)
-        if (delay_socket) closesocket(delay_socket);
-        if (want_delay)   WSACleanup();
-        if (usedev)       free(usedev);
+    if (delay_socket) closesocket(delay_socket);
+    if (want_delay)   WSACleanup();
+    if (usedev)       free(usedev);
 #endif
 
     exit(sig);
