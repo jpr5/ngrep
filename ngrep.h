@@ -7,7 +7,7 @@
  *
  */
 
-#define VERSION "1.39"
+#define VERSION "1.39.1"
 
 
 #define ETHHDR_SIZE 14 
