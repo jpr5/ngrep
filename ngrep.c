@@ -856,7 +856,9 @@ void drop_privs(void) {
 
 void usage(int e) {
     printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
-           "                               <-s snaplen> <match expression> <bpf filter>\n");
+           "                               <-s snaplen> <-S limitlen> <match expression>\n"
+           "                               <bpf filter>\n");
+
     exit(e);
 }
 
