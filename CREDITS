@@ -12,7 +12,7 @@ Porting of ngrep to Win32:
     Mike <mike@datanerds.com>
 
 64-bit clean regex.c patch:
-       
+
     Jeff <yaway@hotmail.com>
 
 Hexdump patch:
@@ -26,10 +26,10 @@ Elite ideas and loads of licensing advice:
 
 Use of OSF/1 box and DDoS research:
 
-     Dave Dittrich <dittrich@cac.washington.edu> 
+     Dave Dittrich <dittrich@cac.washington.edu>
 
 Compilation patches:
- 
+
      dugsong <dugsong@monkey.org>
      Joerg Dorchain <jd@europeonline.net>
 
@@ -44,3 +44,7 @@ HPUX and Config Updates Patch
 AIX patch
 
     "Joseph N. Wilson" <jnw@cise.ufl.edu>
+
+TCP ECN path
+
+    Maik Pfeil <root@bundesspionageministerium.de>

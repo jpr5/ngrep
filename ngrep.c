@@ -483,7 +483,9 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                            (tcp->th_flags & TH_RST)?"R":"",
                            (tcp->th_flags & TH_FIN)?"F":"",
                            (tcp->th_flags & TH_URG)?"U":"",
-                           (tcp->th_flags & TH_PUSH)?"P":"");
+                           (tcp->th_flags & TH_PUSH)?"P":"",
+                           (tcp->th_flags & TH_ECE)?"E":"",
+                           (tcp->th_flags & TH_CWR)?"C":"");
                 } else {
                     printf("%s -", inet_ntoa(ip_packet->ip_src));
                     printf("> %s", inet_ntoa(ip_packet->ip_dst));

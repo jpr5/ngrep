@@ -1,121 +1,122 @@
 cvs-current
-	o added -S (set limitlen)
-	o added LOOP and SLL tests for portability/old libpcap'en
-	o added configure --safe-user and dropprivs code
+        o added -S (set limitlen)
+        o added LOOP and SLL tests for portability/old libpcap'en
+        o added configure --safe-user and dropprivs code
+        o added TCP ECN congestion header recognition
 
 v1.40.1
-	o MacOS X support
-	o ISDN (SLL) support
-	o OpenBSD tun device support
-	o updated configure.in to support specifying pcap directory 
-	o updated config.sub and config.guess
-	o added scripts/multi.pl, parallel ngrep perl script
-	o very minor change to documentation
+        o MacOS X support
+        o ISDN (SLL) support
+        o OpenBSD tun device support
+        o updated configure.in to support specifying pcap directory
+        o updated config.sub and config.guess
+        o added scripts/multi.pl, parallel ngrep perl script
+        o very minor change to documentation
 
 v1.40
-	o license change, amends the BSD advertising clause
-	o fixed bug from not considering caplen in payload length
-	  calculations
-	o added -s (set bpf caplen)
-	o fixed header include for linux glibc 2.2 (time.h wasn't
-	  being included)
+        o license change, amends the BSD advertising clause
+        o fixed bug from not considering caplen in payload length
+          calculations
+        o added -s (set bpf caplen)
+        o fixed header include for linux glibc 2.2 (time.h wasn't
+          being included)
 
 v1.39.2
-	o typographical error, -p works now
+        o typographical error, -p works now
 
-v1.39.1	
-	o added in AIX includes
-	o added BSD* includes for display updates
-	o added -p (don't go into promiscuous mode)
+v1.39.1
+        o added in AIX includes
+        o added BSD* includes for display updates
+        o added -p (don't go into promiscuous mode)
 
 v1.39
-	o in standard match mode, the display now updates when window
-	  sizes change
-	o configure now gives the user the option to compile with the
-	  pcre library, which is more license-friendly (albeit slower)   
-	o fixed minor bug in date printing with -t
+        o in standard match mode, the display now updates when window
+          sizes change
+        o configure now gives the user the option to compile with the
+          pcre library, which is more license-friendly (albeit slower)
+        o fixed minor bug in date printing with -t
         o added configure option '--without-restart', which will
-	  remove the pcap restart API call.  Newer versions of libpcap
-	  don't need it, and on certain platforms the API call
-	  segfaults. 
+          remove the pcap restart API call.  Newer versions of libpcap
+          don't need it, and on certain platforms the API call
+          segfaults.
         o win32: compiled with winpcap's pcap.h, which apparently
-	  breaks the pcap standard and introduces its own data link
-	  layer types.  fixes the 'unsupported interface' error folks
-	  sometimes got when used with a 100bT adapter
+          breaks the pcap standard and introduces its own data link
+          layer types.  fixes the 'unsupported interface' error folks
+          sometimes got when used with a 100bT adapter
 
 v1.38
-	o binary matching
-	o windows compilation support
-	o 64-bit clean patch to regex.c
-	o dump and replay pcap_dump files
-	o officially licensed under the BSD license
-	o normal and diff/delta timestamps
+        o binary matching
+        o windows compilation support
+        o 64-bit clean patch to regex.c
+        o dump and replay pcap_dump files
+        o officially licensed under the BSD license
+        o normal and diff/delta timestamps
 
-v1.37  
+v1.37
         o added FDDI support
 
 v1.36
-	o added -l (line buffer stdout)
-	o a few optimizations were made to shave off some cpu cycles
-	  spent on processing each packet 
-	o fixed bug where the blank regex algorithm wasn't even being
-	  used 
-	o fixed bug in blank regex algorithm that was preventing '-n'
-	  from working
+        o added -l (line buffer stdout)
+        o a few optimizations were made to shave off some cpu cycles
+          spent on processing each packet
+        o fixed bug where the blank regex algorithm wasn't even being
+          used
+        o fixed bug in blank regex algorithm that was preventing '-n'
+          from working
         o change to compile on LinuxPPC
-	o change to nix potential warnings on other OSes
-	o change to not exit if pcap_lookupnet fails
-	          
+        o change to nix potential warnings on other OSes
+        o change to not exit if pcap_lookupnet fails
+
 v1.35
-	o appears that the release of 1.34 had only one of the 
-	  match optimizations: somehow only the tcp match was updated;
-	  udp change was omitted.  fixed.
-	o moved -v (version) to -V
+        o appears that the release of 1.34 had only one of the
+          match optimizations: somehow only the tcp match was updated;
+          udp change was omitted.  fixed.
+        o moved -v (version) to -V
         o added -v (grep -v), invert match
-	o added -d lo (null linktype)
-	o added ability to match proto icmp 
-	o updated configure.in to handle old installations of pcap
-	  more gracefully (i.e. continue on by adding the necessary
-	  defines and just gripe) 
+        o added -d lo (null linktype)
+        o added ability to match proto icmp
+        o updated configure.in to handle old installations of pcap
+          more gracefully (i.e. continue on by adding the necessary
+          defines and just gripe)
 
 v1.34
-	o merged in patch from Andrew W. Flury <aflury@nas.nasa.gov>
-	  for hex printing, made minor modification to patch to not
-	  print off the end of the buffer
-	o added an optimization for the case where no regex was
-	  specified; should account for a little speed up
+        o merged in patch from Andrew W. Flury <aflury@nas.nasa.gov>
+          for hex printing, made minor modification to patch to not
+          print off the end of the buffer
+        o added an optimization for the case where no regex was
+          specified; should account for a little speed up
 
 v1.33
-	o fragment changes, this should be it
+        o fragment changes, this should be it
 
 v1.32
-	o switched around regex -w/-i logic
-	o fragment bugfixes
+        o switched around regex -w/-i logic
+        o fragment bugfixes
 
 v1.31
-	o added -A (match after)
-	o Makefile.in changes 
-	o configure.in changes for solaris
-	o added manpage (ngrep.8)
+        o added -A (match after)
+        o Makefile.in changes
+        o configure.in changes for solaris
+        o added manpage (ngrep.8)
 
-v1.30 
+v1.30
 
-	o bugfix: wasn't malloc'ing enough for word_regex
-	o bugfix: case-insensitive was tolower()ing the word_regex
-	  itself 
+        o bugfix: wasn't malloc'ing enough for word_regex
+        o bugfix: case-insensitive was tolower()ing the word_regex
+          itself
 
 v1.29
 
-	o added -e (show empty)
-	o one or two safe, preemptive changes catching possible int
-	  overflows 
+        o added -e (show empty)
+        o one or two safe, preemptive changes catching possible int
+          overflows
 
 v1.28
 
-	o added -n
-	o no required arguments anymore
-	o regex's are not required anymore, can just be bpf logic
-	o probably a bugfix or two
+        o added -n
+        o no required arguments anymore
+        o regex's are not required anymore, can just be bpf logic
+        o probably a bugfix or two
 
 
 
