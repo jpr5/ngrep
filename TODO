@@ -2,14 +2,11 @@ Todo:
 
 	o add non-ip protocols           (IPX and Appletalk are up next, maybe NetBeui?)
 
-        o switch to pcre for regex support  (completed)
-
 	o add "Extra info", i.e. display ToS, seq, id, etc.
-
-        o add optimization to init time and delay timevals (completed)
 
 	o add ability for end user to use functional groupings and backreferences
 
-	o add detection of size of screen and adjust normal (non hex
-	  dump) format accordingly (complete)
+	o add force ws_col flag
 
+	o add timerange functionality for replaying pcap_dumps ala -r
+	  date-date using 'date' format MMDDhhmmCCYY
