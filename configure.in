@@ -103,26 +103,6 @@ else
    USE_DROPPRIVS="0"
 fi
 
-dnl
-dnl Some people have complained that they don't care to drop
-dnl privileges if they're not root, hence this flag.
-dnl
-
-AC_ARG_ENABLE(dropprivs-onlyroot,
-[  --enable-dropprivs-onlyroot  drop privileges only from root],
-[
-  use_dropprivs_onlyroot="$enableval"
-],
-[
-  use_dropprivs_onlyroot="no"
-])
-
-if test $use_dropprivs_onlyroot = yes; then
-   DROPPRIVS_ONLY_ROOT="1"
-else 
-   DROPPRIVS_ONLY_ROOT="0"
-fi
-
 
 dnl
 dnl Configure the regular expression library.
@@ -382,7 +362,6 @@ AC_DEFINE_UNQUOTED(USE_PCRE,            $USE_PCRE)
 
 AC_DEFINE_UNQUOTED(USE_DROPPRIVS,       $USE_DROPPRIVS)
 AC_DEFINE_UNQUOTED(DROPPRIVS_USER,     "$DROPPRIVS_USER")
-AC_DEFINE_UNQUOTED(DROPPRIVS_ONLY_ROOT, $DROPPRIVS_ONLY_ROOT)
 
 AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR,    $HAVE_DUMB_UDPHDR)
 
