@@ -6,7 +6,7 @@
 .\"
 .\" Please refer to the COPYRIGHT file for more information.  
 
-.TH NGREP 8 "February 2001" Linux "User Manuals"
+.TH NGREP 8 "April 2001" Linux "User Manuals"
 
 .SH NAME
 
@@ -14,7 +14,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hXViwqevxlDtT> <-IO 
+.B ngrep <-hXViwqpevxlDtT> <-IO 
 .I pcap_dump
 .B > < -n
 .I num
@@ -62,6 +62,9 @@ Match the regex expression as a word.
 .IP -q 
 Be quiet; don't output any information other than packet headers and
 their payloads (if relevant).
+
+.IP -p
+Don't put the interface into promiscuous mode.
 
 .IP -e 
 Show empty packets.  Normally empty packets are discarded because they
