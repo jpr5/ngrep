@@ -385,6 +385,10 @@ int main(int argc, char **argv) {
     link_offset = LOOPHDR_SIZE;
     break;
 
+  case DLT_LINUX_SLL:
+    link_offset = ISDNHDR_SIZE;
+    break;
+
   default:
     fprintf(stderr, "fatal: unsupported interface type %d\n", pcap_datalink(pd));
     clean_exit(-1);
