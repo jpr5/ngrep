@@ -52,7 +52,7 @@ install: $(TARGET)
 	$(INSTALL) -c -m 0644 $(MANPAGE) $(DESTDIR)/$(MANDIR_INSTALL)/$(MANPAGE)
 
 clean:
-	rm -f *~ $(OBJS) $(REGEX_OBJS) $(TARGET) 
+	rm -f *~ $(OBJS) $(REGEX_OBJS) $(TARGET) $(TARGET).static
 
 distclean: clean clean-$(REGEX_TARGET)
 	rm -f config.status config.cache config.log config.h Makefile 
