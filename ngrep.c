@@ -271,16 +271,8 @@ int main(int argc, char **argv) {
 #ifdef USE_PCRE
       int pcre_options = PCRE_UNGREEDY;
 
-      // lowercase pattern
-      if (re_ignore_case) {
-	char *s = match_data;
-
-	while (*s) 
-	  *s++ = tolower(*s);
-
-	// do ignore case stuff for pcre
+      if (re_ignore_case) 
 	pcre_options |= PCRE_CASELESS;
-      }	
       
       re_err = malloc(512);
 #else
@@ -310,14 +302,12 @@ int main(int argc, char **argv) {
       }
 
 #ifdef USE_PCRE
-      // compile pattern
-      pattern = pcre_compile(match_data, PCRE_UNGREEDY, (const char **)&re_err, &err_offset, 0);
+      pattern = pcre_compile(match_data, pcre_options, (const char **)&re_err, &err_offset, 0);
       if (!pattern) {
 	fprintf(stderr, "compile failed: %s\n", re_err);
 	clean_exit(-1);
       }
 
-      // do extra study
       pattern_extra = pcre_study(pattern, 0, (const char **)&re_err);
       
       free(re_err);
@@ -562,8 +552,16 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 int re_match_func(char *data, int len) {
 #ifdef USE_PCRE
   switch(pcre_exec(pattern, 0, data, len, 0, 0, 0, 0)) {
+   case PCRE_ERROR_NULL:
+   case PCRE_ERROR_BADOPTION:
+   case PCRE_ERROR_BADMAGIC: 
+   case PCRE_ERROR_UNKNOWN_NODE: 
+   case PCRE_ERROR_NOMEMORY:
+     perror("she's dead, jim\n");
+     clean_exit(-2);
 
-
+   case PCRE_ERROR_NOMATCH: 
+     return 0;
   }
 #else
   switch (re_search(&pattern, data, len, 0, len, 0)) {
@@ -681,32 +679,6 @@ char *get_filter(char **argv) {
 }
 
 
-void clean_exit(int sig) {
-  struct pcap_stat s;
-  if (!quiet && sig >= 0) printf("exit\n");
-
-#ifdef USE_PCRE
-  if (re_err) free(re_err);
-  if (pattern) pcre_free(pattern);
-  if (pattern_extra) pcre_free(pattern_extra);
-#else
-  if (pattern.translate) free(pattern.translate);
-  if (pattern.fastmap) free(pattern.fastmap);
-#endif
-
-  if (bin_data) free(bin_data);
-  
-  if (!quiet && sig >= 0 && !read_file &&
-      pd && !pcap_stats(pd, &s)) 
-    printf("%d received, %d dropped\n", s.ps_recv, s.ps_drop);
-
-  if (pd) pcap_close(pd);
-  if (pd_dump) pcap_dump_close(pd_dump);
-
-  exit(sig);
-}
-
-
 int strishex(char *str) {
   char *s;
   if ((s = strchr(str, 'x'))) 
@@ -784,6 +756,19 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
 }
 
 
+void update_windowsize(int e) {
+  const struct winsize ws;
+  
+  if (!ioctl(0, TIOCGWINSZ, &ws)) {
+    ws_row = ws.ws_row;
+    ws_col = ws.ws_col;
+  } else {
+    ws_row = 24;
+    ws_col = 80;
+  }
+}
+
+
 void usage(int e) {
   printf("usage: ngrep <-hXViwqevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
 	 "                              <match expression> <bpf filter>\n");
@@ -797,14 +782,29 @@ void version(void) {
 }
 
 
-void update_windowsize(int e) {
-  const struct winsize ws;
+void clean_exit(int sig) {
+  struct pcap_stat s;
+  if (!quiet && sig >= 0) printf("exit\n");
+
+#ifdef USE_PCRE
+  if (re_err) free(re_err);
+  if (pattern) pcre_free(pattern);
+  if (pattern_extra) pcre_free(pattern_extra);
+#else
+  if (pattern.translate) free(pattern.translate);
+  if (pattern.fastmap) free(pattern.fastmap);
+#endif
+
+  if (bin_data) free(bin_data);
   
-  if (!ioctl(0, TIOCGWINSZ, &ws)) {
-    ws_row = ws.ws_row;
-    ws_col = ws.ws_col;
-  } else {
-    ws_row = 24;
-    ws_col = 80;
-  }
+  if (!quiet && sig >= 0 && !read_file &&
+      pd && !pcap_stats(pd, &s)) 
+    printf("%d received, %d dropped\n", s.ps_recv, s.ps_drop);
+
+  if (pd) pcap_close(pd);
+  if (pd_dump) pcap_dump_close(pd_dump);
+
+  exit(sig);
 }
+
+
