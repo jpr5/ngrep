@@ -484,7 +484,7 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                 if (tcphdr_offset || !frag_offset) {
                     printf("%s:%d -", inet_ntoa(ip_packet->ip_src), ntohs(tcp->th_sport));
                     printf("> %s:%d", inet_ntoa(ip_packet->ip_dst), ntohs(tcp->th_dport));
-                    printf(" [%s%s%s%s%s%s]",
+                    printf(" [%s%s%s%s%s%s%s%s]",
                            (tcp->th_flags & TH_ACK)?"A":"",
                            (tcp->th_flags & TH_SYN)?"S":"",
                            (tcp->th_flags & TH_RST)?"R":"",
