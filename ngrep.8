@@ -96,6 +96,12 @@ a packet is matched.
 Print a timestamp in the form of +S.UUUUUU, indicating the delta
 between packet matches.
 
+.IP "-c cols"
+Explicitly set the console width to ``cols''.  Note that this is the
+console width, and not the full width of what ngrep prints out as
+payloads; depending on the output mode ngrep may print less than
+``cols'' bytes per line (indentation).
+
 .IP "-F file"
 Read in the bpf filter from the specified filename.  This is a
 compatibility option for users familiar with tcpdump.  Please note
