@@ -1,7 +1,7 @@
 dnl
 dnl $Id$
 dnl
-dnl Copyright (c) 2000  Jordan Ritter <jpr5@darkridge.com>
+dnl Copyright (c) 2001  Jordan Ritter <jpr5@darkridge.com>
 dnl
 dnl Please refer to the COPYRIGHT file for more information.
 
@@ -12,12 +12,19 @@ AC_CANONICAL_SYSTEM
 AC_PROG_CC
 AC_PREFIX(gcc)
 
-
 AC_HEADER_STDC
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_TYPE_SIGNAL
+AC_FUNC_ALLOCA
+
 AC_CHECK_HEADER(strings.h,,echo need strings header; exit)
 AC_CHECK_HEADER(netinet/if_ether.h,AC_DEFINE(HAVE_IF_ETHER_H,1),)
 
 
+dnl
+dnl Find ourselves some usable pcap headers.
+dnl
 AC_MSG_CHECKING(for a complete set of pcap headers)
 possible_dirs="`eval echo -n ${includedir}` \
 	       /usr/include /usr/include/pcap \
@@ -28,7 +35,7 @@ pcap_dir=""
 for dir in $possible_dirs ; do 
     if test -d $dir -a -r "$dir/pcap.h" -a \
                        -r "$dir/net/bpf.h" ; then 
-       if test -n "$pcap_dir" ; then
+       if test -n "$pcap_dir" -a "$pcap_dir" != "$dir"; then
           echo 
           echo; echo more than one set found in:
           echo  $pcap_dir 
@@ -45,9 +52,13 @@ if test -z "$pcap_dir" ; then
    echo no; echo couldn\'t find a complete set of pcap headers
    exit
 else
-   AC_SUBST(PCAP_INCLUDE)
-   PCAP_INCLUDE="-I$pcap_dir"
    echo found $pcap_dir
+
+   PCAP_INCLUDE="-I$pcap_dir"
+   PCAP_LINK="-L`dirname $pcap_dir`/lib"
+
+   AC_SUBST(PCAP_INCLUDE)
+   AC_SUBST(PCAP_LINK)
    
    AC_MSG_CHECKING(for usable bpf.h)
    if test -n "`grep DLT_RAW $pcap_dir/net/bpf.h`" ; then
@@ -62,24 +73,12 @@ echo needs upgrading.  I\'ll go ahead and add the define for you but
 echo understand that matching certain types of packets may not 
 echo function properly.
 echo '***************************************************************'
-sleep 2
+sleep 3
 
 AC_DEFINE(DLT_RAW, 12)
 
    fi
 fi
-
-pcap_prefix=`dirname $pcap_dir`
-CFLAGS="-L$pcap_prefix/lib $CFLAGS"
-
-dnl gcc reports -R as unknown option..
-dnl LDFLAGS="-R$pcap_prefix/lib $LDFLAGS"
-
-
-AC_C_CONST
-AC_TYPE_SIZE_T
-AC_TYPE_SIGNAL
-AC_FUNC_ALLOCA
 
 
 dnl 
@@ -101,6 +100,7 @@ AC_ARG_WITH(pcre,
 )
 AC_SUBST(REGEX_TARGET)
 AC_SUBST(REGEX_OBJS)
+
 
 dnl
 dnl OS-specific options
@@ -175,12 +175,40 @@ esac
 
 AC_CHECK_LIB(pcap, pcap_open_live,,echo need pcap lib; exit)
 
-AC_CHECK_LIB(pcap, pcap_restart, AC_DEFINE(PCAP_RESTART,pcap_restart),
- AC_CHECK_LIB(pcap, pcap_yyrestart, AC_DEFINE(PCAP_RESTART,pcap_yyrestart),
-  AC_CHECK_LIB(pcap, yyrestart, AC_DEFINE(PCAP_RESTART,yyrestart),
-   echo no yacc restart func found
-   echo perhaps libpcap wasn\'t compiled with bison/flex\?
-   exit)))
+
+dnl
+dnl Here's where we should check to see if we require the use of a
+dnl PCAP_RESTART function.  Should run a test program that calls
+dnl pcap_compile() twice and checks the exit value, or something.  For
+dnl now, just let the user the flag itself, until I come up with a
+dnl working methodology.
+dnl
+AC_ARG_WITH(restart,
+[  --with-restart          use libpcap restart func],
+[ 
+  if test "$withval" = "yes"; then 
+    AC_DEFINE(NEED_RESTART)     
+    need_restart="yes"
+  else
+    need_restart="no"
+  fi
+],
+[
+  AC_DEFINE(NEED_RESTART)     
+  need_restart="yes"
+])
+
+dnl
+dnl Now find the function in the lib..
+dnl
+if test "$need_restart" = "yes" ; then 
+   AC_CHECK_LIB(pcap, pcap_restart, AC_DEFINE(PCAP_RESTART,pcap_restart),
+    AC_CHECK_LIB(pcap, pcap_yyrestart, AC_DEFINE(PCAP_RESTART,pcap_yyrestart),
+      AC_CHECK_LIB(pcap, yyrestart, AC_DEFINE(PCAP_RESTART,yyrestart),
+         echo no yacc restart func found
+	 echo perhaps libpcap wasn\'t compiled with bison/flex\?
+	 exit)))
+fi
 
 
 AC_OUTPUT(Makefile)
