@@ -14,7 +14,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-LhXViwqpevxlDtTRM> <-IO
+.B ngrep <-hXViwqpevxlDtTRM> <-IO
 .I pcap_dump
 .B > < -n
 .I num
@@ -169,13 +169,7 @@ packets total, then exit.
 
 .IP "-d dev"
 By default ngrep will select a default interface to listen on.  Use
-this option to force ngrep to listen on interface \fIdev\fP.  On UNIX
-this is the name of the interface, and on Win32 this is the index of
-the interface as listed by option ``L''.
-
-.IP "-L"
-(Win32 only) This option lists all local ethernet interfaces and their
-index (for use with option ``d'').
+this option to force ngrep to listen on interface \fIdev\fP.  
 
 .IP "-A num"
 Dump \fInum\fP packets of trailing context after matching a packet.
