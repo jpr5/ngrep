@@ -3,6 +3,7 @@ cvs-current
         o added LOOP and SLL tests for portability/old libpcap'en
         o added configure --safe-user and dropprivs code
         o added TCP ECN congestion header recognition
+        o improved support for a few OSes
 
 v1.40.1
         o MacOS X support
