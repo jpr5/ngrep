@@ -557,10 +557,11 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                            frag_offset, len);
                 else printf("\n");
 
-                if (pd_dump) {
+                if (pd_dump)
                     pcap_dump((u_char*)pd_dump, h, p);
-                    if (!quiet) dump_func(data, len);
-                } else dump_func(data, len);
+
+                if (quiet < 2)
+                    dump_func(data, len);
             }
         } break;
 
@@ -610,10 +611,11 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                            frag_offset, len);
                 else printf("\n");
 
-                if (pd_dump) {
+                if (pd_dump)
                     pcap_dump((u_char*)pd_dump, h, p);
-                    if (!quiet) dump_func(data, len);
-                } else dump_func(data, len);
+
+                if (quiet < 2)
+                    dump_func(data, len);
             }
         } break;
 
@@ -656,10 +658,11 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                            frag_offset, len);
                 else printf("\n");
 
-                if (pd_dump) {
+                if (pd_dump)
                     pcap_dump((u_char*)pd_dump, h, p);
-                    if (!quiet) dump_func(data, len);
-                } else dump_func(data, len);
+
+                if (quiet < 2)
+                    dump_func(data, len);
             }
         } break;
 
