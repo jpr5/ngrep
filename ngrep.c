@@ -428,8 +428,6 @@ int main(int argc, char **argv) {
                 while (*s)
                     *s++ = tolower(*s);
 
-                printf("match_data = %s\n", match_data);
-
             } else pattern.translate = NULL;
 #endif
 
