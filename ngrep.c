@@ -102,7 +102,7 @@ unsigned match_after = 0, keep_matching = 0;
 unsigned invert_match = 0, bin_match = 0;
 unsigned matches = 0, max_matches = 0;
 unsigned live_read = 1, want_delay = 0;
-unsigned no_dropprivs = 0;
+unsigned dont_dropprivs = 0;
 
 char nonprint_char = '.';
 
@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
                 re_multiline_match = 0;
                 break;
             case 'R':
-                no_dropprivs = 1;
+                dont_dropprivs = 1;
                 break;
             case 'T':
                 print_time = &print_time_diff;
@@ -1121,7 +1121,7 @@ void drop_privs(void) {
     uid_t newuid;
     gid_t newgid;
 
-    if (no_dropprivs || !USE_DROPPRIVS)
+    if ((getuid() || geteuid()) || dont_dropprivs || !USE_DROPPRIVS)
         return;
 
     pw = getpwnam(DROPPRIVS_USER);
@@ -1230,7 +1230,7 @@ void win32_listdevices(void) {
     printf("---------\t------\n");
 
     for (d = alldevs; d != NULL; d = d->next) {
-        printf("%9d\t%s", ++i, d->name);
+        printf("%9u\t%s", ++i, d->name);
         if (d->description)
             printf(" (%s)\n", d->description);
         else
