@@ -162,57 +162,6 @@ echo
 echo 'Configuring Network Grep (ngrep) ...'
 echo 
 
-dnl
-dnl Check for DLT_* types that might not have existed in older
-dnl libpcap's
-dnl
-
-present=""
-AC_MSG_CHECKING(for DLT_LINUX_SLL in bpf.h)
-AC_EGREP_CPP(yes,
-[
-#include <net/bpf.h>
-#ifdef DLT_LINUX_SLL
-yes
-#endif
-],
-[HAVE_DLT_LINUX_SLL="1" && echo yes], [HAVE_DLT_LINUX_SLL="0" && echo no])
-
-present=""
-AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
-AC_EGREP_CPP(yes,
-[
-#include <net/bpf.h>
-#ifdef DLT_LOOP
-yes
-#endif
-],
-[HAVE_DLT_LOOP="1" && echo yes], [HAVE_DLT_LOOP="0" && echo no])
-
-
-present=""
-AC_MSG_CHECKING(for DLT_IEEE802_11 in bpf.h)
-AC_EGREP_CPP(yes,
-[
-#include <net/bpf.h>
-#ifdef DLT_IEEE802_11
-yes
-#endif
-],
-[HAVE_DLT_IEEE802_11="1" && echo yes], [HAVE_DLT_IEEE802_11="0" && echo no])
-
-
-present=""
-AC_MSG_CHECKING(for DLT_RAW in bpf.h)
-AC_EGREP_CPP(yes,
-[
-#include <net/bpf.h>
-#ifdef DLT_RAW
-yes
-#endif
-],
-[HAVE_DLT_RAW="1" && echo yes], [HAVE_DLT_RAW="0" && echo no])
-
 
 dnl
 dnl OS-specific options
@@ -316,28 +265,7 @@ EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
 
 
 dnl
-dnl Now that we're past the OS-specific stuff, which could have
-dnl modified our USE_* and other defines, define them all now.
-dnl 
-
-AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,    $USE_PCAP_RESTART)
-
-AC_DEFINE_UNQUOTED(USE_PCRE,            $USE_PCRE)
-
-AC_DEFINE_UNQUOTED(USE_DROPPRIVS,       $USE_DROPPRIVS)
-AC_DEFINE_UNQUOTED(DROPPRIVS_USER,     "$DROPPRIVS_USER")
-AC_DEFINE_UNQUOTED(DROPPRIVS_ONLY_ROOT, $DROPPRIVS_ONLY_ROOT)
-
-AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR,    $HAVE_DUMB_UDPHDR)
-
-AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,        $HAVE_DLT_RAW) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11, $HAVE_DLT_IEEE802_11) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,       $HAVE_DLT_LOOP) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,  $HAVE_DLT_LINUX_SLL) 
-
-
-dnl
-dnl Find ourselves some usable PCAP headers.
+dnl First find some usable PCAP headers.
 dnl
 
 AC_MSG_CHECKING(for a complete set of pcap headers)
@@ -381,6 +309,89 @@ else
    AC_SUBST(PCAP_LINK)
   
 fi
+
+
+dnl 
+dnl Next figure out which bpf header file to look at.
+dnl
+
+AC_MSG_CHECKING(for BPF include path)
+BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_dir/pcap.h`
+echo $BPF
+
+dnl
+dnl Check for DLT_* types that might not have existed in older
+dnl libpcap's
+dnl
+
+present=""
+AC_MSG_CHECKING(for DLT_LINUX_SLL in bpf.h)
+AC_EGREP_CPP(yes,
+[
+#include <$BPF>
+#ifdef DLT_LINUX_SLL
+yes
+#endif
+],
+[HAVE_DLT_LINUX_SLL="1" && echo yes], [HAVE_DLT_LINUX_SLL="0" && echo no])
+
+present=""
+AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
+AC_EGREP_CPP(yes,
+[
+#include <$BPF>
+#ifdef DLT_LOOP
+yes
+#endif
+],
+[HAVE_DLT_LOOP="1" && echo yes], [HAVE_DLT_LOOP="0" && echo no])
+
+
+present=""
+AC_MSG_CHECKING(for DLT_IEEE802_11 in bpf.h)
+AC_EGREP_CPP(yes,
+[
+#include <$BPF>
+#ifdef DLT_IEEE802_11
+yes
+#endif
+],
+[HAVE_DLT_IEEE802_11="1" && echo yes], [HAVE_DLT_IEEE802_11="0" && echo no])
+
+
+present=""
+AC_MSG_CHECKING(for DLT_RAW in bpf.h)
+AC_EGREP_CPP(yes,
+[
+#include <$BPF>
+#ifdef DLT_RAW
+yes
+#endif
+],
+[HAVE_DLT_RAW="1" && echo yes], [HAVE_DLT_RAW="0" && echo no])
+
+
+dnl
+dnl Now that we're past the OS-specific stuff, which could have
+dnl modified our USE_* and other defines, define them all now.
+dnl 
+
+AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,    $USE_PCAP_RESTART)
+
+AC_DEFINE_UNQUOTED(USE_PCRE,            $USE_PCRE)
+
+AC_DEFINE_UNQUOTED(USE_DROPPRIVS,       $USE_DROPPRIVS)
+AC_DEFINE_UNQUOTED(DROPPRIVS_USER,     "$DROPPRIVS_USER")
+AC_DEFINE_UNQUOTED(DROPPRIVS_ONLY_ROOT, $DROPPRIVS_ONLY_ROOT)
+
+AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR,    $HAVE_DUMB_UDPHDR)
+
+AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,        $HAVE_DLT_RAW) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11, $HAVE_DLT_IEEE802_11) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,       $HAVE_DLT_LOOP) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,  $HAVE_DLT_LINUX_SLL) 
+
+
 
 dnl
 dnl And the library..
