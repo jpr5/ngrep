@@ -5,6 +5,7 @@ v1.41
         o added TCP ECN congestion header recognition
         o improved support for a few OSes
         o relaxed some restrictions in the license (COPYRIGHT -> LICENSE)
+        o 802.11 support
 
 v1.40.1
         o MacOS X support
