@@ -4,12 +4,12 @@ Author of ngrep:
 
 Use of couch whilst conceiving of the concept:
 
-    Dave Goldsmith <dhg@ksrt.org>  and
-    Window Snyder <ws@ksrt.org>
+    Dave Goldsmith <daveg@atstake.com>  and
+    Window Snyder <ws@atstake.com>
 
 Porting of ngrep to Win32:
 
-    Mike <mike@eEye.com>
+    Mike <mike@datanerds.com>
 
 64-bit clean regex.c patch:
        
