@@ -154,6 +154,9 @@ int main(int argc, char **argv) {
     case 'e':
       show_empty++;
       break;
+    case 'p':
+      promisc = 0;
+      break;
     case 'q':
       quiet++;
       break;
@@ -786,8 +789,8 @@ void update_windowsize(int e) {
 
 
 void usage(int e) {
-  printf("usage: ngrep <-hXViwqevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
-	 "                              <match expression> <bpf filter>\n");
+  printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+	 "                               <match expression> <bpf filter>\n");
   exit(e);
 }
 
