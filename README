@@ -123,3 +123,5 @@ Known Working Platforms:
   o OpenBSD 2.4 (after upgrading pcap from 0.2)
   o NetBSD 1.5/SPARC
   o Digital Unix V4.0D (OSF/1)
+  o HPUX 11
+  o IRIX
