@@ -35,3 +35,7 @@ Compilation patches:
 Tokenring Patch
 
      vacuum <vacuum@technotronic.com>
+
+HPUX and Config Updates Patch
+
+     Kevin Steves <stevesk@sweden.hp.com>

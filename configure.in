@@ -130,6 +130,11 @@ unsigned short bar = foo.uh_sport;
 
 	;;
 
+*hpux11*) 
+        AC_DEFINE(BSD)
+	
+	;;
+
 *)
         AC_MSG_WARN(Your OS ($target_os) is not supported yet.  Try\
                     playing with the build host and target options.)
