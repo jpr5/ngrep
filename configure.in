@@ -250,6 +250,15 @@ unsigned short bar = foo.uh_sport;
 
 *bsd*)
 	AC_SUBST(OS, BSD)
+	echo 
+        AC_MSG_WARN(
+Your OS ($target_os) may have an old libpcap installation.
+If the resulting ngrep binary segfaults when a BPF filter is specified 
+without an ngrep match string then you should reconfigure ngrep with 
+the option ``--disable-pcap-restart''.
+)
+	echo
+	sleep 3
 
         ;;
 
