@@ -54,7 +54,7 @@ install: $(TARGET)
 pcre: 
 	@cd pcre-5.0   && make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. 
 
-regex: 
+regex:
 	@cd regex-0.12 && make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. 
 
 $(OBJS): Makefile
@@ -66,12 +66,12 @@ clean:
 	rm -f *~ $(OBJS) $(REGEX_OBJS) $(TARGET) 
 
 distclean: clean clean-$(REGEX_TARGET)
-	rm -f config.status config.cache config.log config.h Makefile .depends
+	rm -f config.status config.cache config.log config.h Makefile 
 
 clean-pcre:
-	cd pcre-5.0   && test -f ./Makefile && make distclean
+	cd pcre-5.0   && rm -f RunTest dftables libpcre.pc && test -f ./Makefile && make distclean 
 
 clean-regex:
-	cd regex-0.12 && test -f ./Makefile && make distclean
+	cd regex-0.12 && rm -f Makefile doc/Makefile test/Makefile config.cache config.log config.status
 
 ngrep.o: ngrep.c ngrep.h
