@@ -2970,7 +2970,9 @@ _ACEOF
 
 
 
+
 STRIPFLAG="-s"
+dumb_udphdr="0"
 
 case "$target_os" in
 

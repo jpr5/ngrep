@@ -227,7 +227,9 @@ AC_DEFINE_UNQUOTED(HAVE_DLT_RAW, $present)
 dnl
 dnl OS-specific options
 dnl
+
 STRIPFLAG="-s"
+dumb_udphdr="0"
 
 case "$target_os" in
 
