@@ -683,6 +683,9 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 
     }
 
+    if (max_matches && matches >= max_matches)
+        clean_exit(0);
+
     if (match_after && keep_matching)
         keep_matching--;
 }
@@ -713,8 +716,8 @@ int re_match_func(char *data, int len) {
     }
 #endif
 
-    if (max_matches && ++matches > max_matches)
-        clean_exit(0);
+    if (max_matches)
+        matches++;
 
     if (match_after && keep_matching != match_after)
         keep_matching = match_after;
@@ -732,8 +735,8 @@ int bin_match_func(char *data, int len) {
 
     while (i <= stop)
         if (!memcmp(data+(i++), bin_data, match_len)) {
-            if (max_matches && ++matches > max_matches)
-                clean_exit(0);
+            if (max_matches)
+                matches++;
 
             if (match_after && keep_matching != match_after)
                 keep_matching = match_after;
@@ -746,8 +749,8 @@ int bin_match_func(char *data, int len) {
 
 
 int blank_match_func(char *data, int len) {
-    if (max_matches && ++matches > max_matches)
-        clean_exit(0);
+    if (max_matches)
+        matches++;
 
     return 1;
 }
