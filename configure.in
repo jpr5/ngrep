@@ -182,7 +182,7 @@ case "$target_os" in
 	AC_DEFINE(LINUX)
 
 	AC_MSG_CHECKING(for a dumb udphdr declaration)
-	AC_TRY_COMPILE(,
+	AC_TRY_COMPILE(
 #ifndef __FAVOR_BSD
 #define __FAVOR_BSD
 #endif
@@ -194,7 +194,7 @@ case "$target_os" in
 #undef _GNU_SOURCE
 
 #include <netinet/udp.h>
-
+,
 struct udphdr foo;
 unsigned short bar = foo.uh_sport;
 ,
