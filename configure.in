@@ -26,13 +26,20 @@ dnl
 dnl Find ourselves some usable pcap headers.
 dnl
 AC_MSG_CHECKING(for a complete set of pcap headers)
+
 possible_dirs="`eval echo -n ${includedir}` \
 	       /usr/include /usr/include/pcap \
                /usr/local/include /usr/local/include/pcap \
                /usr/share/include /usr/share/include/pcap"
+
+AC_ARG_WITH(pcap-includes,
+[  --with-pcap-includes    specify the pcap include directory],
+[PCAP_DIR=$withval],
+[PCAP_DIR=$possible_dirs])
+
 pcap_dir=""
 
-for dir in $possible_dirs ; do 
+for dir in $PCAP_DIR ; do 
     if test -d $dir -a -r "$dir/pcap.h" -a \
                        -r "$dir/net/bpf.h" ; then 
        if test -n "$pcap_dir" -a "$pcap_dir" != "$dir"; then
