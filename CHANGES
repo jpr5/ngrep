@@ -1,3 +1,33 @@
+v1.42
+        o rewrote the entire configure.in/config.h.in to autoconf 2.57
+          to be more consistent with normal autoconf'd programs.
+          corrects bugs around packaging impediments and typos.
+
+        o improved privilege dropping code and added more options to
+          configure to govern its behaviour
+
+        o added flag to turn off privilege revocation logic
+
+        o added multiline match as default and ability to enforce
+          previous default single-line match (bugfix + feature)
+
+        o added ability to read bpf filter expression from file
+
+        o added ability to force the column width to a certain size
+
+        o added two new output modes: ``byline'', whose output
+          respects embedded carriage returns (useful for http dumps),
+          and ``none'', which prints out each dump as a single line no
+          matter what.
+
+        o added ability to specify alternate nonprintable character
+          (default is ``.'').
+
+        o made ``-q'' effects more consistent and usable for scenarios
+          where ``-I'' and/or ``-O'' are being employed
+
+        o documentation updated
+
 v1.41
         o added -S (set limitlen)
         o added LOOP and SLL tests for portability/old libpcap'en
