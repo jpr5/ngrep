@@ -152,6 +152,18 @@ AC_DEFINE(HAVE_LOOP)
 echo yes,
 echo no)
 
+AC_MSG_CHECKING(for DLT_IEEE802_11 in bpf.h)
+AC_EGREP_HEADER(yes, 
+[
+#include <net/bpf.h> 
+#ifdef DLT_IEEE802_11
+yes
+#endif	 
+],
+AC_DEFINE(HAVE_802_11)
+echo yes,
+echo no)
+
 
 dnl
 dnl OS-specific options

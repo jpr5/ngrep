@@ -408,6 +408,12 @@ int main(int argc, char **argv) {
             break;
 #endif
 
+#ifdef HAVE_802_11
+        case DLT_IEEE802_11:
+            link_offset = IEEE80211HDR_SIZE;
+            break;
+#endif
+
         default:
             fprintf(stderr, "fatal: unsupported interface type %d\n", pcap_datalink(pd));
             clean_exit(-1);
