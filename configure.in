@@ -110,6 +110,35 @@ AC_SUBST(REGEX_OBJS)
 
 
 dnl
+dnl Check for DLT_* types that might not have existed in older
+dnl libpcap's
+dnl
+AC_MSG_CHECKING(for DLT_LINUX_SLL in bpf.h)
+AC_EGREP_HEADER(yes, 
+[
+#include <net/bpf.h> 
+#ifdef DLT_LINUX_SLL
+yes
+#endif	 
+],
+AC_DEFINE(HAVE_SLL)
+echo yes, 
+echo no)
+
+AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
+AC_EGREP_HEADER(yes, 
+[
+#include <net/bpf.h> 
+#ifdef DLT_LOOP
+yes
+#endif	 
+],
+AC_DEFINE(HAVE_LOOP)
+echo yes,
+echo no)
+
+
+dnl
 dnl OS-specific options
 dnl
 AC_DEFINE(_BSD_SOURCE)
