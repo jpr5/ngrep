@@ -1147,7 +1147,11 @@ void drop_privs(void) {
 #endif
 
 void usage(int e) {
-    printf("usage: ngrep <-LhXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+    printf("usage: ngrep <-"
+#if defined(_WIN32)
+           "L"
+#endif
+           "hXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "             <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>\n"
            "             <-P char> <-F file> <match expression> <bpf filter>\n"
            "   -h  is help/usage\n"
