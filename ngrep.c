@@ -97,7 +97,7 @@ char *re_err = NULL;
 const char *re_err = NULL;
 #endif
 
-int re_match_word = 0, re_ignore_case = 0;
+int re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
 
 #if USE_PCRE
 pcre *pattern = NULL;
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
 
-    while ((c = getopt(argc, argv, "hXViwqpevxlDtTRs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "hXViwqpevxlDtTRMs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -179,6 +179,9 @@ int main(int argc, char **argv) {
                 break;
             case 's':
                 snaplen = atoi(optarg);
+                break;
+            case 'M':
+                re_multiline_match = 0;
                 break;
             case 'R':
                 no_dropprivs = 1;
@@ -365,9 +368,14 @@ int main(int argc, char **argv) {
             if (re_ignore_case)
                 pcre_options |= PCRE_CASELESS;
 
-            re_err = malloc(512);
+            if (re_multiline_match)
+                pcre_options |= PCRE_DOTALL;
 #else
-            re_syntax_options = RE_SYNTAX_EGREP;
+            re_syntax_options = RE_CHAR_CLASSES | RE_NO_BK_PARENS | RE_NO_BK_VBAR |
+                                RE_CONTEXT_INDEP_ANCHORS | RE_CONTEXT_INDEP_OPS;
+
+            if (re_multiline_match)
+                re_syntax_options |= RE_DOT_NEWLINE;
 
             if (re_ignore_case) {
                 char *s;
@@ -375,6 +383,7 @@ int main(int argc, char **argv) {
 
                 pattern.translate = (char*)malloc(256);
                 s = pattern.translate;
+
                 for (i = 0; i < 256; i++)
                     s[i] = i;
                 for (i = 'A'; i <= 'Z'; i++)
@@ -383,6 +392,7 @@ int main(int argc, char **argv) {
                 s = match_data;
                 while (*s)
                     *s++ = tolower(*s);
+
             } else pattern.translate = NULL;
 #endif
 
@@ -394,15 +404,13 @@ int main(int argc, char **argv) {
 
 #if USE_PCRE
             pattern = pcre_compile(match_data, pcre_options, (const char **)&re_err, &err_offset, 0);
+
             if (!pattern) {
                 fprintf(stderr, "compile failed: %s\n", re_err);
                 clean_exit(-1);
             }
 
             pattern_extra = pcre_study(pattern, 0, (const char **)&re_err);
-
-            free(re_err);
-            re_err = NULL;
 #else
             re_err = re_compile_pattern(match_data, strlen(match_data), &pattern);
             if (re_err) {
@@ -1034,7 +1042,7 @@ void drop_privs(void) {
 }
 
 void usage(int e) {
-    printf("usage: ngrep <-hXViwqpevxlDtTR> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+    printf("usage: ngrep <-hXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "                <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>\n"
            "                <-P char> <-F file> <match expression> <bpf filter>\n");
 
@@ -1053,7 +1061,6 @@ void clean_exit(int sig) {
     if (!quiet && sig >= 0) printf("exit\n");
 
 #if USE_PCRE
-    if (re_err) free(re_err);
     if (pattern) pcre_free(pattern);
     if (pattern_extra) pcre_free(pattern_extra);
 #else
