@@ -1,3 +1,9 @@
+Thu Jan  3 08:52:27 PST 2002  Jordan Ritter  (jpr5@darkridge.com)
+
+	* Modified configure.in/configure to displace the standard 
+	regex symbols to other names (since ngrep doesn't use them,
+	and they collide on MacOS X's installation).
+
 Fri Apr  2 17:31:59 1993  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* Released version 0.12.
