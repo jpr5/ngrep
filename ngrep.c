@@ -284,10 +284,6 @@ int main(int argc, char **argv) {
             clean_exit(-1);
         }
 
-#if !defined(_WIN32)
-        drop_privs();
-#endif
-
         live_read = 0;
         printf("input: %s\n", read_file);
 
@@ -305,10 +301,6 @@ int main(int argc, char **argv) {
             clean_exit(-1);
         }
 
-#if !defined(_WIN32)
-        drop_privs();
-#endif
-
         if (pcap_lookupnet(dev, &net.s_addr, &mask.s_addr, pc_err) == -1) {
             perror(pc_err);
             memset(&net, 0, sizeof(net));
@@ -324,6 +316,10 @@ int main(int argc, char **argv) {
             printf("\n");
         }
     }
+
+#if !defined(_WIN32)
+    drop_privs();
+#endif
 
     if (filter_file) {
         char buf[1024] = {0};
@@ -1024,7 +1020,7 @@ int strishex(char *str) {
 void print_time_absolute(struct pcap_pkthdr *h) {
     struct tm *t = localtime((const time_t *)&h->ts.tv_sec);
 
-    printf("%02d/%02d/%02d %02d:%02d:%02d.%06d ",
+    printf("%02u/%02u/%02u %02u:%02u:%02u.%06u ",
            t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour,
            t->tm_min, t->tm_sec, h->ts.tv_usec);
 }
@@ -1040,7 +1036,7 @@ void print_time_diff(struct pcap_pkthdr *h) {
         usecs = 1000000 - (prev_ts.tv_usec - h->ts.tv_usec);
     }
 
-    printf("+%u.%06d ", secs, usecs);
+    printf("+%u.%06u ", secs, usecs);
 
     prev_ts.tv_sec = h->ts.tv_sec;
     prev_ts.tv_usec = h->ts.tv_usec;
