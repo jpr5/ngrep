@@ -656,7 +656,7 @@ void print_time_absolute(struct pcap_pkthdr *h) {
   struct tm *t = localtime(&h->ts.tv_sec);
 
   printf("%02d/%02d/%02d %02d:%02d:%02d.%06d ",
-	 t->tm_year+1900, t->tm_mon, t->tm_mday, t->tm_hour,
+	 t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour,
 	 t->tm_min, t->tm_sec, h->ts.tv_usec);
 }
 
