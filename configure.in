@@ -33,7 +33,7 @@ possible_dirs="`eval echo -n ${includedir}` \
                /usr/share/include /usr/share/include/pcap"
 
 AC_ARG_WITH(pcap-includes,
-[  --with-pcap-includes    specify the pcap include directory],
+[  --with-pcap-includes       specify the pcap include directory],
 [PCAP_DIR=$withval],
 [PCAP_DIR=$possible_dirs])
 
@@ -92,7 +92,7 @@ dnl
 dnl pcre library compatibility stuff
 dnl
 AC_ARG_WITH(pcre,
-[  --with-pcre             use PCRE instead of GNU regex],
+[  --with-pcre                use PCRE instead of GNU regex],
 [ 
   ( cd pcre-3.4; ./configure && make libtool chartables.c )
   AC_DEFINE(USE_PCRE)
@@ -113,7 +113,7 @@ dnl
 dnl Allow user to specify alternate ``nobody'' user.
 dnl
 AC_ARG_WITH(safe-user,
-[  --with-safe-user        use user instead of "nobody" for dropprivs],
+[  --with-safe-user           use user instead of "nobody" for dropprivs],
 [
   SAFE_USER="$withval"
 ],
@@ -122,6 +122,23 @@ AC_ARG_WITH(safe-user,
 ]
 )
 AC_SUBST(SAFE_USER)
+
+
+dnl
+dnl Some people have complained that they don't care to drop
+dnl privileges if they're not root, hence this flag.
+dnl
+
+AC_ARG_WITH(nonroot-dropprivs,
+[  --with-nonroot-dropprivs   drop privs even if not root],
+[
+  DROP_ONLY_ROOT="1"
+],
+[
+  DROP_ONLY_ROOT="0"
+]
+)
+AC_SUBST(DROP_ONLY_ROOT)
 
 dnl
 dnl Check for DLT_* types that might not have existed in older
@@ -266,7 +283,7 @@ dnl now, just let the user the flag itself, until I come up with a
 dnl working methodology.
 dnl
 AC_ARG_WITH(restart,
-[  --with-restart          use libpcap restart func],
+[  --with-restart             use libpcap restart func],
 [ 
   if test "$withval" = "yes"; then 
     AC_DEFINE(NEED_RESTART)     

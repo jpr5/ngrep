@@ -9,7 +9,7 @@
 CC=@CC@
 
 INCLUDES=-I@srcdir@ @PCAP_INCLUDE@
-CFLAGS=@CFLAGS@ @DEFS@ -DSAFE_USER='"@SAFE_USER@"'
+CFLAGS=@CFLAGS@ @DEFS@ -DSAFE_USER='"@SAFE_USER@"' -DDROP_ONLY_ROOT=@DROP_ONLY_ROOT@
 LDFLAGS=@LDFLAGS@ @PCAP_LINK@
 LIBS=-lpcap @EXTRA_LIBS@
 STRIPFLAG=@STRIPFLAG@
@@ -47,6 +47,8 @@ pcre:
 
 regex: 
 	@( cd regex-0.12; make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. )
+
+$(OBJS): Makefile
 
 .c.o:	
 	$(CC) $(CFLAGS) $(INCLUDES) -g -c $<

@@ -198,6 +198,7 @@ int main(int argc, char **argv) {
         match_data = argv[optind++];
 
     if (read_file) {
+
         if (!(pd = pcap_open_offline(read_file, pc_err))) {
             perror(pc_err);
             clean_exit(-1);
@@ -208,8 +209,8 @@ int main(int argc, char **argv) {
         live_read = 0;
         printf("input: %s\n", read_file);
 
-
     } else {
+
         if (!dev)
             if (!(dev = pcap_lookupdev(pc_err))) {
                 perror(pc_err);
@@ -845,14 +846,23 @@ void update_windowsize(int e) {
 
 
 void drop_privs(void) {
-    struct passwd *pw = getpwnam(SAFE_USER);
+#if DROP_ONLY_ROOT
+    if (getuid() != 0 && geteuid() != 0 &&
+        getgid() != 0 && getegid() != 0)
+        return;
+#endif
 
-    if (setregid(pw->pw_gid, pw->pw_gid) == -1 ||
-        setreuid(pw->pw_uid, pw->pw_uid) == -1) {
-        perror("attempt to drop privileges failed");
-        clean_exit(-1);
+    {
+        struct passwd *pw = getpwnam(SAFE_USER);
+
+        if (setregid(pw->pw_gid, pw->pw_gid) == -1 ||
+            setreuid(pw->pw_uid, pw->pw_uid) == -1) {
+            perror("attempt to drop privileges failed");
+            clean_exit(-1);
+        }
     }
 }
+
 
 void usage(int e) {
     printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
