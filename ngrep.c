@@ -54,8 +54,8 @@
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
 
-#include <pcap.h>
 #include <net/bpf.h>
+#include <pcap.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -392,6 +392,8 @@ int main(int argc, char **argv) {
                 s = match_data;
                 while (*s)
                     *s++ = tolower(*s);
+
+                printf("match_data = %s\n", match_data);
 
             } else pattern.translate = NULL;
 #endif
@@ -1004,6 +1006,11 @@ void drop_privs(void) {
     struct passwd *pw = getpwnam(DROPPRIVS_USER);
     gid_t newgid = pw->pw_uid, oldgid = getegid();
     uid_t newuid = pw->pw_gid, olduid = geteuid();
+
+    if (!pw) {
+        perror("attempt to drop privileges failed: getpwnam failed");
+        clean_exit(-1);
+    }
 
     if (!olduid)
         setgroups(1, &newgid);
