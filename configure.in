@@ -354,8 +354,7 @@ AC_ARG_WITH(pcap-includes,
 
 pcap_dir=""
 for dir in $PCAP_DIR ; do 
-    if test -d $dir -a -r "$dir/pcap.h" -a \
-                       -r "$dir/net/bpf.h" ; then 
+    if test -d $dir -a -r "$dir/pcap.h" ; then 
        if test -n "$pcap_dir" -a "$pcap_dir" != "$dir"; then
           echo 
           echo; echo more than one set found in:
@@ -370,7 +369,7 @@ for dir in $PCAP_DIR ; do
 done
 
 if test -z "$pcap_dir" ; then
-   echo no; echo couldn\'t find a complete set of pcap headers
+   echo no; echo !!! couldn\'t find a complete set of pcap headers
    exit
 else
    echo found $pcap_dir
