@@ -847,11 +847,11 @@ void update_windowsize(int e) {
 void drop_privs(void) {
     struct passwd *pw = getpwnam(SAFE_USER);
 
-    seteuid(pw->pw_uid);
-    setegid(pw->pw_gid);
-
-    setuid(pw->pw_uid);
-    setgid(pw->pw_gid);
+    if (setregid(pw->pw_gid, pw->pw_gid) == -1 ||
+        setreuid(pw->pw_uid, pw->pw_uid) == -1) {
+        perror("attempt to drop privileges failed");
+        clean_exit(-1);
+    }
 }
 
 void usage(int e) {
