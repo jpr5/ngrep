@@ -5,12 +5,12 @@ any computer system, and to alter it and redistribute it, subject
 to the following restrictions:
 
 1. The origin of this software must not be misrepresented, either by
-   explicit claim or by omission.  Since few users ever read sources,
-   credits must also appear in the documentation.
+   explicit claim or by omission.
 
 2. Altered versions must be plainly marked as such, and must not be
-   misrepresented as being the original software.  Since few users
-   ever read sources, credits must also appear in the documentation.
+   misrepresented as being the original software.  Any altered version
+   must clearly and properly represent the origin of this software in
+   any accompanying documentation.
 
 3. All advertising materials which relate specifically to derivate
    works of this software must display the following acknowledgement:
@@ -20,8 +20,9 @@ to the following restrictions:
    products derived from this software without specific prior written
    permission.
 
-5. This notice, and any references to this notice in the source,
-   documentation, or binary, may not be removed or altered.
+5. This notice, and any references to this notice, in any original or
+   derived source distribution of or documentation for this software,
+   may not be removed or altered.
 
 
 THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
