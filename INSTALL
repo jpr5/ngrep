@@ -1,17 +1,78 @@
-Installation Guide
-------------------
+$Id$
 
-For most, installation of ngrep will be as simple as typing:
+ngrep Installation Guide
+------------------------
 
-    % ./configure ; make 
+1. Install the latest Packet Capture Library
 
-Those of you looking for the quick way out, there you have it.  Keep
-in mind, you need libpcap installed before you can compile ngrep.  You
-can get it at http://www.tcpdump.org/.
+In orer to compile ngrep on any platform, the relevant packet capture
+(PCAP) client support library must be installed.
 
-If you still have problems compiling or are compiling on an
+On UNIX, this is called ``libpcap'' and can be installed either from
+source or from a distribution's particular package management system.
+
+On Windows, the client support library is called ``WinPcap Developer's
+Pack'' and should be unpacked inside the parent directory of the ngrep
+source.
+
+The latest versions (as of this writing) are located at:
+
+    UNIX:  http://tcpdump.org/release/libpcap-0.8.3.tar.gz
+    Win32: http://www.winpcap.org/install/bin/wpdpack_3_1_beta4.zip
+
+
+2. Unpack the source
+
+Once the client packet capture client support library is installed,
+unpack the ngrep source to a directory.
+
+On Windows, this must be under the same parent directory as the
+WinPcap Developer's Pack.
+
+
+3. Compile the program
+
+On UNIX, type the following from the root of the ngrep source tree:
+
+    % ./configure && make
+
+On Windows, open the ``ngrep.sln'' file located in the ``win32''
+subdirectory of the ngrep source tree using Visual Studio.NET.  From
+there you should be able to Build the solution in either Debug or
+Release mode.  Once this is done, copy the resulting ``ngrep.exe''
+(located in either the ``Debug'' or ``Release'' subdirectory depending
+on compile configuration) into any directory in your path for easy
+usage (``c:\windows'', for instance).
+
+Please ignore the warnings associated with the GNU Regex library
+included in the ngrep source tree.
+
+
+4. Install the kernel driver
+
+ngrep is a PCAP-based program and therefore requires the PCAP kernel
+driver to be installed before it will function properly.
+
+The PCAP Driver is already integrated into the vast majority of UNIX
+and Linux kernels released within the last ~10 years.
+
+The Windows Platform, however, does not come with an integrated PCAP
+kernel driver by default, so it is necessary to install one before
+ngrep will work.  The latest version (as of this writing) is located
+at:
+
+    http://www.winpcap.org/install/bin/WinPcap_3_1_beta4.exe
+
+
+Getting Help
+------------
+
+On UNIX, if you still have problems compiling or are compiling on an
 unsupported OS, try playing with other build types -- i.e. if you have
-a BSD derived system, try the BSD build type.  Otherwise, email the
-author.
+a BSD derived system, try the BSD build type.
 
-Sparse, I know.
+Please email me for help if you If you still have problems, however
+please try to help yourself first and search Google for possible
+answers before contacting me.
+
+Jordan Ritter <jordan@darkridge.com>
