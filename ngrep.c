@@ -27,19 +27,18 @@
 #include <sys/mbuf.h>
 #endif
 
-#if defined(AIX)
-#include <sys/machine.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <time.h>
-#endif
-
 #if defined(LINUX)
 #include <getopt.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 #endif
 
+#if defined(AIX)
+#include <sys/machine.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <time.h>
+#endif
 
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
@@ -401,7 +400,13 @@ int main(int argc, char **argv) {
 void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
   struct ip* ip_packet = (struct ip *)(p + link_offset);
 
+#if defined(AIX)
+#undef ip_hl
+  unsigned ip_hl = ip_packet->ip_ff.ip_fhl*4;
+#else
   unsigned ip_hl = ip_packet->ip_hl*4;
+#endif
+
   unsigned ip_off = ntohs(ip_packet->ip_off);
   unsigned fragmented = ip_off & (IP_MF | IP_OFFMASK);
   unsigned frag_offset = fragmented?(ip_off & IP_OFFMASK) * 8:0;
