@@ -3000,6 +3000,7 @@ rm -f conftest.$ac_objext conftest.$ac_ext
 *bsd*)
 	OS=BSD
 
+
 	echo
         { echo "$as_me:$LINENO: WARNING: Your OS ($target_os) may have an old libpcap installation.
 If the resulting ngrep binary segfaults when a BPF filter is specified
@@ -3152,14 +3153,13 @@ else
 fi
 
 
-	LIBS="$LIBS -lnsl -lsocket"
-
 	EXTRA_LIBS="$EXTRA_LIBS -lnsl -lsocket"
 
 	;;
 
 *osf*)
 	OS=OSF1
+
 
 	EXTRA_DEFINES="$EXTRA_DEFINES -D__STDC__=2"
 
@@ -3179,6 +3179,7 @@ fi
 
 *darwin*)
 	OS=MACOSX
+
 
 	STRIPFLAG=""
 
