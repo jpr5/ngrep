@@ -1,0 +1,152 @@
+dnl
+dnl $Id$
+dnl
+dnl Copyright (c) 2000  Jordan Ritter <jpr5@darkridge.com>
+dnl
+dnl Please refer to the COPYRIGHT file for more information.
+
+AC_INIT(ngrep.c)
+
+AC_CANONICAL_SYSTEM
+
+AC_PROG_CC
+AC_PREFIX(gcc)
+
+
+AC_HEADER_STDC
+AC_CHECK_HEADER(strings.h,,echo need strings header; exit)
+AC_CHECK_HEADER(netinet/if_ether.h,AC_DEFINE(HAVE_IF_ETHER_H,1),)
+
+
+AC_MSG_CHECKING(for a complete set of pcap headers)
+possible_dirs="/usr/include /usr/include/pcap \
+               /usr/local/include /usr/local/include/pcap \
+               /usr/share/include /usr/share/include/pcap"
+pcap_dir=""
+
+for dir in $possible_dirs ; do 
+    if test -d $dir -a -r "$dir/pcap.h" -a \
+                       -r "$dir/net/bpf.h" ; then 
+       if test -n "$pcap_dir" ; then
+          echo 
+          echo; echo more than one set found in:
+          echo  $pcap_dir 
+          echo  $dir
+          echo; echo please wipe out all unused pcap installations
+          exit
+       else 
+          pcap_dir="$dir"
+       fi
+    fi
+done
+
+if test -z "$pcap_dir" ; then
+   echo no; echo couldn\'t find a complete set of pcap headers
+   exit
+else
+   AC_SUBST(PCAP_INCLUDE)
+   PCAP_INCLUDE="-I$pcap_dir"
+   echo found $pcap_dir
+   
+   AC_MSG_CHECKING(for usable bpf.h)
+   if test -n "`grep DLT_RAW $pcap_dir/net/bpf.h`" ; then
+      echo yep
+   else 
+
+echo nope
+echo '***************************************************************'
+echo an important define is missing from the bpf.h I found.  this
+echo probably means that your installation of pcap is outdated and
+echo needs upgrading.  I\'ll go ahead and add the define for you but
+echo understand that matching certain types of packets may not 
+echo function properly.
+echo '***************************************************************'
+sleep 2
+
+AC_DEFINE(DLT_RAW, 12)
+
+   fi
+fi
+
+
+
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_TYPE_SIGNAL
+AC_FUNC_ALLOCA
+
+
+AC_DEFINE(_BSD_SOURCE)
+AC_DEFINE(__FAVOR_BSD)
+
+case "$target_os" in
+
+*linux*)
+	AC_DEFINE(LINUX)
+
+	AC_MSG_CHECKING(for a dumb udphdr declaration)
+	AC_TRY_COMPILE(,
+#ifndef __FAVOR_BSD
+#define __FAVOR_BSD
+#endif
+
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE 1
+#endif
+
+#include <netinet/udp.h>
+
+struct udphdr foo;
+unsigned short bar = foo.uh_sport;
+,
+	echo nope,
+        echo yep dumb; AC_DEFINE(HAVE_DUMB_UDPHDR))
+
+        ;;
+
+*bsd*)
+	AC_DEFINE(BSD)
+
+        ;;
+
+*solaris*)
+	AC_DEFINE(SOLARIS)
+
+        AC_CHECK_LIB(socket, socket,,
+                     echo no socket in -lsocket\?; exit)
+        AC_CHECK_LIB(nsl, gethostbyname,,
+                     echo no gethostbyname in -lnsl\?; exit)
+
+	LIBS="$LIBS -lnsl -lsocket"
+
+        AC_SUBST(EXTRA_LIBS)
+	EXTRA_LIBS='-lnsl -lsocket'
+
+	;;
+
+*osf*)
+	AC_DEFINE(OSF1)
+	AC_DEFINE(__STDC__, 2)
+
+	;;
+
+*)
+        AC_MSG_WARN(Your OS ($target_os) is not supported yet.  Try\
+                    playing with the build host and target options.)
+
+        ;;
+
+esac
+
+
+AC_CHECK_LIB(pcap, pcap_open_live,,echo need pcap lib; exit)
+
+AC_CHECK_LIB(pcap, pcap_restart, AC_DEFINE(PCAP_RESTART,pcap_restart),
+ AC_CHECK_LIB(pcap, pcap_yyrestart, AC_DEFINE(PCAP_RESTART,pcap_yyrestart),
+  AC_CHECK_LIB(pcap, yyrestart, AC_DEFINE(PCAP_RESTART,yyrestart),
+   echo no yacc restart func found
+   echo perhaps libpcap wasn\'t compiled with bison/flex\?
+   exit)))
+
+
+AC_OUTPUT(Makefile)

@@ -1,0 +1,34 @@
+Author of ngrep:
+
+    Jordan Ritter <jpr5@darkridge.com>
+
+Use of couch whilst conceiving of the concept:
+
+    Dave Goldsmith <dhg@ksrt.org>  and
+    Window Snyder <ws@ksrt.org>
+
+Porting of ngrep to Win32:
+
+    Mike <mike@eEye.com>
+
+64-bit clean regex.c patch:
+       
+    Jeff <yaway@hotmail.com>
+
+Hexdump patch:
+
+    Andrew W. Flury <aflury@nas.nasa.gov>
+
+Elite ideas and loads of licensing advice:
+
+     Dan Frasnelli <dfrasnel@corewar.com>  and
+     cstone <cstone@pobox.com>
+
+Use of OSF/1 box and DDoS research:
+
+     Dave Dittrich <dittrich@cac.washington.edu> 
+
+Compilation patches:
+ 
+     dugsong <dugsong@monkey.org>
+

@@ -1,0 +1,76 @@
+v1.38
+	o binary matching
+	o windows compilation support
+	o 64-bit clean patch to regex.c
+	o dump and replay pcap_dump files
+	o officially licensed under the BSD license
+	o normal and diff/delta timestamps
+
+v1.37  
+        o added FDDI support
+
+v1.36
+	o added -l (line buffer stdout)
+	o a few optimizations were made to shave off some cpu cycles
+	  spent on processing each packet 
+	o fixed bug where the blank regex algorithm wasn't even being
+	  used 
+	o fixed bug in blank regex algorithm that was preventing '-n'
+	  from working
+        o change to compile on LinuxPPC
+	o change to nix potential warnings on other OSes
+	o change to not exit if pcap_lookupnet fails
+	          
+v1.35
+	o appears that the release of 1.34 had only one of the 
+	  match optimizations: somehow only the tcp match was updated;
+	  udp change was omitted.  fixed.
+	o moved -v (version) to -V
+        o added -v (grep -v), invert match
+	o added -d lo (null linktype)
+	o added ability to match proto icmp 
+	o updated configure.in to handle old installations of pcap
+	  more gracefully (i.e. continue on by adding the necessary
+	  defines and just gripe) 
+
+v1.34
+	o merged in patch from Andrew W. Flury <aflury@nas.nasa.gov>
+	  for hex printing, made minor modification to patch to not
+	  print off the end of the buffer
+	o added an optimization for the case where no regex was
+	  specified; should account for a little speed up
+
+v1.33
+	o fragment changes, this should be it
+
+v1.32
+	o switched around regex -w/-i logic
+	o fragment bugfixes
+
+v1.31
+	o added -A (match after)
+	o Makefile.in changes 
+	o configure.in changes for solaris
+	o added manpage (ngrep.8)
+
+v1.30 
+
+	o bugfix: wasn't malloc'ing enough for word_regex
+	o bugfix: case-insensitive was tolower()ing the word_regex
+	  itself 
+
+v1.29
+
+	o added -e (show empty)
+	o one or two safe, preemptive changes catching possible int
+	  overflows 
+
+v1.28
+
+	o added -n
+	o no required arguments anymore
+	o regex's are not required anymore, can just be bpf logic
+	o probably a bugfix or two
+
+
+

@@ -1,0 +1,16 @@
+Known bugs:
+
+      o RedHat-modified libpcap issue
+
+        This is not a bug, but a "feature" of the RedHat-modified
+        libpcap (included in at least RedHat 6.2).  Apparently,
+        specifying a filter to the library is a programmatic
+        requirement, whether the bpf expression is empty or not.  
+
+	This issue is verified by running ngrep without a bpf filter
+	expression and not observing any traffic when traffic is known
+	to exist.
+
+	Uninstall RedHat's modified libpcap, and replace with the
+	latest libpcap, located at: ftp://ftp.ee.lbl.gov/libpcap.tar.Z
+

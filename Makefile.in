@@ -1,0 +1,56 @@
+#
+# $Id$
+#
+# Copyright (c) 2000  Jordan Ritter <jpr5@darkridge.com>
+#
+# Please refer to the COPYRIGHT file for more information.
+
+
+CC=@CC@
+
+INCLUDES=-I@srcdir@ @PCAP_INCLUDE@
+CFLAGS=@CFLAGS@ @DEFS@ 
+LIBS=-lpcap @EXTRA_LIBS@
+
+SRC=ngrep.c regex.c
+OBJS=ngrep.o regex.o
+TARGET=ngrep
+MANPAGE=ngrep.8
+
+INSTALL=./install-sh
+BINDEST=@prefix@/bin
+MANDEST=@prefix@/man/man8
+
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS) 
+	$(CC) $(CFLAGS) -s -o $(TARGET) $(OBJS) $(LIBS) 
+
+debug: $(OBJS)
+	$(CC) $(CFLAGS) -g -o $(TARGET) $(OBJS) $(LIBS) 
+
+static: $(OBJS)
+	$(CC) $(CFLAGS) -s -static -o $(TARGET).static $(OBJS) $(LIBS) 
+
+install: $(TARGET)
+	$(INSTALL) -c -m 0755 $(TARGET) $(BINDEST)
+	$(INSTALL) -c -m 0644 $(MANPAGE) $(MANDEST)
+
+.c.o:	
+	$(CC) $(CFLAGS) $(INCLUDES) -g -c $<
+
+dep: 
+	@echo making dependencies...
+	@$(CXX) $(INCLUDES) -M -MG $(SRC) > .depends
+
+clean:
+	rm -f *~ $(OBJS) $(TARGET) 
+
+distclean: clean
+	rm -f config.status config.cache config.log Makefile .depends
+
+ngrep.o: ngrep.c ngrep.h
+regex.o: regex.c regex.h
+
+-include .depends

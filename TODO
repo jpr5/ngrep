@@ -1,0 +1,15 @@
+Todo:
+
+	o add non-ip protocols           (IPX and Appletalk are up next, maybe NetBeui?)
+
+        o add flag to specify packet flags (supported by bpf filters,
+          but under consideration)
+      
+        o switch to pcre for regex support  (under consideration)
+
+	o -T == display time diff from start (completed)
+
+	o replay should use timestamp stored in file to sleep packet
+          delays (completed)
+
+	o add "Extra info", i.e. display ToS, seq, id, etc.
