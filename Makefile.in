@@ -20,9 +20,12 @@ OBJS=ngrep.o
 TARGET=ngrep
 MANPAGE=ngrep.8
 
-INSTALL=./install-sh
-BINDEST=@prefix@/bin
-MANDEST=@prefix@/man/man8
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+BINDIR      = @bindir@
+MANDIR      = @mandir@/man8
+
+INSTALL = ./install-sh
 
 REGEX_TARGET=@REGEX_TARGET@
 REGEX_OBJS=@REGEX_OBJS@
@@ -40,8 +43,8 @@ static: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET).static -static $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 install: $(TARGET)
-	$(INSTALL) -c -m 0755 $(TARGET) $(BINDEST)
-	$(INSTALL) -c -m 0644 $(MANPAGE) $(MANDEST)
+	$(INSTALL) -c -m 0755 $(TARGET)  $(DESTDIR)/$(BINDIR)/$(TARGET)
+	$(INSTALL) -c -m 0644 $(MANPAGE) $(DESTDIR)/$(MANDIR)/$(MANPAGE)
 
 pcre: 
 	@( cd pcre-3.4; make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. )

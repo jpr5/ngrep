@@ -271,6 +271,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
 ac_unique_file="ngrep.c"
+ac_default_prefix=/usr/local
 ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT ac_prefix_program CPP EGREP REGEX_TARGET REGEX_OBJS OS STRIPFLAG PCAP_INCLUDE PCAP_LINK EXTRA_DEFINES EXTRA_INCLUDES EXTRA_LIBS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
@@ -2213,6 +2214,7 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 
 if test "x$prefix" = xNONE; then
   echo $ECHO_N "checking for prefix by $ECHO_C" >&6
