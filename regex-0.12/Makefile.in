@@ -77,7 +77,7 @@ default all install \
 mostlyclean clean distclean extraclean realclean \
 TAGS check::
 	for d in $(subdirs); do (cd $$d; $(MAKE) $(makeargs) $@); done
-	rm -f Makefile config.status
+	rm -f Makefile config.status regex.o
 
 .PHONY: install mostlyclean clean distclean extraclean realclean TAGS check
 
