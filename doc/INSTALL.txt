@@ -16,7 +16,7 @@ the case.
 
 On Windows, the client support library is called ``WinPcap Developer's
 Pack'' and should be unpacked inside the parent directory of the ngrep
-source.
+source tree.
 
 The latest versions (as of this writing) are located at:
 
@@ -24,7 +24,7 @@ The latest versions (as of this writing) are located at:
     Win32: http://www.winpcap.org/install/bin/wpdpack_3_1_beta4.zip
 
 
-2. Unpack the source
+2. Unpack the ngrep source
 
 Once the client packet capture client support library is installed,
 unpack the ngrep source to a directory.
@@ -33,7 +33,7 @@ On Windows, this must be under the same parent directory as the
 WinPcap Developer's Pack.
 
 
-3. Compile the program
+3. Compile the ngrep program
 
 On UNIX, type the following from the root of the ngrep source tree:
 
@@ -51,7 +51,7 @@ Please ignore the warnings associated with the GNU Regex library
 included in the ngrep source tree.
 
 
-4. Install the kernel driver
+4. Install the PCAP kernel driver
 
 ngrep is a PCAP-based program and therefore requires the PCAP kernel
 driver to be installed before it will function properly.
