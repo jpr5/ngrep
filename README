@@ -42,8 +42,8 @@ Usage:
   -t  is print timestamp every time a packet is matched
   -T  is print delta timestamp every time a packet is matched
   -s  is set the bpf caplen
-  -I  is dump matched packets in pcap format to pcap_dump
-  -O  is read packet stream from pcap format file pcap_dump 
+  -O  is dump matched packets in pcap format to pcap_dump
+  -I  is read packet stream from pcap format file pcap_dump 
   -n  is look at only num packets
   -d  is use a device different from the default (pcap)
   -A  is dump num packets after a match
