@@ -250,6 +250,7 @@ unsigned short bar = foo.uh_sport;
 
 *bsd*)
 	AC_SUBST(OS, BSD)
+
 	echo 
         AC_MSG_WARN(
 Your OS ($target_os) may have an old libpcap installation.
@@ -269,14 +270,13 @@ the option ``--disable-pcap-restart''.
         AC_CHECK_LIB(nsl, gethostbyname,,
                      echo no gethostbyname in -lnsl\?; exit)
 
-	LIBS="$LIBS -lnsl -lsocket"
-
 	EXTRA_LIBS="$EXTRA_LIBS -lnsl -lsocket"
 
 	;;
 
 *osf*)
 	AC_SUBST(OS, OSF1)
+
 	EXTRA_DEFINES="$EXTRA_DEFINES -D__STDC__=2"
 
 	;;
@@ -293,6 +293,7 @@ the option ``--disable-pcap-restart''.
 
 *darwin*)
 	AC_SUBST(OS, MACOSX)
+
 	STRIPFLAG=""
 
 	;;
