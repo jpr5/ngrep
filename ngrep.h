@@ -53,7 +53,6 @@ void dump_formatted(char *, unsigned);
 int strishex(char *);
 
 void print_time_absolute(struct pcap_pkthdr *);
-void print_time_diff_init(struct pcap_pkthdr *);
 void print_time_diff(struct pcap_pkthdr *);
 
 void dump_delay_proc_init(struct pcap_pkthdr *);

@@ -86,7 +86,7 @@ SOCKET delay_socket = 0;
 #endif
 
 #if USE_PCRE
-#include "pcre-3.4/pcre.h"
+#include "pcre-5.0/pcre.h"
 #else
 #include "regex-0.12/regex.h"
 #endif
@@ -131,7 +131,7 @@ int match_len = 0;
 struct bpf_program pcapfilter;
 struct in_addr net, mask;
 pcap_t *pd = NULL;
-char *dev = NULL;
+char *usedev = NULL;
 int link_offset;
 
 char *read_file = NULL, *dump_file = NULL;
@@ -193,14 +193,14 @@ int main(int argc, char **argv) {
                 win32_listdevices();
                 clean_exit(0);
             case 'd':
-                dev = win32_usedevice(optarg);
+                usedev = win32_usedevice(optarg);
                 break;
 #else
             case 'L':
                 perror("-L is a Win32-only option");
                 clean_exit(-1);
             case 'd':
-                dev = optarg;
+                usedev = optarg;
                 break;
 #endif
             case 'c':
@@ -219,7 +219,13 @@ int main(int argc, char **argv) {
                 no_dropprivs = 1;
                 break;
             case 'T':
-                print_time = &print_time_diff_init;
+                print_time = &print_time_diff;
+#if defined(_WIN32)
+                prev_ts.tv_sec  = time(NULL);
+                prev_ts.tv_usec = 0;
+#else
+                gettimeofday(&prev_ts, NULL);
+#endif
                 break;
             case 't':
                 print_time = &print_time_absolute;
@@ -287,11 +293,12 @@ int main(int argc, char **argv) {
 
     } else {
 
-        if (!dev)
-            if (!(dev = pcap_lookupdev(pc_err))) {
-                perror(pc_err);
-                clean_exit(-1);
-            }
+        char *dev = usedev ? usedev : pcap_lookupdev(pc_err);
+
+        if (!dev) {
+            perror(pc_err);
+            clean_exit(-1);
+        }
 
         if ((pd = pcap_open_live(dev, snaplen, promisc, to, pc_err)) == NULL) {
             perror(pc_err);
@@ -350,6 +357,14 @@ int main(int argc, char **argv) {
                 pcap_perror(pd, "pcap compile");
                 clean_exit(-1);
             } else match_data = NULL;
+        }
+
+    } else {
+        char *default_filter = "ip";
+
+        if (pcap_compile(pd, &pcapfilter, default_filter, 0, mask.s_addr)) {
+            pcap_perror(pd, "pcap compile");
+            clean_exit(-1);
         }
     }
 
@@ -469,10 +484,8 @@ int main(int argc, char **argv) {
                    (bin_data && !strchr(match_data, 'x'))?"0x":"", match_data);
     }
 
-
     if (filter) free(filter);
     if (re_match_word) free(match_data);
-
 
     switch(pcap_datalink(pd)) {
         case DLT_EN10MB:
@@ -521,7 +534,7 @@ int main(int argc, char **argv) {
 #endif
 
         default:
-            fprintf(stderr, "fatal: unsupported interface type %d\n", pcap_datalink(pd));
+            fprintf(stderr, "fatal: unsupported interface type %u\n", pcap_datalink(pd));
             clean_exit(-1);
     }
 
@@ -546,8 +559,8 @@ int main(int argc, char **argv) {
 }
 
 
-void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
-    struct ip* ip_packet = (struct ip *)(p + link_offset);
+void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
+    struct ip *ip_packet = (struct ip *)(p + link_offset);
 
 #if defined(AIX)
 #undef ip_hl
@@ -556,16 +569,16 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
     unsigned ip_hl = ip_packet->ip_hl*4;
 #endif
 
-    unsigned ip_off = ntohs(ip_packet->ip_off);
-    unsigned fragmented = ip_off & (IP_MF | IP_OFFMASK);
+    unsigned ip_off      = ntohs(ip_packet->ip_off);
+    unsigned fragmented  = ip_off & (IP_MF | IP_OFFMASK);
     unsigned frag_offset = fragmented?(ip_off & IP_OFFMASK) * 8:0;
 
     char *data;
-    int len;
+    unsigned len;
 
     switch (ip_packet->ip_p) {
         case IPPROTO_TCP: {
-            struct tcphdr* tcp = (struct tcphdr *)(((char *)ip_packet) + ip_hl);
+            struct tcphdr *tcp = (struct tcphdr *)(((char *)ip_packet) + ip_hl);
             unsigned tcphdr_offset = fragmented?0:(tcp->th_off * 4);
 
             if (!quiet) {
@@ -593,8 +606,8 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                     print_time(h);
 
                 if (tcphdr_offset || !frag_offset) {
-                    printf("%s:%d -", inet_ntoa(ip_packet->ip_src), ntohs(tcp->th_sport));
-                    printf("> %s:%d", inet_ntoa(ip_packet->ip_dst), ntohs(tcp->th_dport));
+                    printf("%s:%u -", inet_ntoa(ip_packet->ip_src), ntohs(tcp->th_sport));
+                    printf("> %s:%u", inet_ntoa(ip_packet->ip_dst), ntohs(tcp->th_dport));
                     printf(" [%s%s%s%s%s%s%s%s]",
                            (tcp->th_flags & TH_ACK)?"A":"",
                            (tcp->th_flags & TH_SYN)?"S":"",
@@ -610,7 +623,7 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                 }
 
                 if (fragmented)
-                    printf(" %s%d@%d:%d\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
+                    printf(" %s%u@%u:%u\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
                            frag_offset, len);
                 else printf("\n");
 
@@ -652,11 +665,11 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 
                 if (udphdr_offset || !frag_offset) {
 #if HAVE_DUMB_UDPHDR
-                    printf("%s:%d -", inet_ntoa(ip_packet->ip_src), ntohs(udp->source));
-                    printf("> %s:%d", inet_ntoa(ip_packet->ip_dst), ntohs(udp->dest));
+                    printf("%s:%u -", inet_ntoa(ip_packet->ip_src), ntohs(udp->source));
+                    printf("> %s:%u", inet_ntoa(ip_packet->ip_dst), ntohs(udp->dest));
 #else
-                    printf("%s:%d -", inet_ntoa(ip_packet->ip_src), ntohs(udp->uh_sport));
-                    printf("> %s:%d", inet_ntoa(ip_packet->ip_dst), ntohs(udp->uh_dport));
+                    printf("%s:%u -", inet_ntoa(ip_packet->ip_src), ntohs(udp->uh_sport));
+                    printf("> %s:%u", inet_ntoa(ip_packet->ip_dst), ntohs(udp->uh_dport));
 #endif
                 } else {
                     printf("%s -", inet_ntoa(ip_packet->ip_src));
@@ -664,7 +677,7 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                 }
 
                 if (fragmented)
-                    printf(" %s%d@%d:%d\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
+                    printf(" %s%u@%u:%u\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
                            frag_offset, len);
                 else printf("\n");
 
@@ -708,10 +721,10 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                 printf("> %s", inet_ntoa(ip_packet->ip_dst));
 
                 if (icmphdr_offset || !frag_offset)
-                    printf(" %d:%d", ic->icmp_type, ic->icmp_code);
+                    printf(" %u:%u", ic->icmp_type, ic->icmp_code);
 
                 if (fragmented)
-                    printf(" %s%d@%d:%d\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
+                    printf(" %s%u@%u:%u\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
                            frag_offset, len);
                 else printf("\n");
 
@@ -755,10 +768,10 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                 printf("> %s", inet_ntoa(ip_packet->ip_dst));
 
                 if (igmphdr_offset || !frag_offset)
-                    printf(" %d:%d", ig->igmp_type, ig->igmp_code);
+                    printf(" %u:%u", ig->igmp_type, ig->igmp_code);
 
                 if (fragmented)
-                    printf(" %s%d@%d:%d\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
+                    printf(" %s%u@%u:%u\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
                            frag_offset, len);
                 else printf("\n");
 
@@ -793,7 +806,7 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
                 printf("%s -", inet_ntoa(ip_packet->ip_src));
                 printf("> %s ", inet_ntoa(ip_packet->ip_dst));
 
-                printf("[proto %d]\n", ip_packet->ip_p);
+                printf("[proto %u]\n", ip_packet->ip_p);
 
                 if (pd_dump)
                     pcap_dump((u_char*)pd_dump, h, p);
@@ -883,7 +896,7 @@ void dump_byline(char *data, unsigned len) {
         const char *s = data;
 
         while (s < data + len) {
-            printf("%c", (*s == '\n' || isprint((int)*s))? (char)*s : nonprint_char);
+            printf("%c", (*s == '\n' || isprint((unsigned char)*s))? (char)*s : nonprint_char);
             s++;
         }
 
@@ -896,7 +909,7 @@ void dump_unwrapped(char *data, unsigned len) {
         const char *s = data;
 
         while (s < data + len) {
-            printf("%c", isprint((int)*s) ? (char)*s : nonprint_char);
+            printf("%c", isprint((unsigned char)*s) ? (char)*s : nonprint_char);
             s++;
         }
 
@@ -925,7 +938,7 @@ void dump_formatted(char *data, unsigned len) {
 
             for (j = 0; j < width; j++)
                 if (i+j < len)
-                    printf("%c", isprint((int)str[j]) ? (char)str[j] : nonprint_char);
+                    printf("%c", isprint((unsigned char)str[j]) ? (char)str[j] : nonprint_char);
                 else printf(" ");
 
             str += width;
@@ -1017,16 +1030,6 @@ void print_time_absolute(struct pcap_pkthdr *h) {
            t->tm_min, t->tm_sec, h->ts.tv_usec);
 }
 
-
-void print_time_diff_init(struct pcap_pkthdr *h) {
-    print_time = &print_time_diff;
-
-    prev_ts.tv_sec = h->ts.tv_sec;
-    prev_ts.tv_usec = h->ts.tv_usec;
-
-    print_time(h);
-}
-
 void print_time_diff(struct pcap_pkthdr *h) {
     unsigned secs, usecs;
 
@@ -1038,7 +1041,7 @@ void print_time_diff(struct pcap_pkthdr *h) {
         usecs = 1000000 - (prev_ts.tv_usec - h->ts.tv_usec);
     }
 
-    printf("+%d.%06d ", secs, usecs);
+    printf("+%u.%06d ", secs, usecs);
 
     prev_ts.tv_sec = h->ts.tv_sec;
     prev_ts.tv_usec = h->ts.tv_usec;
@@ -1187,7 +1190,7 @@ void clean_exit(int sig) {
 #if defined(_WIN32)
         if (delay_socket) closesocket(delay_socket);
         if (want_delay)   WSACleanup();
-        if (dev)          free(dev);
+        if (usedev)       free(usedev);
 #endif
 
     exit(sig);
@@ -1205,7 +1208,7 @@ int win32_initwinsock(void) {
 
     // we want at least major version 2
     if (LOBYTE(wsaData.wVersion) < 2) {
-        fprintf(stderr, "unable to find winsock 2.0 or greater (found %d.%d)\n",
+        fprintf(stderr, "unable to find winsock 2.0 or greater (found %u.%u)\n",
                 LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
         WSACleanup();
         return 0;
