@@ -4,6 +4,7 @@ v1.41
         o added configure --safe-user and dropprivs code
         o added TCP ECN congestion header recognition
         o improved support for a few OSes
+        o relaxed some restrictions in the license (COPYRIGHT -> LICENSE)
 
 v1.40.1
         o MacOS X support
