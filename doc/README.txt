@@ -2,7 +2,7 @@ $Id$
 
 Program: ngrep
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.43-cvs (2.19.2005)
+Version: 1.43 (2.23.2005)
 
 
 Goal:
