@@ -14,7 +14,14 @@ Known bugs:
 
       o 'ngrep host foo.com' segfaults after displaying interface info
 
-        Not a bug in ngrep.  Upgrade to the latest libpcap:
+        Technically, not a bug in ngrep.  A particular API call in
+        libpcap segfaults on certain operating systems (FreeBSD is
+        one).  Newer versions of libpcap obviate the need to use that
+        particular API.  You can get it at:
 
 	    http://www.tcpdump.org/release/libpcap-0.6.2.tar.gz
 
+	For the time being, a configure switch '--without-restart' is
+	provided to turn off the API call.  If your copy of ngrep
+	segfaults after displaying the interface info, try recompiling
+	with this switch.   

@@ -1,12 +1,17 @@
 v1.39
-	o in standard match mode, display now updates when window
+	o in standard match mode, the display now updates when window
 	  sizes change
-        o win32: compiled with winpcap's pcap.h, which apparently
-	  breaks the pcap standard and introduces its own data link
-	  layer types, fixing the 'unsupported interface' errors folks
-	  got when used with a 100bT adapter
 	o configure now gives the user the option to compile with the
 	  pcre library, which is more license-friendly (albeit slower)   
+	o fixed minor bug in date printing with -t
+        o added configure option '--without-restart', which will
+	  remove the pcap restart API call.  Newer versions of libpcap
+	  don't need it, and on certain platforms the API call
+	  segfaults. 
+        o win32: compiled with winpcap's pcap.h, which apparently
+	  breaks the pcap standard and introduces its own data link
+	  layer types.  fixes the 'unsupported interface' error folks
+	  sometimes got when used with a 100bT adapter
 
 v1.38
 	o binary matching
