@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
   signal(SIGPIPE, clean_exit);
   signal(SIGWINCH, update_windowsize);
 
-  while ((c = getopt(argc, argv, "hXViwqevxlDtTn:d:A:I:O:")) != EOF) {
+  while ((c = getopt(argc, argv, "hXViwqpevxlDtTn:d:A:I:O:")) != EOF) {
     switch (c) {
     case 'I':  
       read_file = optarg;
