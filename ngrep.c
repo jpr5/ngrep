@@ -271,7 +271,7 @@ int main(int argc, char **argv) {
 	match_data = word_regex;
       }
       
-      (const char *)re_err = re_compile_pattern(match_data, strlen(match_data), &pattern);
+      re_err = re_compile_pattern(match_data, strlen(match_data), &pattern);
       if (re_err) {
 	fprintf(stderr, "regex compile: %s\n", re_err);
 	clean_exit(-1);
