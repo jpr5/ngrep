@@ -16,6 +16,7 @@
 #include <netinet/in_systm.h>
 #include <net/if.h>
 #include <sys/tty.h>
+#include <pwd.h> 
 #endif
 
 #if defined(OSF1)
@@ -25,6 +26,7 @@
 #include <netinet/in_systm.h>
 #include <net/route.h>
 #include <sys/mbuf.h>
+// need to find getpwnam, set*d()
 #endif
 
 #if defined(LINUX)
@@ -32,6 +34,8 @@
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <time.h>
+#include <unistd.h>
+#include <pwd.h>
 #endif
 
 #if defined(AIX)
@@ -39,6 +43,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <time.h>
+// need to find getpwnam, set*d()
 #endif
 
 #include <netinet/ip.h>
@@ -195,8 +200,11 @@ int main(int argc, char **argv) {
       clean_exit(-1);
     }
 
+    drop_privs();
+
     live_read = 0;
     printf("input: %s\n", read_file);
+
 
   } else {
     if (!dev)
@@ -209,6 +217,8 @@ int main(int argc, char **argv) {
       perror(pc_err);
       clean_exit(-1);
     }
+
+    drop_privs();
 
     if (pcap_lookupnet(dev, &net.s_addr, &mask.s_addr, pc_err) == -1) {
       perror(pc_err);
@@ -822,6 +832,16 @@ void update_windowsize(int e) {
   }
 }
 
+
+void drop_privs(void) {
+  struct passwd *pw = getpwnam(SAFE_USER);
+    
+  seteuid(pw->pw_uid);
+  setegid(pw->pw_gid);
+
+  setuid(pw->pw_uid);
+  setgid(pw->pw_gid);
+}
 
 void usage(int e) {
   printf("usage: ngrep <-hXViwqpevxlDtT> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"

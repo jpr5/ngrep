@@ -92,7 +92,7 @@ dnl
 dnl pcre library compatibility stuff
 dnl
 AC_ARG_WITH(pcre,
-[  --with-pcre             use libnet build directory],
+[  --with-pcre             use PCRE instead of GNU regex],
 [ 
   ( cd pcre-3.4; ./configure && make libtool chartables.c )
   AC_DEFINE(USE_PCRE)
@@ -107,6 +107,21 @@ AC_ARG_WITH(pcre,
 )
 AC_SUBST(REGEX_TARGET)
 AC_SUBST(REGEX_OBJS)
+
+
+dnl
+dnl Allow user to specify alternate ``nobody'' user.
+dnl
+AC_ARG_WITH(safe-user,
+[  --with-safe-user        use user instead of "nobody" for dropprivs],
+[
+  SAFE_USER="$withval"
+],
+[
+  SAFE_USER="nobody"
+]
+)
+AC_SUBST(SAFE_USER)
 
 
 dnl

@@ -1,5 +1,7 @@
 cvs-current
 	o added -S (set limitlen)
+	o added LOOP and SLL tests for portability/old libpcap'en
+	o added configure --safe-user and dropprivs code
 
 v1.40.1
 	o MacOS X support

@@ -7,7 +7,7 @@
  *
  */
 
-#define VERSION "1.40.1"
+#define VERSION "1.41"
 
 
 #define ETHHDR_SIZE 14 
@@ -48,3 +48,4 @@ void dump_delay_proc_init(struct pcap_pkthdr *);
 void dump_delay_proc(struct pcap_pkthdr *);
 
 void update_windowsize(int);
+void drop_privs(void);
