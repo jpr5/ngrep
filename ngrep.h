@@ -17,6 +17,7 @@
 #define RAWHDR_SIZE 0
 #define LOOPHDR_SIZE 4 
 #define FDDIHDR_SIZE 21
+#define ISDNHDR_SIZE 16
 
 #ifndef IP_OFFMASK
 #define IP_OFFMASK 0x1fff
