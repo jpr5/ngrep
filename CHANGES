@@ -1,3 +1,6 @@
+cvs-current
+	o added -S (set limitlen)
+
 v1.40.1
 	o MacOS X support
 	o ISDN (SLL) support

@@ -65,7 +65,7 @@
 
 static char rcsver[] = "$Revision$";
 
-int snaplen = 65535, promisc = 1, to = 1000;
+int snaplen = 65535, limitlen = 65535, promisc = 1, to = 1000;
 int show_empty = 0, show_hex = 0, quiet = 0;
 int match_after = 0, keep_matching = 0;
 int invert_match = 0, bin_match = 0;
@@ -117,13 +117,16 @@ int main(int argc, char **argv) {
   signal(SIGPIPE, clean_exit);
   signal(SIGWINCH, update_windowsize);
 
-  while ((c = getopt(argc, argv, "hXViwqpevxlDtTs:n:d:A:I:O:")) != EOF) {
+  while ((c = getopt(argc, argv, "hXViwqpevxlDtTs:n:d:A:I:O:S:")) != EOF) {
     switch (c) {
-    case 'I':  
-      read_file = optarg;
+    case 'S': 
+      limitlen = atoi(optarg);
       break;
     case 'O':
       dump_file = optarg;
+      break;
+    case 'I':  
+      read_file = optarg;
       break;
     case 'A': 
       match_after = atoi(optarg) + 1;
@@ -446,6 +449,8 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
       len -= ip_hl + tcphdr_offset;
     else len = h->caplen - link_offset - ip_hl - tcphdr_offset;
 
+    if (len > limitlen) len = limitlen;
+
     if (((len || show_empty) && (((int)(*match_func)(data, len)) != invert_match))
 	|| keep_matching) { 
 
@@ -500,6 +505,8 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
       len -= ip_hl + udphdr_offset;
     else len = h->caplen - link_offset - ip_hl - udphdr_offset;
 
+    if (len > limitlen) len = limitlen;
+
     if (((len || show_empty) && (((int)(*match_func)(data, len)) != invert_match))
 	|| keep_matching) { 
 
@@ -551,6 +558,8 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
     if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
       len -= ip_hl + icmphdr_offset;
     else len = h->caplen - link_offset - ip_hl - icmphdr_offset;
+
+    if (len > limitlen) len = limitlen;
 
     if (((len || show_empty) && (((int)(*match_func)(data, len)) != invert_match))
 	|| keep_matching) { 

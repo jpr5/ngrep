@@ -24,6 +24,8 @@ ngrep \- network grep
 .I num
 .B > < -s 
 .I snaplen
+.B > < -S 
+.I limitlen
 .B > < 
 .I match expression
 .B > < 
@@ -96,6 +98,11 @@ between packet matches.
 
 .IP "-s snaplen"
 Set the bpf caplen to snaplen (default 65536).
+
+.IP "-S limitlen"
+Set the upper limit on the size of packets that ngrep will look at.
+Useful for looking at only the first N bytes of packets without
+changing the BPF snaplen.
 
 .IP "-I pcap_dump"
 Input file pcap_dump into ngrep.  Works with any pcap-compatible dump
