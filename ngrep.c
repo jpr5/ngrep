@@ -7,7 +7,7 @@
  * 
  */
 
-#if defined(BSD) || defined(SOLARIS)
+#if defined(BSD) || defined(SOLARIS) || defined(MACOSX)
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
