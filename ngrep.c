@@ -731,7 +731,11 @@ int strishex(char *str) {
 
 
 void print_time_absolute(struct pcap_pkthdr *h) {
+#ifdef MACOSX
+  struct tm *t = localtime((const time_t *)&h->ts.tv_sec);
+#else
   struct tm *t = localtime(&h->ts.tv_sec);
+#endif
 
   printf("%02d/%02d/%02d %02d:%02d:%02d.%06d ",
 	 t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour,

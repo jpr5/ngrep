@@ -114,6 +114,8 @@ dnl OS-specific options
 dnl
 AC_DEFINE(_BSD_SOURCE)
 AC_DEFINE(__FAVOR_BSD)
+STRIPFLAG="-s"
+
 
 case "$target_os" in
 
@@ -176,6 +178,12 @@ unsigned short bar = foo.uh_sport;
 	
 	;;
 
+*darwin*)
+	AC_DEFINE(MACOSX)
+	STRIPFLAG=""
+
+	;;
+
 *)
         AC_MSG_WARN(Your OS ($target_os) is not supported yet.  Try\
                     playing with the build host and target options.)
@@ -184,6 +192,7 @@ unsigned short bar = foo.uh_sport;
 
 esac
 
+AC_SUBST(STRIPFLAG)
 
 AC_CHECK_LIB(pcap, pcap_open_live,,echo need pcap lib; exit)
 

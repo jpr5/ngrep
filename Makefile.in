@@ -12,6 +12,7 @@ INCLUDES=-I@srcdir@ @PCAP_INCLUDE@
 CFLAGS=@CFLAGS@ @DEFS@
 LDFLAGS=@LDFLAGS@ @PCAP_LINK@
 LIBS=-lpcap @EXTRA_LIBS@
+STRIPFLAG=@STRIP@
 
 SRC=ngrep.c 
 OBJS=ngrep.o 
@@ -29,13 +30,13 @@ REGEX_OBJS=@REGEX_OBJS@
 all: $(TARGET) 
 
 $(TARGET): $(REGEX_TARGET) $(OBJS) 
-	$(CC) $(CFLAGS) $(LDFLAGS) -s -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
+	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 debug: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -g -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 static: $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -s -o $(TARGET).static -static $(OBJS) $(REGEX_OBJS) $(LIBS) 
+	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET).static -static $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 install: $(TARGET)
 	$(INSTALL) -c -m 0755 $(TARGET) $(BINDEST)
