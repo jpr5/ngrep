@@ -33,7 +33,7 @@ A note about PCRE vs. GNU regex:
       compile against PCRE which is available under the Artistic
       License (Free as in Beer).  Otherwise, in all other cases the
       GNU regex library is the best candidate, and the speed can
-      really helps when piping those 500MB pcap dump files through
+      really help when piping those 500MB pcap dump files through
       ngrep over and over for analysis.
 
 
