@@ -217,6 +217,10 @@ int main(int argc, char **argv) {
         }
     }
 
+    if (show_hex && dump_func != &dump_formatted) {
+        printf("fatal: -x (hex dump) is incompatible with -W (alternate format)\n");
+        usage(-1);
+    }
 
     if (argv[optind])
         match_data = argv[optind++];
