@@ -2,11 +2,11 @@
 .\"
 .\" All content, except portions of the bpf filter explanation, are:
 .\"
-.\" Copyright (c) 2004  Jordan Ritter <jpr5@darkridge.com>
+.\" Copyright (c) 2005  Jordan Ritter <jpr5@darkridge.com>
 .\"
 .\" Please refer to the LICENSE file for more information.
 
-.TH NGREP 8 "March 2004" *nux "User Manuals"
+.TH NGREP 8 "February 2005" *nux "User Manuals"
 
 .SH NAME
 
@@ -14,7 +14,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hXViwqpevxlDtTRM> <-IO
+.B ngrep <-LhXViwqpevxlDtTRM> <-IO
 .I pcap_dump
 .B > < -n
 .I num
@@ -169,7 +169,13 @@ packets total, then exit.
 
 .IP "-d dev"
 By default ngrep will select a default interface to listen on.  Use
-this option to force ngrep to listen on interface \fIdev\fP.
+this option to force ngrep to listen on interface \fIdev\fP.  On UNIX
+this is the name of the interface, and on Win32 this is the index of
+the interface as listed by option ``L''.
+
+.IP "-L"
+(Win32 only) This option lists all local ethernet interfaces and their
+index (for use with option ``d'').
 
 .IP "-A num"
 Dump \fInum\fP packets of trailing context after matching a packet.
