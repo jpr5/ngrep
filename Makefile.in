@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# Copyright (c) 2000  Jordan Ritter <jpr5@darkridge.com>
+# Copyright (c) 2001  Jordan Ritter <jpr5@darkridge.com>
 #
 # Please refer to the COPYRIGHT file for more information.
 
@@ -9,8 +9,8 @@
 CC=@CC@
 
 INCLUDES=-I@srcdir@ @PCAP_INCLUDE@
-CFLAGS=@CFLAGS@ @DEFS@ 
-LDFLAGS=@LDFLAGS@
+CFLAGS=@CFLAGS@ @DEFS@
+LDFLAGS=@LDFLAGS@ @PCAP_LINK@
 LIBS=-lpcap @EXTRA_LIBS@
 
 SRC=ngrep.c 
@@ -25,44 +25,41 @@ MANDEST=@prefix@/man/man8
 REGEX_TARGET=@REGEX_TARGET@
 REGEX_OBJS=@REGEX_OBJS@
 
+
 all: $(TARGET) 
 
 $(TARGET): $(REGEX_TARGET) $(OBJS) 
 	$(CC) $(CFLAGS) $(LDFLAGS) -s -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 debug: $(OBJS)
-	$(CC) $(CFLAGS) -g -o $(TARGET) $(OBJS) $(LIBS) 
+	$(CC) $(CFLAGS) $(LDFLAGS) -g -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 static: $(OBJS)
-	$(CC) $(CFLAGS) -s -static -o $(TARGET).static $(OBJS) $(LIBS) 
+	$(CC) $(CFLAGS) $(LDFLAGS) -s -o $(TARGET).static -static $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 install: $(TARGET)
 	$(INSTALL) -c -m 0755 $(TARGET) $(BINDEST)
 	$(INSTALL) -c -m 0644 $(MANPAGE) $(MANDEST)
 
-pcre: pcre-3.4/pcre.o pcre-3.4/study.o
+pcre: 
+	@( cd pcre-3.4; make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. )
 
-regex: regex-0.12/regex.o
+regex: 
+	@( cd regex-0.12; make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. )
 
 .c.o:	
 	$(CC) $(CFLAGS) $(INCLUDES) -g -c $<
 
-dep: 
-	@echo making dependencies...
-	@$(CXX) $(INCLUDES) -M -MG $(SRC) > .depends
-
 clean:
 	rm -f *~ $(OBJS) $(REGEX_OBJS) $(TARGET) 
 
-distclean: clean $(REGEX_TARGET)-clean
+distclean: clean clean-$(REGEX_TARGET)
 	rm -f config.status config.cache config.log Makefile .depends
 
-pcre-clean:
+clean-pcre:
 	( cd pcre-3.4; if [ -f ./Makefile ]; then make distclean; fi )
 
-regex-clean:
+clean-regex:
 	( cd regex-0.12; if [ -f ./Makefile ]; then make distclean; fi )
 
 ngrep.o: ngrep.c ngrep.h
-
--include .depends
