@@ -134,7 +134,7 @@ if test $use_pcre = yes; then
   echo 'Configuring Perl-Compatible Regular Expression (PCRE) library ...' 
   echo 
 
-  ( cd pcre-3.4; ./configure && make libtool chartables.c )
+  ( cd pcre-5.0; ./configure && make libtool chartables.c )
 
   REGEX_TARGET='pcre'
   REGEX_OBJS='pcre.o study.o'
