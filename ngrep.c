@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
             case 'T':
                 print_time = &print_time_diff;
 #if defined(_WIN32)
-                prev_ts.tv_sec  = time(NULL);
+                prev_ts.tv_sec  = (long)time(NULL);
                 prev_ts.tv_usec = 0;
 #else
                 gettimeofday(&prev_ts, NULL);
@@ -858,7 +858,7 @@ int re_match_func(char *data, unsigned len) {
 
 int bin_match_func(char *data, unsigned len) {
     signed stop = len - match_len;
-    unsigned i = 0;
+    signed i = 0;
 
     if (stop < 0)
         return 0;
@@ -1222,15 +1222,14 @@ void win32_listdevices(void) {
         clean_exit(-1);
     }
 
-    printf("interface\tdevice\n");
-    printf("---------\t------\n");
+    printf("idx\tdev\n");
+    printf("---\t---\n");
 
     for (d = alldevs; d != NULL; d = d->next) {
-        printf("%9u\t%s", ++i, d->name);
+        printf("%2u:\t%s", ++i, d->name);
+
         if (d->description)
             printf(" (%s)\n", d->description);
-        else
-            printf(" (No description available)\n");
     }
 
     pcap_freealldevs(alldevs);
@@ -1252,7 +1251,7 @@ char *win32_usedevice(const char *index) {
         clean_exit(-1);
     }
 
-    for (d = alldevs; d != NULL; d = d->next)
+    for (d = alldevs; d != NULL && i != idx; d = d->next)
         if (++i == idx)
             dev = _strdup(d->name);
 
