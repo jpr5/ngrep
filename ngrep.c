@@ -396,20 +396,20 @@ int main(int argc, char **argv) {
             link_offset = RAWHDR_SIZE;
             break;
 
-#ifdef HAVE_LOOP
+#if HAVE_LOOP
         case DLT_LOOP:
 #endif
         case DLT_NULL:
             link_offset = LOOPHDR_SIZE;
             break;
 
-#ifdef HAVE_SLL
+#if HAVE_SLL
         case DLT_LINUX_SLL:
             link_offset = ISDNHDR_SIZE;
             break;
 #endif
 
-#ifdef HAVE_802_11
+#if HAVE_802_11
         case DLT_IEEE802_11:
             link_offset = IEEE80211HDR_SIZE;
             break;

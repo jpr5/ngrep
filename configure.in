@@ -38,7 +38,7 @@ AC_ARG_WITH(pcap-includes,
 [PCAP_DIR=$possible_dirs])
 
 pcap_dir=""
-
+v
 for dir in $PCAP_DIR ; do 
     if test -d $dir -a -r "$dir/pcap.h" -a \
                        -r "$dir/net/bpf.h" ; then 
@@ -123,46 +123,49 @@ AC_ARG_WITH(safe-user,
 )
 AC_SUBST(SAFE_USER)
 
-
 dnl
 dnl Check for DLT_* types that might not have existed in older
 dnl libpcap's
 dnl
+
+present=""
 AC_MSG_CHECKING(for DLT_LINUX_SLL in bpf.h)
-AC_EGREP_HEADER(yes, 
+AC_EGREP_CPP(yes,
 [
-#include <net/bpf.h> 
+#include <net/bpf.h>
 #ifdef DLT_LINUX_SLL
 yes
-#endif	 
+#endif
 ],
-AC_DEFINE(HAVE_SLL)
-echo yes, 
-echo no)
+[present=1 && echo yes], [present=0 && echo no])
+AC_DEFINE_UNQUOTED(HAVE_SLL, $present) 
 
+
+present=""
 AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
-AC_EGREP_HEADER(yes, 
+AC_EGREP_CPP(yes,
 [
-#include <net/bpf.h> 
+#include <net/bpf.h>
 #ifdef DLT_LOOP
 yes
-#endif	 
+#endif
 ],
-AC_DEFINE(HAVE_LOOP)
-echo yes,
-echo no)
+[present=1 && echo yes], [present=0 && echo no])
+AC_DEFINE_UNQUOTED(HAVE_LOOP, $present) 
 
+
+present=""
 AC_MSG_CHECKING(for DLT_IEEE802_11 in bpf.h)
-AC_EGREP_HEADER(yes, 
+AC_EGREP_CPP(yes,
 [
-#include <net/bpf.h> 
+#include <net/bpf.h>
 #ifdef DLT_IEEE802_11
 yes
-#endif	 
+#endif
 ],
-AC_DEFINE(HAVE_802_11)
-echo yes,
-echo no)
+[present=1 && echo yes], [present=0 && echo no])
+AC_DEFINE_UNQUOTED(HAVE_802_11, $present) 
+
 
 
 dnl
