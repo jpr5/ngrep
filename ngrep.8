@@ -6,7 +6,7 @@
 .\"
 .\" Please refer to the COPYRIGHT file for more information.  
 
-.TH NGREP 8 "April 2001" Linux "User Manuals"
+.TH NGREP 8 "June 2001" Linux "User Manuals"
 
 .SH NAME
 
@@ -14,7 +14,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hXViwqpevxlDtT> <-IO 
+.B ngrep <-hXViwqpevxlDtTs> <-IO 
 .I pcap_dump
 .B > < -n
 .I num
@@ -91,6 +91,9 @@ a packet is matched.
 .IP -T 
 Print a timestamp in the form of +S.UUUUUU, indicating the delta 
 between packet matches.
+
+.IP -s
+Set the bpf caplen (default 65536).
 
 .IP "-I pcap_dump"
 Input file pcap_dump into ngrep.  Works with any pcap-compatible dump
