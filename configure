@@ -2898,7 +2898,7 @@ if test $use_pcre = yes; then
   echo 'Configuring Perl-Compatible Regular Expression (PCRE) library ...'
   echo
 
-  ( cd pcre-3.4; ./configure && make libtool chartables.c )
+  ( cd pcre-5.0; ./configure && make libtool chartables.c )
 
   REGEX_TARGET='pcre'
   REGEX_OBJS='pcre.o study.o'
@@ -2925,109 +2925,6 @@ fi
 echo
 echo 'Configuring Network Grep (ngrep) ...'
 echo
-
-
-present=""
-echo "$as_me:$LINENO: checking for DLT_LINUX_SLL in bpf.h" >&5
-echo $ECHO_N "checking for DLT_LINUX_SLL in bpf.h... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-#include <net/bpf.h>
-#ifdef DLT_LINUX_SLL
-yes
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "yes" >/dev/null 2>&1; then
-  HAVE_DLT_LINUX_SLL="1" && echo yes
-else
-  HAVE_DLT_LINUX_SLL="0" && echo no
-fi
-rm -f conftest*
-
-
-present=""
-echo "$as_me:$LINENO: checking for DLT_LOOP in bpf.h" >&5
-echo $ECHO_N "checking for DLT_LOOP in bpf.h... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-#include <net/bpf.h>
-#ifdef DLT_LOOP
-yes
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "yes" >/dev/null 2>&1; then
-  HAVE_DLT_LOOP="1" && echo yes
-else
-  HAVE_DLT_LOOP="0" && echo no
-fi
-rm -f conftest*
-
-
-
-present=""
-echo "$as_me:$LINENO: checking for DLT_IEEE802_11 in bpf.h" >&5
-echo $ECHO_N "checking for DLT_IEEE802_11 in bpf.h... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-#include <net/bpf.h>
-#ifdef DLT_IEEE802_11
-yes
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "yes" >/dev/null 2>&1; then
-  HAVE_DLT_IEEE802_11="1" && echo yes
-else
-  HAVE_DLT_IEEE802_11="0" && echo no
-fi
-rm -f conftest*
-
-
-
-present=""
-echo "$as_me:$LINENO: checking for DLT_RAW in bpf.h" >&5
-echo $ECHO_N "checking for DLT_RAW in bpf.h... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-#include <net/bpf.h>
-#ifdef DLT_RAW
-yes
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "yes" >/dev/null 2>&1; then
-  HAVE_DLT_RAW="1" && echo yes
-else
-  HAVE_DLT_RAW="0" && echo no
-fi
-rm -f conftest*
-
 
 
 
@@ -3332,53 +3229,6 @@ EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
 
 
 
-cat >>confdefs.h <<_ACEOF
-#define USE_PCAP_RESTART $USE_PCAP_RESTART
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define USE_PCRE $USE_PCRE
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define USE_DROPPRIVS $USE_DROPPRIVS
-_ACEOF
-
-cat >>confdefs.h <<_ACEOF
-#define DROPPRIVS_USER "$DROPPRIVS_USER"
-_ACEOF
-
-cat >>confdefs.h <<_ACEOF
-#define DROPPRIVS_ONLY_ROOT $DROPPRIVS_ONLY_ROOT
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DUMB_UDPHDR $HAVE_DUMB_UDPHDR
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DLT_RAW $HAVE_DLT_RAW
-_ACEOF
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DLT_IEEE802_11 $HAVE_DLT_IEEE802_11
-_ACEOF
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DLT_LOOP $HAVE_DLT_LOOP
-_ACEOF
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DLT_LINUX_SLL $HAVE_DLT_LINUX_SLL
-_ACEOF
-
-
-
-
 echo "$as_me:$LINENO: checking for a complete set of pcap headers" >&5
 echo $ECHO_N "checking for a complete set of pcap headers... $ECHO_C" >&6
 
@@ -3425,6 +3275,165 @@ else
 
 
 fi
+
+
+
+echo "$as_me:$LINENO: checking for BPF include path" >&5
+echo $ECHO_N "checking for BPF include path... $ECHO_C" >&6
+BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_dir/pcap.h`
+echo $BPF
+
+
+present=""
+echo "$as_me:$LINENO: checking for DLT_LINUX_SLL in bpf.h" >&5
+echo $ECHO_N "checking for DLT_LINUX_SLL in bpf.h... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <$BPF>
+#ifdef DLT_LINUX_SLL
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then
+  HAVE_DLT_LINUX_SLL="1" && echo yes
+else
+  HAVE_DLT_LINUX_SLL="0" && echo no
+fi
+rm -f conftest*
+
+
+present=""
+echo "$as_me:$LINENO: checking for DLT_LOOP in bpf.h" >&5
+echo $ECHO_N "checking for DLT_LOOP in bpf.h... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <$BPF>
+#ifdef DLT_LOOP
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then
+  HAVE_DLT_LOOP="1" && echo yes
+else
+  HAVE_DLT_LOOP="0" && echo no
+fi
+rm -f conftest*
+
+
+
+present=""
+echo "$as_me:$LINENO: checking for DLT_IEEE802_11 in bpf.h" >&5
+echo $ECHO_N "checking for DLT_IEEE802_11 in bpf.h... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <$BPF>
+#ifdef DLT_IEEE802_11
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then
+  HAVE_DLT_IEEE802_11="1" && echo yes
+else
+  HAVE_DLT_IEEE802_11="0" && echo no
+fi
+rm -f conftest*
+
+
+
+present=""
+echo "$as_me:$LINENO: checking for DLT_RAW in bpf.h" >&5
+echo $ECHO_N "checking for DLT_RAW in bpf.h... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <$BPF>
+#ifdef DLT_RAW
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then
+  HAVE_DLT_RAW="1" && echo yes
+else
+  HAVE_DLT_RAW="0" && echo no
+fi
+rm -f conftest*
+
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define USE_PCAP_RESTART $USE_PCAP_RESTART
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define USE_PCRE $USE_PCRE
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define USE_DROPPRIVS $USE_DROPPRIVS
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define DROPPRIVS_USER "$DROPPRIVS_USER"
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define DROPPRIVS_ONLY_ROOT $DROPPRIVS_ONLY_ROOT
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DUMB_UDPHDR $HAVE_DUMB_UDPHDR
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DLT_RAW $HAVE_DLT_RAW
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DLT_IEEE802_11 $HAVE_DLT_IEEE802_11
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DLT_LOOP $HAVE_DLT_LOOP
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DLT_LINUX_SLL $HAVE_DLT_LINUX_SLL
+_ACEOF
+
+
+
 
 
 
