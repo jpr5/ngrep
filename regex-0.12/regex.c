@@ -19,6 +19,16 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+/* 
+
+   This file has been modified to replace int re_max_failures with a
+   #define.  This avoids compile problems when other various libc's
+   already have that symbol.   It has also been modified to be 64-bit
+   clean.  --jordan
+
+*/
+
+
 /* AIX requires this to be the first thing in the file. */
 #if defined (_AIX) && !defined (REGEX_MALLOC)
   #pragma alloca
@@ -2257,15 +2267,17 @@ compile_range (p_ptr, pend, translate, syntax, b)
    exactly that if always used MAX_FAILURE_SPACE each time we failed.
    This is a variable only so users of regex can assign to it; we never
    change it ourselves.  */
-int re_max_failures = 2000;
+
+/* change for rh glibc re_max_failures symbol collision - jpr5 */
+#define RE_MAX_FAILURES 2000
 
 typedef const unsigned char *fail_stack_elt_t;
 
 typedef struct
 {
   fail_stack_elt_t *stack;
-  unsigned size;
-  unsigned avail;			/* Offset of next open position.  */
+  unsigned long size;
+  unsigned long avail;			/* Offset of next open position.  */
 } fail_stack_type;
 
 #define FAIL_STACK_EMPTY()     (fail_stack.avail == 0)
@@ -2296,8 +2308,9 @@ typedef struct
    
    REGEX_REALLOCATE requires `destination' be declared.   */
 
+/* re_max_failures -> #define RE_MAX_FAILURES */
 #define DOUBLE_FAIL_STACK(fail_stack)					\
-  ((fail_stack).size > re_max_failures * MAX_FAILURE_ITEMS		\
+  ((fail_stack).size > RE_MAX_FAILURES * MAX_FAILURE_ITEMS		\
    ? 0									\
    : ((fail_stack).stack = (fail_stack_elt_t *)				\
         REGEX_REALLOCATE ((fail_stack).stack, 				\
@@ -2492,10 +2505,10 @@ typedef struct
   DEBUG_PRINT_COMPILED_PATTERN (bufp, pat, pend);			\
 									\
   /* Restore register info.  */						\
-  high_reg = (unsigned) POP_FAILURE_ITEM ();				\
+  high_reg = (unsigned long) POP_FAILURE_ITEM ();			\
   DEBUG_PRINT2 ("  Popping high active reg: %d\n", high_reg);		\
 									\
-  low_reg = (unsigned) POP_FAILURE_ITEM ();				\
+  low_reg = (unsigned long) POP_FAILURE_ITEM ();			\
   DEBUG_PRINT2 ("  Popping  low active reg: %d\n", low_reg);		\
 									\
   for (this_reg = high_reg; this_reg >= low_reg; this_reg--)		\
@@ -3208,8 +3221,8 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
   unsigned num_regs = bufp->re_nsub + 1;
   
   /* The currently active registers.  */
-  unsigned lowest_active_reg = NO_LOWEST_ACTIVE_REG;
-  unsigned highest_active_reg = NO_HIGHEST_ACTIVE_REG;
+  unsigned long lowest_active_reg = NO_LOWEST_ACTIVE_REG;
+  unsigned long highest_active_reg = NO_HIGHEST_ACTIVE_REG;
 
   /* Information on the contents of registers. These are pointers into
      the input strings; they record just what was matched (on this
@@ -3762,7 +3775,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
                           regstart[r] = old_regstart[r];
 
                           /* xx why this test?  */
-                          if ((int) old_regend[r] >= (int) regstart[r])
+                          if ((long) old_regend[r] >= (long) regstart[r])
                             regend[r] = old_regend[r];
                         }     
                     }
