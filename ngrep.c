@@ -58,7 +58,8 @@ int invert_match = 0, bin_match = 0;
 int matches = 0, max_matches = 0;
 int live_read = 1, want_delay = 0;;
 
-char pc_err[PCAP_ERRBUF_SIZE], *re_err;
+char pc_err[PCAP_ERRBUF_SIZE];
+const char *re_err;
 
 int re_match_word = 0, re_ignore_case = 0;
 struct re_pattern_buffer pattern;
@@ -77,7 +78,7 @@ char *read_file = NULL, *dump_file = NULL;
 pcap_dumper_t *pd_dump = NULL;
 
 struct timeval prev_ts = {0, 0}, prev_delay_ts = {0,0};
-void (*print_time)() = NULL;
+void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
 
 int main(int argc, char **argv) {
@@ -106,7 +107,7 @@ int main(int argc, char **argv) {
       max_matches = atoi(optarg);
       break;
     case 'T':
-      print_time = &print_time_diff;
+      print_time = &print_time_diff_init;
       break;
     case 't':
       print_time = &print_time_absolute;
@@ -661,13 +662,17 @@ void print_time_absolute(struct pcap_pkthdr *h) {
 }
 
 
+void print_time_diff_init(struct pcap_pkthdr *h) {
+  print_time = &print_time_diff;
+
+  prev_ts.tv_sec = h->ts.tv_sec;
+  prev_ts.tv_usec = h->ts.tv_usec;
+  
+  print_time(h);
+}
+
 void print_time_diff(struct pcap_pkthdr *h) { 
   unsigned secs, usecs;
-
-  if (!prev_ts.tv_sec && !prev_ts.tv_usec) {// uninit
-    prev_ts.tv_sec = h->ts.tv_sec;
-    prev_ts.tv_usec = h->ts.tv_usec;
-  }
 
   secs = h->ts.tv_sec - prev_ts.tv_sec;
   if (h->ts.tv_usec >= prev_ts.tv_usec)
@@ -683,14 +688,17 @@ void print_time_diff(struct pcap_pkthdr *h) {
   prev_ts.tv_usec = h->ts.tv_usec;
 }
 
+void dump_delay_proc_init(struct pcap_pkthdr *h) {
+  dump_delay = &dump_delay_proc;
 
-void dump_delay(struct pcap_pkthdr *h) {
+  prev_delay_ts.tv_sec = h->ts.tv_sec;
+  prev_delay_ts.tv_usec = h->ts.tv_usec;
+
+  dump_delay(h);
+}
+
+void dump_delay_proc(struct pcap_pkthdr *h) {
   unsigned secs, usecs;
-
-  if (!prev_delay_ts.tv_sec && !prev_delay_ts.tv_usec) {
-    prev_delay_ts.tv_sec = h->ts.tv_sec;
-    prev_delay_ts.tv_usec = h->ts.tv_usec;
-  }
 
   secs = h->ts.tv_sec - prev_delay_ts.tv_sec;
   if (h->ts.tv_usec >= prev_delay_ts.tv_usec)
