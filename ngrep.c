@@ -31,6 +31,7 @@
 #include <getopt.h>
 #include <arpa/inet.h>
 #include <ctype.h>
+#include <time.h>
 #endif
 
 #if defined(AIX)
