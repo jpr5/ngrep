@@ -96,6 +96,23 @@ a packet is matched.
 Print a timestamp in the form of +S.UUUUUU, indicating the delta
 between packet matches.
 
+.IP -R
+Do not try to drop privileges to the DROPPRIVS_USER.
+
+ngrep makes no effort to validate input from live or offline sources
+as it is focused more on performance and handling large amounts of
+data than protocol correctness, which is most often a fair assumption
+to make.  However, sometimes it matters and thus as a rule ngrep will
+try to be defensive and drop any root privileges it might have.
+
+There exist scenarios where this behaviour can become an obstacle, so
+this option is provided to end-users who want to disable this feature,
+but must do so with an understanding of the risks.  Packets can be
+randomly malformed or even specifically designed to overflow sniffers
+and take control of them, and revoking root privileges is currently
+the only risk mitigation ngrep employs against such an attack.  Use
+this option and turn it off at your own risk.
+
 .IP "-c cols"
 Explicitly set the console width to ``cols''.  Note that this is the
 console width, and not the full width of what ngrep prints out as
