@@ -54,7 +54,6 @@
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
 
-#include <net/bpf.h>
 #include <pcap.h>
 
 #include <stdlib.h>
@@ -978,77 +977,36 @@ void update_windowsize(int e) {
 
 
 void drop_privs(void) {
-#if !USE_DROPPRIVS
-    return;
-#endif
+    struct passwd *pw;
+    uid_t newuid;
+    gid_t newgid;
 
-    if (no_dropprivs)
+    if (no_dropprivs || !USE_DROPPRIVS)
         return;
 
-#if DROPPRIVS_ONLY_ROOT
-    /*
-     * We have a choice as to whether we drop privs only if the user
-     * is absolutely root, or if any root privilege in part or whole
-     * is present.  It would be implausible at best to devise logic
-     * that would be valid for every individual semantic of all
-     * supported OSes, i.e. certain syscalls on certain platforms
-     * might or might not rely on real vs. effective privileges to
-     * allow the call to complete.  So, we take the safer route here
-     * which is to drop privs if any root privilege exists.
-     */
-
-    if (!(getuid() == 0 || geteuid() == 0 ||
-          getgid() == 0 || getegid() == 0))
-        return;
-#endif
-
- {
-    struct passwd *pw = getpwnam(DROPPRIVS_USER);
-    gid_t newgid = pw->pw_uid, oldgid = getegid();
-    uid_t newuid = pw->pw_gid, olduid = geteuid();
-
+    pw = getpwnam(DROPPRIVS_USER);
     if (!pw) {
         perror("attempt to drop privileges failed: getpwnam failed");
         clean_exit(-1);
     }
 
-    if (!olduid)
-        setgroups(1, &newgid);
+    newgid = pw->pw_gid;
+    newuid = pw->pw_uid;
 
-    if (newgid != oldgid) {
-#if !defined(LINUX)
-        setegid(newgid);
-        if (setgid(newgid) == -1)
-#else
-        if (setregid(newgid, newgid) == -1)
-#endif
-        {
+    if (getgroups(0, NULL) > 0)
+        if (setgroups(1, &newgid) == -1) {
             perror("attempt to drop privileges failed");
             clean_exit(-1);
         }
-    }
 
-    if (newuid != olduid) {
-#if !defined(LINUX)
-#if !defined(MACOSX)
-        seteuid(newuid);
-#endif
-        if (setuid(newuid) == -1)
-#else
-        if (setreuid(newuid, newuid) == -1)
-#endif
-        {
-            perror("attempt to drop privileges failed");
-            clean_exit(-1);
-        }
-    }
+    if (((getgid()  != newgid) && (setgid(newgid)  == -1)) ||
+        ((getegid() != newgid) && (setegid(newgid) == -1)) ||
+        ((getuid()  != newuid) && (setuid(newuid)  == -1)) ||
+        ((geteuid() != newuid) && (seteuid(newuid) == -1))) {
 
-    if ((newgid != oldgid && (setegid(oldgid) != -1 || getegid() != newgid)) ||
-        (newuid != olduid && (seteuid(olduid) != -1 || geteuid() != newuid))) {
         perror("attempt to drop privileges failed");
         clean_exit(-1);
     }
- }
 }
 
 void usage(int e) {
