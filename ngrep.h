@@ -42,13 +42,13 @@ void version(void);
 char *get_filter_from_string(char *);
 char *get_filter_from_argv(char **);
 
-int re_match_func(char *, int);
-int bin_match_func(char *, int);
-int blank_match_func(char *, int);
+int re_match_func(char *, unsigned);
+int bin_match_func(char *, unsigned);
+int blank_match_func(char *, unsigned);
 
-void dump_unwrapped(char *, int);
-void dump_byline(char *, int);
-void dump_formatted(char *, int);
+void dump_unwrapped(char *, unsigned);
+void dump_byline(char *, unsigned);
+void dump_formatted(char *, unsigned);
 
 int strishex(char *);
 
@@ -59,5 +59,13 @@ void print_time_diff(struct pcap_pkthdr *);
 void dump_delay_proc_init(struct pcap_pkthdr *);
 void dump_delay_proc(struct pcap_pkthdr *);
 
+#if !defined(_WIN32)
 void update_windowsize(int);
 void drop_privs(void);
+#endif
+
+#if defined(_WIN32)
+int win32_initwinsock(void);
+void win32_listdevices(void);
+char *win32_usedevice(const char *);
+#endif

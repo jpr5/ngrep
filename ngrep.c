@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2004  Jordan Ritter <jpr5@darkridge.com>
+ * Copyright (c) 2005  Jordan Ritter <jpr5@darkridge.com>
  *
  * Please refer to the LICENSE file for more information.
  *
@@ -38,6 +38,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <grp.h>
 #endif
 
 #if defined(AIX)
@@ -49,19 +50,35 @@
 #include <pwd.h>
 #endif
 
+#if defined(_WIN32)
+#include <io.h>
+#include <getopt.h>
+#include <winsock2.h>
+#include <nettypes.h>
+#else
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
+#endif
+
+#if defined(_WIN32)
+#define strcasecmp stricmp
+struct timeval delay_tv;
+FD_SET delay_fds;
+SOCKET delay_socket = 0;
+#endif
 
 #include <pcap.h>
 
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+
+#if !defined(_WIN32)
 #include <errno.h>
 #include <sys/ioctl.h>
-
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -78,7 +95,7 @@
 
 static char rcsver[] = "$Revision$";
 
-int snaplen = 65535, limitlen = 65535, promisc = 1, to = 1000;
+unsigned snaplen = 65535, limitlen = 65535, promisc = 1, to = 1000;
 int show_empty = 0, show_hex = 0, quiet = 0;
 int match_after = 0, keep_matching = 0;
 int invert_match = 0, bin_match = 0;
@@ -107,7 +124,7 @@ struct re_pattern_buffer pattern;
 
 char *match_data = NULL, *bin_data = NULL, *filter = NULL, *filter_file = NULL;
 int (*match_func)() = &blank_match_func;
-void (*dump_func)(char *, int) = &dump_formatted;
+void (*dump_func)(char *, unsigned) = &dump_formatted;
 int match_len = 0;
 
 struct bpf_program pcapfilter;
@@ -122,19 +139,22 @@ pcap_dumper_t *pd_dump = NULL;
 struct timeval prev_ts = {0, 0}, prev_delay_ts = {0,0};
 void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
-unsigned ws_row, ws_col, ws_col_forced = 0;
+unsigned ws_row, ws_col = 80, ws_col_forced = 0;
 
 
 int main(int argc, char **argv) {
     int c;
 
     signal(SIGINT,   clean_exit);
-    signal(SIGQUIT,  clean_exit);
     signal(SIGABRT,  clean_exit);
+
+#if !defined(_WIN32)
+    signal(SIGQUIT,  clean_exit);
     signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
+#endif
 
-    while ((c = getopt(argc, argv, "hXViwqpevxlDtTRMs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LhXViwqpevxlDtTRMs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -167,9 +187,21 @@ int main(int argc, char **argv) {
             case 'A':
                 match_after = atoi(optarg) + 1;
                 break;
+#if defined(_WIN32)
+            case 'L':
+                win32_listdevices();
+                clean_exit(0);
+            case 'd':
+                dev = win32_usedevice(optarg);
+                break;
+#else
+            case 'L':
+                perror("-L is a Win32-only option");
+                clean_exit(-1);
             case 'd':
                 dev = optarg;
                 break;
+#endif
             case 'c':
                 ws_col_forced = atoi(optarg);
                 break;
@@ -245,7 +277,9 @@ int main(int argc, char **argv) {
             clean_exit(-1);
         }
 
+#if !defined(_WIN32)
         drop_privs();
+#endif
 
         live_read = 0;
         printf("input: %s\n", read_file);
@@ -263,7 +297,9 @@ int main(int argc, char **argv) {
             clean_exit(-1);
         }
 
+#if !defined(_WIN32)
         drop_privs();
+#endif
 
         if (pcap_lookupnet(dev, &net.s_addr, &mask.s_addr, pc_err) == -1) {
             perror(pc_err);
@@ -336,7 +372,7 @@ int main(int argc, char **argv) {
                 clean_exit(-1);
             }
 
-            len = strlen(match_data);
+            len = (int)strlen(match_data);
             if (len % 2 != 0 || !strishex(match_data)) {
                 fprintf(stderr, "fatal: invalid hex string specified\n");
                 clean_exit(-1);
@@ -347,7 +383,7 @@ int main(int argc, char **argv) {
             d = bin_data;
 
             if ((s = strchr(match_data, 'x')))
-                len -= ++s - match_data - 1;
+                len -= (int)(++s - match_data - 1);
             else s = match_data;
 
             while (i <= len) {
@@ -497,7 +533,13 @@ int main(int argc, char **argv) {
         } else printf("output: %s\n", dump_file);
     }
 
+#if !defined(_WIN32)
     update_windowsize(0);
+#endif
+
+#if defined(_WIN32)
+    win32_initwinsock();
+#endif
 
     while (pcap_loop(pd, 0, (pcap_handler)process, 0));
 
@@ -692,9 +734,9 @@ void process(u_char *data1, struct pcap_pkthdr* h, u_char *p) {
 }
 
 
-int re_match_func(char *data, int len) {
+int re_match_func(char *data, unsigned len) {
 #if USE_PCRE
-    switch(pcre_exec(pattern, 0, data, len, 0, 0, 0, 0)) {
+    switch(pcre_exec(pattern, 0, data, (int)len, 0, 0, 0, 0)) {
         case PCRE_ERROR_NULL:
         case PCRE_ERROR_BADOPTION:
         case PCRE_ERROR_BADMAGIC:
@@ -707,7 +749,7 @@ int re_match_func(char *data, int len) {
             return 0;
     }
 #else
-    switch (re_search(&pattern, data, len, 0, len, 0)) {
+    switch (re_search(&pattern, data, (int)len, 0, len, 0)) {
         case -2:
             perror("she's dead, jim\n");
             clean_exit(-2);
@@ -727,9 +769,9 @@ int re_match_func(char *data, int len) {
 }
 
 
-int bin_match_func(char *data, int len) {
+int bin_match_func(char *data, unsigned len) {
     int stop = len - match_len;
-    int i = 0;
+    unsigned i = 0;
 
     if (stop < 0)
         return 0;
@@ -749,7 +791,7 @@ int bin_match_func(char *data, int len) {
 }
 
 
-int blank_match_func(char *data, int len) {
+int blank_match_func(char *data, unsigned len) {
     if (max_matches)
         matches++;
 
@@ -757,13 +799,12 @@ int blank_match_func(char *data, int len) {
 }
 
 
-void dump_byline(char *data, int len) {
+void dump_byline(char *data, unsigned len) {
     if (len > 0) {
         const char *s = data;
-        unsigned width;
 
         while (s < data + len) {
-            printf("%c", (*s == '\n' || isprint(*s))? *s : nonprint_char);
+            printf("%c", (*s == '\n' || isprint((int)*s))? (char)*s : nonprint_char);
             s++;
         }
 
@@ -771,13 +812,12 @@ void dump_byline(char *data, int len) {
     }
 }
 
-void dump_unwrapped(char *data, int len) {
+void dump_unwrapped(char *data, unsigned len) {
     if (len > 0) {
         const char *s = data;
-        unsigned width;
 
         while (s < data + len) {
-            printf("%c", isprint(*s) ? *s : nonprint_char);
+            printf("%c", isprint((int)*s) ? (char)*s : nonprint_char);
             s++;
         }
 
@@ -785,11 +825,11 @@ void dump_unwrapped(char *data, int len) {
     }
 }
 
-void dump_formatted(char *data, int len) {
+void dump_formatted(char *data, unsigned len) {
     if (len > 0) {
         unsigned width = show_hex?16:(ws_col-5);
         char *str = data;
-        int j, i = 0;
+        unsigned j, i = 0;
 
         while (i < len) {
             printf("  ");
@@ -806,7 +846,7 @@ void dump_formatted(char *data, int len) {
 
             for (j = 0; j < width; j++)
                 if (i+j < len)
-                    printf("%c", isprint(str[j]) ? str[j] : nonprint_char);
+                    printf("%c", isprint((int)str[j]) ? (char)str[j] : nonprint_char);
                 else printf(" ");
 
             str += width;
@@ -824,7 +864,7 @@ char *get_filter_from_string(char *str) {
     if (!str || !*str)
         return NULL;
 
-    len = strlen(str);
+    len = (int)strlen(str);
 
     {
         char *s;
@@ -846,13 +886,13 @@ char *get_filter_from_string(char *str) {
 char *get_filter_from_argv(char **argv) {
     char **arg = argv, *theirs, *mine;
     char *from, *to;
-    int len = 0;
+    unsigned len = 0;
 
     if (!*arg)
         return NULL;
 
     while (*arg)
-        len += strlen(*arg++) + 1;
+        len += (unsigned)strlen(*arg++) + 1;
 
     if (!(theirs = (char*)malloc(len + 1)) ||
         !(mine = (char*)malloc(len + sizeof(IP_ONLY))))
@@ -891,11 +931,7 @@ int strishex(char *str) {
 
 
 void print_time_absolute(struct pcap_pkthdr *h) {
-#ifdef MACOSX
     struct tm *t = localtime((const time_t *)&h->ts.tv_sec);
-#else
-    struct tm *t = localtime(&h->ts.tv_sec);
-#endif
 
     printf("%02d/%02d/%02d %02d:%02d:%02d.%06d ",
            t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour,
@@ -949,14 +985,38 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
         usecs = 1000000 - (prev_delay_ts.tv_usec - h->ts.tv_usec);
     }
 
+#ifdef _WIN32
+    {
+        // grevious hack, yes, but windows sucks.  sorry. :(   --jordan
+        if ((delay_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+            perror("delay socket creation failed, disabling -D");
+            Sleep(3000); // give them time to read the message
+            want_delay = 0;
+            return;
+        }
+
+        FD_ZERO(&delay_fds);
+        FD_SET(delay_socket, &delay_fds);
+
+        delay_tv.tv_sec = secs;
+        delay_tv.tv_usec = usecs;
+
+        if (select(0, &delay_fds, 0, 0, &delay_tv) == -1)
+            fprintf(stderr, "WSAGetLastError = %u\n", WSAGetLastError());
+
+        closesocket(delay_socket);
+        delay_socket = 0; // in case someone ^C's out of me
+    }
+#else
     sleep(secs);
     usleep(usecs);
+#endif
 
     prev_delay_ts.tv_sec = h->ts.tv_sec;
     prev_delay_ts.tv_usec = h->ts.tv_usec;
 }
 
-
+#if !defined(_WIN32)
 void update_windowsize(int e) {
     if (e == 0 && ws_col_forced)
 
@@ -974,7 +1034,6 @@ void update_windowsize(int e) {
         }
     }
 }
-
 
 void drop_privs(void) {
     struct passwd *pw;
@@ -1008,9 +1067,10 @@ void drop_privs(void) {
         clean_exit(-1);
     }
 }
+#endif
 
 void usage(int e) {
-    printf("usage: ngrep <-hXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+    printf("usage: ngrep <-LhXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "                <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>\n"
            "                <-P char> <-F file> <match expression> <bpf filter>\n");
 
@@ -1040,12 +1100,99 @@ void clean_exit(int sig) {
 
     if (!quiet && sig >= 0 && !read_file &&
         pd && !pcap_stats(pd, &s))
-        printf("%d received, %d dropped\n", s.ps_recv, s.ps_drop);
+        printf("%u received, %u dropped\n", s.ps_recv, s.ps_drop);
 
-    if (pd) pcap_close(pd);
+    if (pd)      pcap_close(pd);
     if (pd_dump) pcap_dump_close(pd_dump);
+
+#if defined(_WIN32)
+        if (delay_socket) closesocket(delay_socket);
+        if (want_delay)   WSACleanup();
+        if (dev)          free(dev);
+#endif
 
     exit(sig);
 }
+
+#if defined(_WIN32)
+int win32_initwinsock(void) {
+    WORD wVersionRequested = MAKEWORD(2, 0);
+    WSADATA wsaData;
+
+    if (WSAStartup(wVersionRequested, &wsaData)) {
+        perror("unable to initialize winsock");
+        return 0;
+    }
+
+    // we want at least major version 2
+    if (LOBYTE(wsaData.wVersion) < 2) {
+        fprintf(stderr, "unable to find winsock 2.0 or greater (found %d.%d)\n",
+                LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
+        WSACleanup();
+        return 0;
+    }
+
+    return 1;
+}
+
+void win32_listdevices(void) {
+    unsigned i = 0;
+    pcap_if_t *alldevs, *d;
+    char errbuf[PCAP_ERRBUF_SIZE];
+
+    if (pcap_findalldevs(&alldevs, errbuf) == -1) {
+        perror("unable to enumerate device list");
+        clean_exit(-1);
+    }
+
+    printf("interface\tdevice\n");
+    printf("---------\t------\n");
+
+    for (d = alldevs; d != NULL; d = d->next) {
+        printf("%9d\t%s", ++i, d->name);
+        if (d->description)
+            printf(" (%s)\n", d->description);
+        else
+            printf(" (No description available)\n");
+    }
+
+    pcap_freealldevs(alldevs);
+}
+
+char *win32_usedevice(const char *index) {
+    unsigned idx = atoi(index), i = 0;
+    pcap_if_t *alldevs, *d;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    char *dev = NULL;
+
+    if (idx == 0) {
+        perror("invalid device index");
+        clean_exit(-1);
+    }
+
+    if (pcap_findalldevs(&alldevs, errbuf) == -1) {
+        perror("unable to enumerate devices");
+        clean_exit(-1);
+    }
+
+    for (d = alldevs; d != NULL; d = d->next)
+        if (++i == idx)
+            dev = _strdup(d->name);
+
+    if (i == 0) {
+        perror("no known devices");
+        clean_exit(-1);
+    }
+
+    if (i != idx) {
+        perror("unknown device specified");
+        clean_exit(-1);
+    }
+
+    pcap_freealldevs(alldevs);
+
+    return dev;
+}
+#endif
 
 
