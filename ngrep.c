@@ -74,14 +74,14 @@
 
 #include <pcap.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #if USE_PCRE
 #include "pcre-5.0/pcre.h"
 #else
 #include "regex-0.12/regex.h"
-#endif
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
 #endif
 
 #include "ngrep.h"
