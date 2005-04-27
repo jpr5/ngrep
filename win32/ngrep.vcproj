@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.10"
 	Name="ngrep"
 	ProjectGUID="{CC0C01CE-0AC3-4F93-9DC8-792862344DBA}"
 	Keyword="Win32Proj">
@@ -53,7 +53,13 @@
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
@@ -101,15 +107,26 @@
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
 				RelativePath="support\getopt.c">
+			</File>
+			<File
+				RelativePath=".\support\inet_ntop.c">
 			</File>
 			<File
 				RelativePath="..\ngrep.c">
@@ -125,7 +142,7 @@
 				RelativePath="support\getopt.h">
 			</File>
 			<File
-				RelativePath="support\nettypes.h">
+				RelativePath=".\support\inet_ntop.h">
 			</File>
 			<File
 				RelativePath="..\ngrep.h">
@@ -135,6 +152,9 @@
 			</File>
 			<File
 				RelativePath="..\regex-0.12\regex.h">
+			</File>
+			<File
+				RelativePath=".\support\types.h">
 			</File>
 		</Filter>
 		<Filter
