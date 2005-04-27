@@ -7,7 +7,12 @@
  *
  */
 
-#define VERSION "1.43.1-cvs"
+#define VERSION "1.44"
+
+/*
+ * We cache the standard frame sizes here to save us time and
+ * additional dependencies on more operating system include files.
+ */
 
 #define ETHHDR_SIZE 14
 #define TOKENRING_SIZE 22
@@ -19,12 +24,33 @@
 #define ISDNHDR_SIZE 16
 #define IEEE80211HDR_SIZE 32
 
+/*
+ * Default patterns for BPF and regular expression filters.
+ */
+
+#if USE_IPv6
+#define BPF_FILTER_IP       "(ip or ip6)"
+#else
+#define BPF_FILTER_IP       "(ip)"
+#endif
+
+#define BPF_FILTER_OTHER    " and ( %s)"
+#define BPF_MAIN_FILTER     BPF_FILTER_IP BPF_FILTER_OTHER
+
+#define WORD_REGEX "((^%s\\W)|(\\W%s$)|(\\W%s\\W))"
+
+/*
+ * For retarded operating systems like Solaris that don't have this,
+ * when everyone else does.  Good job, Sun!
+ */
+
 #ifndef IP_OFFMASK
 #define IP_OFFMASK 0x1fff
 #endif
 
-#define WORD_REGEX "((^%s\\W)|(\\W%s$)|(\\W%s\\W))"
-#define IP_ONLY "(ip or ip6) and ( %s)"
+/*
+ * "Newer" flags that older operating systems don't yet recognize.
+ */
 
 #ifndef TH_ECE
 #define TH_ECE 0x40
@@ -34,21 +60,26 @@
 #define TH_CWR 0x80
 #endif
 
-void process(u_char *, struct pcap_pkthdr*, u_char *);
-void clean_exit(int);
-void usage(int);
+
+/*
+ * Prototypes function signatures.
+ */
+
+void process(u_char *, struct pcap_pkthdr *, u_char *);
+void clean_exit(signed int);
+void usage(signed int);
 void version(void);
 
 char *get_filter_from_string(char *);
 char *get_filter_from_argv(char **);
 
-int re_match_func(unsigned char *, unsigned);
-int bin_match_func(unsigned char *, unsigned);
-int blank_match_func(unsigned char *, unsigned);
+int re_match_func(unsigned char *, unsigned int);
+int bin_match_func(unsigned char *, unsigned int);
+int blank_match_func(unsigned char *, unsigned int);
 
-void dump_unwrapped(unsigned char *, unsigned);
-void dump_byline(unsigned char *, unsigned);
-void dump_formatted(unsigned char *, unsigned);
+void dump_unwrapped(unsigned char *, unsigned int);
+void dump_byline(unsigned char *, unsigned int);
+void dump_formatted(unsigned char *, unsigned int);
 
 int strishex(char *);
 
@@ -59,7 +90,7 @@ void dump_delay_proc_init(struct pcap_pkthdr *);
 void dump_delay_proc(struct pcap_pkthdr *);
 
 #if !defined(_WIN32)
-void update_windowsize(int);
+void update_windowsize(signed int);
 void drop_privs(void);
 #endif
 

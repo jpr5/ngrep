@@ -159,8 +159,6 @@ pcap_t *pd = NULL;
 struct bpf_program pcapfilter;
 struct in_addr net, mask;
 
-unsigned char *foo;
-
 /*
  * Timestamp/delay functionality
  */
@@ -396,7 +394,7 @@ int main(int argc, char **argv) {
         }
 
     } else {
-        char *default_filter = "ip";
+        char *default_filter = BPF_FILTER_IP;
 
         if (pcap_compile(pd, &pcapfilter, default_filter, 0, mask.s_addr)) {
             pcap_perror(pd, "pcap compile");
@@ -591,6 +589,9 @@ int main(int argc, char **argv) {
     while (pcap_loop(pd, 0, (pcap_handler)process, 0));
 
     clean_exit(0);
+
+    /* NOT REACHED */
+    return 0;
 }
 
 void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
@@ -599,20 +600,21 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
     struct ip6_hdr *ip6_packet = (struct ip6_hdr*)(p + link_offset);
 #endif
 
-    uint32_t ip_ver = ip_packet->ip_v;
+    uint32_t ip_ver   = ip_packet->ip_v;
 
-    uint8_t  ip_proto;
-    uint32_t ip_hl, ip_off;
+    uint8_t  ip_proto = 0;
+    uint32_t ip_hl    = 0;
+    uint32_t ip_off   = 0;
 
-    uint8_t  fragmented;
-    uint16_t frag_offset;
-    uint32_t frag_id;
+    uint8_t  fragmented  = 0;
+    uint16_t frag_offset = 0;
+    uint32_t frag_id     = 0;
 
     char ip_src[INET6_ADDRSTRLEN + 1],
          ip_dst[INET6_ADDRSTRLEN + 1];
 
     unsigned char *data;
-    unsigned int len;
+    unsigned int len = 0;
 
     switch (ip_ver) {
 
@@ -644,7 +646,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             if (ip_proto == IPPROTO_FRAGMENT) {
                 struct ip6_frag *ip6_fraghdr;
 
-                ip6_fraghdr = (struct ip6_frag *)(((char *)ip6_packet) + ip_hl);
+                ip6_fraghdr = (struct ip6_frag *)(((unsigned char *)ip6_packet) + ip_hl);
                 ip_hl      += sizeof(struct ip6_frag);
                 ip_proto    = ip6_fraghdr->ip6f_nxt;
 
@@ -672,7 +674,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             struct tcphdr *tcp     = (struct tcphdr *)(((unsigned char *)ip_packet) + ip_hl);
             uint16_t tcphdr_offset = (frag_offset) ? 0 : (tcp->th_off * 4);
 
-            data = ((unsigned char*)tcp) + tcphdr_offset;
+            data = ((unsigned char *)tcp) + tcphdr_offset;
 
             switch (ip_ver) {
                 case 4: {
@@ -737,7 +739,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             struct udphdr *udp     = (struct udphdr *)(((unsigned char *)ip_packet) + ip_hl);
             uint16_t udphdr_offset = (frag_offset) ? 0 : sizeof(struct udphdr);
 
-            data = ((unsigned char*)udp) + udphdr_offset;
+            data = ((unsigned char *)udp) + udphdr_offset;
 
             switch (ip_ver) {
                 case 4: {
@@ -802,7 +804,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 #endif
             uint16_t icmphdr_offset = (frag_offset) ? 0 : 4;
 
-            data = ((char*)ic4) + icmphdr_offset;
+            data = ((unsigned char *)ic4) + icmphdr_offset;
 
             switch (ip_ver) {
                 case 4: {
@@ -866,7 +868,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             struct igmp *ig         = (struct igmp *)(((unsigned char *)ip_packet) + ip_hl);
             uint16_t igmphdr_offset = (frag_offset) ? 0 : 4;
 
-            data = ((char*)ig) + igmphdr_offset;
+            data = ((unsigned char *)ig) + igmphdr_offset;
 
             if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
                 len -= ip_hl + igmphdr_offset;
@@ -905,7 +907,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
         } break;
 
         default: {
-            data = (((unsigned char*)ip_packet) + ip_hl);
+            data = (((unsigned char *)ip_packet) + ip_hl);
 
             if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
                 len -= ip_hl;
@@ -1086,12 +1088,12 @@ char *get_filter_from_string(char *str) {
                 *s = ' ';
     }
 
-    if (!(mine = (char*)malloc(len + sizeof(IP_ONLY))))
+    if (!(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
         return NULL;
 
-    memset(mine, 0, len + sizeof(IP_ONLY));
+    memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
 
-    sprintf(mine, IP_ONLY, str);
+    sprintf(mine, BPF_MAIN_FILTER, str);
 
     return mine;
 }
@@ -1108,11 +1110,11 @@ char *get_filter_from_argv(char **argv) {
         len += (unsigned int)strlen(*arg++) + 1;
 
     if (!(theirs = (char*)malloc(len + 1)) ||
-        !(mine = (char*)malloc(len + sizeof(IP_ONLY))))
+        !(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
         return NULL;
 
     memset(theirs, 0, len + 1);
-    memset(mine, 0, len + sizeof(IP_ONLY));
+    memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
 
     arg = argv;
     to = theirs;
@@ -1122,7 +1124,7 @@ char *get_filter_from_argv(char **argv) {
         *(to-1) = ' ';
     }
 
-    sprintf(mine, IP_ONLY, theirs);
+    sprintf(mine, BPF_MAIN_FILTER, theirs);
 
     free(theirs);
     return mine;
@@ -1148,7 +1150,7 @@ void print_time_absolute(struct pcap_pkthdr *h) {
 
     printf("%02u/%02u/%02u %02u:%02u:%02u.%06u ",
            t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour,
-           t->tm_min, t->tm_sec, h->ts.tv_usec);
+           t->tm_min, t->tm_sec, (unsigned int)h->ts.tv_usec);
 }
 
 void print_time_diff(struct pcap_pkthdr *h) {
@@ -1220,7 +1222,7 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
 }
 
 #if !defined(_WIN32)
-void update_windowsize(int e) {
+void update_windowsize(signed int e) {
     if (e == 0 && ws_col_forced)
 
         ws_col = ws_col_forced;
@@ -1272,7 +1274,7 @@ void drop_privs(void) {
 }
 #endif
 
-void usage(int e) {
+void usage(signed int e) {
     printf("usage: ngrep <-"
 #if defined(_WIN32)
            "L"
@@ -1324,7 +1326,7 @@ void version(void) {
 }
 
 
-void clean_exit(int sig) {
+void clean_exit(signed int sig) {
     struct pcap_stat s;
     if (!quiet && sig >= 0) printf("exit\n");
 
