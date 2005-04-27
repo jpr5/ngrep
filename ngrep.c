@@ -574,7 +574,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
     switch (ip_packet->ip_p) {
         case IPPROTO_TCP: {
             struct tcphdr *tcp = (struct tcphdr *)(((char *)ip_packet) + ip_hl);
-            unsigned tcphdr_offset = fragmented?0:(tcp->th_off * 4);
+            unsigned tcphdr_offset = (frag_offset)?0:(tcp->th_off * 4);
 
             if (!quiet) {
                 printf("#");
@@ -632,7 +632,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 
         case IPPROTO_UDP: {
             struct udphdr* udp = (struct udphdr *)(((char *)ip_packet) + ip_hl);
-            unsigned udphdr_offset = (fragmented)?0:sizeof(struct udphdr);
+            unsigned udphdr_offset = (frag_offset)?0:sizeof(struct udphdr);
 
             if (!quiet) {
                 printf("#");
