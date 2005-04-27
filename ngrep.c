@@ -5,6 +5,8 @@
  *
  * Please refer to the LICENSE file for more information.
  *
+ * TODO: condense all the repeat code blocks throughout process
+ *
  */
 
 #if defined(BSD) || defined(SOLARIS) || defined(MACOSX)
@@ -54,13 +56,19 @@
 #include <io.h>
 #include <getopt.h>
 #include <winsock2.h>
-#include <nettypes.h>
+#include <types.h>
+#include <inet_ntop.h>
+
+#define strcasecmp stricmp
+
 #else
+
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/igmp.h>
+
 #endif
 
 #include <stdlib.h>
@@ -78,6 +86,11 @@
 #include "config.h"
 #endif
 
+#if USE_IPv6 && !defined(_WIN32)
+#include <netinet/ip6.h>
+#include <netinet/icmp6.h>
+#endif
+
 #if USE_PCRE
 #include "pcre-5.0/pcre.h"
 #else
@@ -87,64 +100,91 @@
 #include "ngrep.h"
 
 
+static char rcsver[] = "$Revision$";
+
+/*
+ * Configuration Options
+ */
+
+uint16_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 1000;
+uint16_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+
+uint8_t  show_empty = 0, show_hex = 0, quiet = 0;
+uint8_t  invert_match = 0, bin_match = 0;
+uint8_t  live_read = 1, want_delay = 0;
+uint8_t  dont_dropprivs = 0;
+uint8_t  re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
+
+char *read_file = NULL, *dump_file = NULL;
+char *usedev = NULL;
+
+char nonprint_char = '.';
+
+/*
+ * GNU Regex/PCRE
+ */
+
+#if USE_PCRE
+signed int err_offset;
+char *re_err = NULL;
+
+pcre *pattern = NULL;
+pcre_extra *pattern_extra = NULL;
+#else
+const char *re_err = NULL;
+
+struct re_pattern_buffer pattern;
+#endif
+
+/*
+ * Matching
+ */
+
+char *match_data = NULL, *bin_data = NULL;
+unsigned short match_len = 0;
+
+int (*match_func)() = &blank_match_func;
+void (*dump_func)(unsigned char *, unsigned int) = &dump_formatted;
+
+/*
+ * BPF/Network
+ */
+
+char *filter = NULL, *filter_file = NULL;
+char pc_err[PCAP_ERRBUF_SIZE];
+unsigned short link_offset;
+
+pcap_dumper_t *pd_dump = NULL;
+pcap_t *pd = NULL;
+struct bpf_program pcapfilter;
+struct in_addr net, mask;
+
+unsigned char *foo;
+
+/*
+ * Timestamp/delay functionality
+ */
+
+struct timeval prev_ts = {0, 0}, prev_delay_ts = {0,0};
 #if defined(_WIN32)
-#define strcasecmp stricmp
 struct timeval delay_tv;
 FD_SET delay_fds;
 SOCKET delay_socket = 0;
 #endif
 
-static char rcsver[] = "$Revision$";
-
-unsigned snaplen = 65535, limitlen = 65535, promisc = 1, to = 1000;
-unsigned show_empty = 0, show_hex = 0, quiet = 0;
-unsigned match_after = 0, keep_matching = 0;
-unsigned invert_match = 0, bin_match = 0;
-unsigned matches = 0, max_matches = 0;
-unsigned live_read = 1, want_delay = 0;
-unsigned dont_dropprivs = 0;
-
-char nonprint_char = '.';
-
-char pc_err[PCAP_ERRBUF_SIZE];
-#if USE_PCRE
-int err_offset;
-char *re_err = NULL;
-#else
-const char *re_err = NULL;
-#endif
-
-unsigned re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
-
-#if USE_PCRE
-pcre *pattern = NULL;
-pcre_extra *pattern_extra = NULL;
-#else
-struct re_pattern_buffer pattern;
-#endif
-
-char *match_data = NULL, *bin_data = NULL, *filter = NULL, *filter_file = NULL;
-int (*match_func)() = &blank_match_func;
-void (*dump_func)(char *, unsigned) = &dump_formatted;
-unsigned match_len = 0;
-
-struct bpf_program pcapfilter;
-struct in_addr net, mask;
-pcap_t *pd = NULL;
-char *usedev = NULL;
-unsigned link_offset;
-
-char *read_file = NULL, *dump_file = NULL;
-pcap_dumper_t *pd_dump = NULL;
-
-struct timeval prev_ts = {0, 0}, prev_delay_ts = {0,0};
 void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
-unsigned ws_row, ws_col = 80, ws_col_forced = 0;
+
+/*
+ * When !Win32, windowsize stuff
+ */
+
+unsigned int ws_row, ws_col = 80, ws_col_forced = 0;
+
 
 
 int main(int argc, char **argv) {
-    int c;
+    signed int c;
 
     signal(SIGINT,   clean_exit);
     signal(SIGABRT,  clean_exit);
@@ -221,7 +261,7 @@ int main(int argc, char **argv) {
             case 'T':
                 print_time = &print_time_diff;
 #if defined(_WIN32)
-                prev_ts.tv_sec  = (long)time(NULL);
+                prev_ts.tv_sec  = (unsigned long)time(NULL);
                 prev_ts.tv_usec = 0;
 #else
                 gettimeofday(&prev_ts, NULL);
@@ -374,16 +414,16 @@ int main(int argc, char **argv) {
 
     if (match_data) {
         if (bin_match) {
-            unsigned i = 0, n;
+            unsigned int i = 0, n;
+            unsigned int len;
             char *s, *d;
-            unsigned len;
 
             if (re_match_word || re_ignore_case) {
                 fprintf(stderr, "fatal: regex switches are incompatible with binary matching\n");
                 clean_exit(-1);
             }
 
-            len = (unsigned)strlen(match_data);
+            len = (unsigned int)strlen(match_data);
             if (len % 2 != 0 || !strishex(match_data)) {
                 fprintf(stderr, "fatal: invalid hex string specified\n");
                 clean_exit(-1);
@@ -394,7 +434,7 @@ int main(int argc, char **argv) {
             d = bin_data;
 
             if ((s = strchr(match_data, 'x')))
-                len -= (unsigned)(++s - match_data - 1);
+                len -= (unsigned int)(++s - match_data - 1);
             else s = match_data;
 
             while (i <= len) {
@@ -409,7 +449,7 @@ int main(int argc, char **argv) {
         } else {
 
 #if USE_PCRE
-            unsigned pcre_options = PCRE_UNGREEDY;
+            unsigned int pcre_options = PCRE_UNGREEDY;
 
             if (re_ignore_case)
                 pcre_options |= PCRE_CASELESS;
@@ -424,8 +464,8 @@ int main(int argc, char **argv) {
                 re_syntax_options |= RE_DOT_NEWLINE;
 
             if (re_ignore_case) {
+                unsigned int i;
                 char *s;
-                unsigned i;
 
                 pattern.translate = (char*)malloc(256);
                 s = pattern.translate;
@@ -553,39 +593,102 @@ int main(int argc, char **argv) {
     clean_exit(0);
 }
 
-
 void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
-    struct ip *ip_packet = (struct ip *)(p + link_offset);
+    struct ip      *ip_packet  = (struct ip *)    (p + link_offset);
+#if USE_IPv6
+    struct ip6_hdr *ip6_packet = (struct ip6_hdr*)(p + link_offset);
+#endif
+
+    uint32_t ip_ver = ip_packet->ip_v;
+
+    uint8_t  ip_proto;
+    uint32_t ip_hl, ip_off;
+
+    uint8_t  fragmented;
+    uint16_t frag_offset;
+    uint32_t frag_id;
+
+    char ip_src[INET6_ADDRSTRLEN + 1],
+         ip_dst[INET6_ADDRSTRLEN + 1];
+
+    unsigned char *data;
+    unsigned int len;
+
+    switch (ip_ver) {
+
+        case 4: {
 
 #if defined(AIX)
 #undef ip_hl
-    unsigned ip_hl = ip_packet->ip_ff.ip_fhl*4;
+            ip_hl       = ip_packet->ip_ff.ip_fhl * 4;
 #else
-    unsigned ip_hl = ip_packet->ip_hl*4;
+            ip_hl       = ip_packet->ip_hl * 4;
 #endif
+            ip_proto    = ip_packet->ip_p;
+            ip_off      = ntohs(ip_packet->ip_off);
 
-    unsigned ip_off      = ntohs(ip_packet->ip_off);
-    unsigned fragmented  = ip_off & (IP_MF | IP_OFFMASK);
-    unsigned frag_offset = fragmented?(ip_off & IP_OFFMASK) * 8:0;
+            fragmented  = ip_off & (IP_MF | IP_OFFMASK);
+            frag_offset = (fragmented) ? (ip_off & IP_OFFMASK) * 8 : 0;
+            frag_id     = ntohs(ip_packet->ip_id);
 
-    char *data;
-    unsigned len;
+            inet_ntop(AF_INET, (const void *)&ip_packet->ip_src, ip_src, sizeof(ip_src));
+            inet_ntop(AF_INET, (const void *)&ip_packet->ip_dst, ip_dst, sizeof(ip_dst));
+        } break;
 
-    switch (ip_packet->ip_p) {
-        case IPPROTO_TCP: {
-            struct tcphdr *tcp = (struct tcphdr *)(((char *)ip_packet) + ip_hl);
-            unsigned tcphdr_offset = (frag_offset)?0:(tcp->th_off * 4);
+#if USE_IPv6
+        case 6: {
 
-            if (!quiet) {
-                printf("#");
-                fflush(stdout);
+            ip_hl    = sizeof(struct ip6_hdr);
+            ip_proto = ip6_packet->ip6_nxt;
+
+            if (ip_proto == IPPROTO_FRAGMENT) {
+                struct ip6_frag *ip6_fraghdr;
+
+                ip6_fraghdr = (struct ip6_frag *)(((char *)ip6_packet) + ip_hl);
+                ip_hl      += sizeof(struct ip6_frag);
+                ip_proto    = ip6_fraghdr->ip6f_nxt;
+
+                fragmented  = 1;
+                frag_offset = ntohs(ip6_fraghdr->ip6f_offlg & IP6F_OFF_MASK);
+                frag_id     = ntohl(ip6_fraghdr->ip6f_ident);
+            } else {
+                fragmented  = 0;
+                frag_offset = 0;
             }
 
-            data = ((char*)tcp) + tcphdr_offset;
+            inet_ntop(AF_INET6, (const void *)&ip6_packet->ip6_src, ip_src, sizeof(ip_src));
+            inet_ntop(AF_INET6, (const void *)&ip6_packet->ip6_dst, ip_dst, sizeof(ip_dst));
+        } break;
+#endif
+    };
 
-            if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
-                len -= ip_hl + tcphdr_offset;
-            else len = h->caplen - link_offset - ip_hl - tcphdr_offset;
+    if (!quiet) {
+        printf("#");
+        fflush(stdout);
+    }
+
+    switch (ip_proto) {
+        case IPPROTO_TCP: {
+            struct tcphdr *tcp     = (struct tcphdr *)(((unsigned char *)ip_packet) + ip_hl);
+            uint16_t tcphdr_offset = (frag_offset) ? 0 : (tcp->th_off * 4);
+
+            data = ((unsigned char*)tcp) + tcphdr_offset;
+
+            switch (ip_ver) {
+                case 4: {
+                    if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
+                        len -= ip_hl + tcphdr_offset;
+                    else len = h->caplen - link_offset - ip_hl - tcphdr_offset;
+                } break;
+
+#if USE_IPv6
+                case 6: {
+                    if ((len = ntohs(ip6_packet->ip6_plen + ip_hl)) < h->caplen)
+                        len -= ip_hl + tcphdr_offset;
+                    else len = h->caplen - link_offset - ip_hl - tcphdr_offset;
+                } break;
+#endif
+            }
 
             if (len > limitlen) len = limitlen;
 
@@ -601,8 +704,8 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
                     print_time(h);
 
                 if (tcphdr_offset || !frag_offset) {
-                    printf("%s:%u -", inet_ntoa(ip_packet->ip_src), ntohs(tcp->th_sport));
-                    printf("> %s:%u", inet_ntoa(ip_packet->ip_dst), ntohs(tcp->th_dport));
+                    printf("%s:%u -", ip_src, ntohs(tcp->th_sport));
+                    printf("> %s:%u", ip_dst, ntohs(tcp->th_dport));
                     printf(" [%s%s%s%s%s%s%s%s]",
                            (tcp->th_flags & TH_ACK)?"A":"",
                            (tcp->th_flags & TH_SYN)?"S":"",
@@ -613,13 +716,13 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
                            (tcp->th_flags & TH_ECE)?"E":"",
                            (tcp->th_flags & TH_CWR)?"C":"");
                 } else {
-                    printf("%s -", inet_ntoa(ip_packet->ip_src));
-                    printf("> %s", inet_ntoa(ip_packet->ip_dst));
+                    printf("%s -", ip_src);
+                    printf("> %s", ip_dst);
                 }
 
                 if (fragmented)
-                    printf(" %s%u@%u:%u\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
-                           frag_offset, len);
+                    printf(" %s%u@%u:%u\n",
+                           frag_offset?"+":"", frag_id, frag_offset, len);
                 else printf("\n");
 
                 if (pd_dump)
@@ -631,19 +734,26 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
         } break;
 
         case IPPROTO_UDP: {
-            struct udphdr* udp = (struct udphdr *)(((char *)ip_packet) + ip_hl);
-            unsigned udphdr_offset = (frag_offset)?0:sizeof(struct udphdr);
+            struct udphdr *udp     = (struct udphdr *)(((unsigned char *)ip_packet) + ip_hl);
+            uint16_t udphdr_offset = (frag_offset) ? 0 : sizeof(struct udphdr);
 
-            if (!quiet) {
-                printf("#");
-                fflush(stdout);
+            data = ((unsigned char*)udp) + udphdr_offset;
+
+            switch (ip_ver) {
+                case 4: {
+                    if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
+                        len -= ip_hl + udphdr_offset;
+                    else len = h->caplen - link_offset - ip_hl - udphdr_offset;
+                } break;
+
+#if USE_IPv6
+                case 6: {
+                    if ((len = ntohs(ip6_packet->ip6_plen + ip_hl)) < h->caplen)
+                        len -= ip_hl + udphdr_offset;
+                    else len = h->caplen - link_offset - ip_hl - udphdr_offset;
+                } break;
+#endif
             }
-
-            data = ((char*)udp) + udphdr_offset;
-
-            if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
-                len -= ip_hl + udphdr_offset;
-            else len = h->caplen - link_offset - ip_hl - udphdr_offset;
 
             if (len > limitlen) len = limitlen;
 
@@ -660,20 +770,20 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 
                 if (udphdr_offset || !frag_offset) {
 #if HAVE_DUMB_UDPHDR
-                    printf("%s:%u -", inet_ntoa(ip_packet->ip_src), ntohs(udp->source));
-                    printf("> %s:%u", inet_ntoa(ip_packet->ip_dst), ntohs(udp->dest));
+                    printf("%s:%u -", ip_src, ntohs(udp->source));
+                    printf("> %s:%u", ip_dst, ntohs(udp->dest));
 #else
-                    printf("%s:%u -", inet_ntoa(ip_packet->ip_src), ntohs(udp->uh_sport));
-                    printf("> %s:%u", inet_ntoa(ip_packet->ip_dst), ntohs(udp->uh_dport));
+                    printf("%s:%u -", ip_src, ntohs(udp->uh_sport));
+                    printf("> %s:%u", ip_dst, ntohs(udp->uh_dport));
 #endif
                 } else {
-                    printf("%s -", inet_ntoa(ip_packet->ip_src));
-                    printf("> %s", inet_ntoa(ip_packet->ip_dst));
+                    printf("%s -", ip_src);
+                    printf("> %s", ip_dst);
                 }
 
                 if (fragmented)
-                    printf(" %s%u@%u:%u\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
-                           frag_offset, len);
+                    printf(" %s%u@%u:%u\n",
+                           frag_offset?"+":"", frag_id, frag_offset, len);
                 else printf("\n");
 
                 if (pd_dump)
@@ -684,20 +794,31 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             }
         } break;
 
-        case IPPROTO_ICMP: {
-            struct icmp* ic = (struct icmp *)(((char *)ip_packet) + ip_hl);
-            unsigned icmphdr_offset = fragmented?0:4;
+        case IPPROTO_ICMP:
+        case IPPROTO_ICMPV6: {
+            struct icmp *ic4        = (struct icmp *)(((unsigned char *)ip_packet) + ip_hl);
+#if USE_IPv6
+            struct icmp6_hdr *ic6   = (struct icmp6_hdr *)(((unsigned char *)ip6_packet) + ip_hl);
+#endif
+            uint16_t icmphdr_offset = (frag_offset) ? 0 : 4;
 
-            if (!quiet) {
-                printf("#");
-                fflush(stdout);
+            data = ((char*)ic4) + icmphdr_offset;
+
+            switch (ip_ver) {
+                case 4: {
+                    if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
+                        len -= ip_hl + icmphdr_offset;
+                    else len = h->caplen - link_offset - ip_hl - icmphdr_offset;
+                } break;
+
+#if USE_IPv6
+                case 6: {
+                    if ((len = ntohs(ip6_packet->ip6_plen + ip_hl)) < h->caplen)
+                        len -= ip_hl + icmphdr_offset;
+                    else len = h->caplen - link_offset - ip_hl - icmphdr_offset;
+                }
+#endif
             }
-
-            data = ((char*)ic) + icmphdr_offset;
-
-            if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
-                len -= ip_hl + icmphdr_offset;
-            else len = h->caplen - link_offset - ip_hl - icmphdr_offset;
 
             if (len > limitlen) len = limitlen;
 
@@ -712,15 +833,25 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
                 if (print_time)
                     print_time(h);
 
-                printf("%s -", inet_ntoa(ip_packet->ip_src));
-                printf("> %s", inet_ntoa(ip_packet->ip_dst));
+                printf("%s -", ip_src);
+                printf("> %s", ip_dst);
 
                 if (icmphdr_offset || !frag_offset)
-                    printf(" %u:%u", ic->icmp_type, ic->icmp_code);
+                    switch (ip_ver) {
+                        case 4: {
+                            printf(" %u:%u", ic4->icmp_type, ic4->icmp_code);
+                        } break;
+
+#if USE_IPv6
+                        case 6: {
+                            printf(" %u:%u", ic6->icmp6_type, ic6->icmp6_code);
+                        } break;
+#endif
+                    };
 
                 if (fragmented)
-                    printf(" %s%u@%u:%u\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
-                           frag_offset, len);
+                    printf(" %s%u@%u:%u\n",
+                           frag_offset?"+":"", frag_id, frag_offset, len);
                 else printf("\n");
 
                 if (pd_dump)
@@ -732,13 +863,8 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
         } break;
 
         case IPPROTO_IGMP: {
-            struct igmp* ig = (struct igmp *)(((char *)ip_packet) + ip_hl);
-            unsigned igmphdr_offset = fragmented?0:4;
-
-            if (!quiet) {
-                printf("#");
-                fflush(stdout);
-            }
+            struct igmp *ig         = (struct igmp *)(((unsigned char *)ip_packet) + ip_hl);
+            uint16_t igmphdr_offset = (frag_offset) ? 0 : 4;
 
             data = ((char*)ig) + igmphdr_offset;
 
@@ -766,8 +892,8 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
                     printf(" %u:%u", ig->igmp_type, ig->igmp_code);
 
                 if (fragmented)
-                    printf(" %s%u@%u:%u\n", frag_offset?"+":"", ntohs(ip_packet->ip_id),
-                           frag_offset, len);
+                    printf(" %s%u@%u:%u\n",
+                           frag_offset?"+":"", frag_id, frag_offset, len);
                 else printf("\n");
 
                 if (pd_dump)
@@ -779,7 +905,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
         } break;
 
         default: {
-            data = (char*)(((char*)ip_packet) + ip_hl);
+            data = (((unsigned char*)ip_packet) + ip_hl);
 
             if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
                 len -= ip_hl;
@@ -798,10 +924,10 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
                 if (print_time)
                     print_time(h);
 
-                printf("%s -", inet_ntoa(ip_packet->ip_src));
-                printf("> %s ", inet_ntoa(ip_packet->ip_dst));
+                printf("%s -", ip_src);
+                printf("> %s ", ip_dst);
 
-                printf("[proto %u]\n", ip_packet->ip_p);
+                printf("[proto %u]\n", ip_proto);
 
                 if (pd_dump)
                     pcap_dump((u_char*)pd_dump, h, p);
@@ -821,7 +947,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 }
 
 
-int re_match_func(char *data, unsigned len) {
+int re_match_func(unsigned char *data, unsigned int len) {
 #if USE_PCRE
     switch(pcre_exec(pattern, 0, data, (int)len, 0, 0, 0, 0)) {
         case PCRE_ERROR_NULL:
@@ -856,9 +982,9 @@ int re_match_func(char *data, unsigned len) {
 }
 
 
-int bin_match_func(char *data, unsigned len) {
-    signed stop = len - match_len;
-    signed i = 0;
+int bin_match_func(unsigned char *data, unsigned int len) {
+    signed int stop = len - match_len;
+    signed int i    = 0;
 
     if (stop < 0)
         return 0;
@@ -878,20 +1004,19 @@ int bin_match_func(char *data, unsigned len) {
 }
 
 
-int blank_match_func(char *data, unsigned len) {
+int blank_match_func(unsigned char *data, unsigned int len) {
     if (max_matches)
         matches++;
 
     return 1;
 }
 
-
-void dump_byline(char *data, unsigned len) {
+void dump_byline(unsigned char *data, unsigned int len) {
     if (len > 0) {
-        const char *s = data;
+        const unsigned char *s = data;
 
         while (s < data + len) {
-            printf("%c", (*s == '\n' || isprint((unsigned char)*s))? (char)*s : nonprint_char);
+            printf("%c", (*s == '\n' || isprint(*s))? *s : nonprint_char);
             s++;
         }
 
@@ -899,12 +1024,12 @@ void dump_byline(char *data, unsigned len) {
     }
 }
 
-void dump_unwrapped(char *data, unsigned len) {
+void dump_unwrapped(unsigned char *data, unsigned int len) {
     if (len > 0) {
-        const char *s = data;
+        const unsigned char *s = data;
 
         while (s < data + len) {
-            printf("%c", isprint((unsigned char)*s) ? (char)*s : nonprint_char);
+            printf("%c", isprint(*s) ? *s : nonprint_char);
             s++;
         }
 
@@ -912,19 +1037,20 @@ void dump_unwrapped(char *data, unsigned len) {
     }
 }
 
-void dump_formatted(char *data, unsigned len) {
+void dump_formatted(unsigned char *data, unsigned int len) {
     if (len > 0) {
-        unsigned width = show_hex?16:(ws_col-5);
-        char *str = data;
-        unsigned j, i = 0;
+        unsigned short width = show_hex ? 16 : (ws_col-5);
+        unsigned char *str   = data;
+                unsigned int i = 0,
+                                 j = 0;
 
         while (i < len) {
             printf("  ");
 
             if (show_hex)
                 for (j = 0; j < width; j++) {
-                    if (i+j < len)
-                        printf("%02x ", (unsigned char)str[j]);
+                    if (i + j < len)
+                        printf("%02x ", str[j]);
                     else printf("   ");
 
                     if ((j+1) % (width/2) == 0)
@@ -932,12 +1058,12 @@ void dump_formatted(char *data, unsigned len) {
                 }
 
             for (j = 0; j < width; j++)
-                if (i+j < len)
-                    printf("%c", isprint((unsigned char)str[j]) ? (char)str[j] : nonprint_char);
+                if (i + j < len)
+                    printf("%c", isprint(str[j]) ? str[j] : nonprint_char);
                 else printf(" ");
 
             str += width;
-            i += j;
+            i   += j;
 
             printf("\n");
         }
@@ -946,12 +1072,12 @@ void dump_formatted(char *data, unsigned len) {
 
 char *get_filter_from_string(char *str) {
     char *mine;
-    unsigned len;
+    unsigned int len;
 
     if (!str || !*str)
         return NULL;
 
-    len = (unsigned)strlen(str);
+    len = (unsigned int)strlen(str);
 
     {
         char *s;
@@ -973,13 +1099,13 @@ char *get_filter_from_string(char *str) {
 char *get_filter_from_argv(char **argv) {
     char **arg = argv, *theirs, *mine;
     char *from, *to;
-    unsigned len = 0;
+    unsigned int len = 0;
 
     if (!*arg)
         return NULL;
 
     while (*arg)
-        len += (unsigned)strlen(*arg++) + 1;
+        len += (unsigned int)strlen(*arg++) + 1;
 
     if (!(theirs = (char*)malloc(len + 1)) ||
         !(mine = (char*)malloc(len + sizeof(IP_ONLY))))
@@ -1026,7 +1152,7 @@ void print_time_absolute(struct pcap_pkthdr *h) {
 }
 
 void print_time_diff(struct pcap_pkthdr *h) {
-    unsigned secs, usecs;
+    unsigned int secs, usecs;
 
     secs = h->ts.tv_sec - prev_ts.tv_sec;
     if (h->ts.tv_usec >= prev_ts.tv_usec)
@@ -1052,7 +1178,7 @@ void dump_delay_proc_init(struct pcap_pkthdr *h) {
 }
 
 void dump_delay_proc(struct pcap_pkthdr *h) {
-    unsigned secs, usecs;
+    unsigned int secs, usecs;
 
     secs = h->ts.tv_sec - prev_delay_ts.tv_sec;
     if (h->ts.tv_usec >= prev_delay_ts.tv_usec)

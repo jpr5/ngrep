@@ -3,6 +3,7 @@
  */
 
 #define USE_PCRE               @USE_PCRE@
+#define USE_IPv6               @USE_IPv6@
 
 #define HAVE_DLT_RAW           @HAVE_DLT_RAW@
 #define HAVE_DLT_LOOP          @HAVE_DLT_LOOP@

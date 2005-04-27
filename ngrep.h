@@ -24,7 +24,7 @@
 #endif
 
 #define WORD_REGEX "((^%s\\W)|(\\W%s$)|(\\W%s\\W))"
-#define IP_ONLY "ip and ( %s)"
+#define IP_ONLY "(ip or ip6) and ( %s)"
 
 #ifndef TH_ECE
 #define TH_ECE 0x40
@@ -42,13 +42,13 @@ void version(void);
 char *get_filter_from_string(char *);
 char *get_filter_from_argv(char **);
 
-int re_match_func(char *, unsigned);
-int bin_match_func(char *, unsigned);
-int blank_match_func(char *, unsigned);
+int re_match_func(unsigned char *, unsigned);
+int bin_match_func(unsigned char *, unsigned);
+int blank_match_func(unsigned char *, unsigned);
 
-void dump_unwrapped(char *, unsigned);
-void dump_byline(char *, unsigned);
-void dump_formatted(char *, unsigned);
+void dump_unwrapped(unsigned char *, unsigned);
+void dump_byline(unsigned char *, unsigned);
+void dump_formatted(unsigned char *, unsigned);
 
 int strishex(char *);
 

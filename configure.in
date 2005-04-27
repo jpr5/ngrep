@@ -45,7 +45,7 @@ dnl was wrong because this is still needed).
 dnl
 
 AC_ARG_ENABLE(pcap-restart,
-[  --disable-pcap-restart       disable libpcap restart in parser],
+[  --disable-pcap-restart  disable libpcap restart in parser],
 [ 
   use_pcap_restart="$enableval"
 ],
@@ -62,6 +62,7 @@ fi
 dnl
 dnl Allow user to specify alternate ``nobody'' user.
 dnl
+
 AC_ARG_WITH(dropprivs-user,
 [  --with-dropprivs-user[=user]  use different user for dropprivs],
 [
@@ -71,25 +72,12 @@ AC_ARG_WITH(dropprivs-user,
   DROPPRIVS_USER="nobody"
 ])
 
-dnl 
-dnl pcre library compatibility stuff
-dnl
-AC_ARG_ENABLE(pcre,
-[  --enable-pcre                use PCRE instead of GNU regex],
-[ 
-  use_pcre="$enableval"
-],
-[ 
-  use_pcre="no"
-])
-
-
 dnl
 dnl Enable or disable the drop privileges logic.
 dnl
 
 AC_ARG_ENABLE(dropprivs,
-[  --disable-dropprivs          disable privilege dropping logic],
+[  --disable-dropprivs     disable privilege dropping logic],
 [
   use_dropprivs="$enableval"
 ],
@@ -103,10 +91,38 @@ else
    USE_DROPPRIVS="0"
 fi
 
+dnl 
+dnl IPv6 (and ICMPv6) support
+dnl
+
+AC_ARG_ENABLE(ipv6,
+[  --enable-ipv6           enable IPv6 (and ICMPv6) support],
+[ 
+  use_ipv6="$enableval"
+],
+[ 
+  use_ipv6="no"
+])
+
+if test $use_ipv6 = yes; then
+   USE_IPv6="1"
+else
+   USE_IPv6="0"
+fi
+
 
 dnl
 dnl Configure the regular expression library.
 dnl
+
+AC_ARG_ENABLE(pcre,
+[  --enable-pcre           use PCRE instead of GNU regex],
+[ 
+  use_pcre="$enableval"
+],
+[ 
+  use_pcre="no"
+])
 
 if test $use_pcre = yes; then
 
@@ -359,6 +375,7 @@ dnl
 AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,    $USE_PCAP_RESTART)
 
 AC_DEFINE_UNQUOTED(USE_PCRE,            $USE_PCRE)
+AC_DEFINE_UNQUOTED(USE_IPv6,            $USE_IPv6)
 
 AC_DEFINE_UNQUOTED(USE_DROPPRIVS,       $USE_DROPPRIVS)
 AC_DEFINE_UNQUOTED(DROPPRIVS_USER,     "$DROPPRIVS_USER")
@@ -373,13 +390,13 @@ AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,  $HAVE_DLT_LINUX_SLL)
 
 
 dnl
-dnl And the library..
+dnl And the PCAP library..
 dnl
 
 AC_CHECK_LIB(pcap, pcap_open_live,,echo need pcap lib; exit)
 
 dnl
-dnl And the restart function.
+dnl And the PCAP restart function..
 dnl
 
 pcap_restart_func=""
