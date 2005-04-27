@@ -52,3 +52,8 @@ TCP ECN patch
 Real RPM Packaging
 
     Dag Wieers <dag@wieers.com>
+
+Excellent patch for adding IPv6 support to ngrep
+
+    Bernard Massot <bmassot@users.sourceforge.net>
+
