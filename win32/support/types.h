@@ -6,7 +6,7 @@
  * network application development, and because I'm basically lazy, I
  * created this header as a container for the types ngrep needs.
  *
- * These include standard types like u*int*_t's, as well as network 
+ * These include standard types like u*int*_t's, as well as network
  * protocol-specific structures and types.
  */
 
@@ -101,7 +101,7 @@ struct igmp {
   struct in_addr igmp_group;      /* group address */
 };
 
-/* 
+/*
  * Taken from arpa/namser.h, used by inet_?to?() (Win32 support).
  */
 
@@ -109,7 +109,7 @@ struct igmp {
 #define NS_IN6ADDRSZ     16      /* IPv6 T_AAAA */
 #define NS_INT16SZ       2       /* #/bytes of data in a u_int16_t */
 
-/* 
+/*
  * IPv6 and ICMPv6 declarations.
  */
 
@@ -133,8 +133,8 @@ struct ip6_hdr {
           } ip6_un1;
 
         uint8_t ip6_un2_vfc;       /* 4 bits version, top 4 bits tclass */
-   
-	} ip6_ctlun;
+
+        } ip6_ctlun;
 
     struct UNIX_in6_addr ip6_src;      /* source address */
     struct UNIX_in6_addr ip6_dst;      /* destination address */
@@ -170,8 +170,8 @@ struct icmp6_hdr {
     uint8_t     icmp6_code;   /* code field */
     uint16_t    icmp6_cksum;  /* checksum field */
     union {
-		uint32_t  icmp6_un_data32[1]; /* type-specific field */
-		uint16_t  icmp6_un_data16[2]; /* type-specific field */
-		uint8_t   icmp6_un_data8[4];  /* type-specific field */
-	} icmp6_dataun;
+                uint32_t  icmp6_un_data32[1]; /* type-specific field */
+                uint16_t  icmp6_un_data16[2]; /* type-specific field */
+                uint8_t   icmp6_un_data8[4];  /* type-specific field */
+        } icmp6_dataun;
 };
