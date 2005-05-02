@@ -62,6 +62,14 @@
 
 
 /*
+ * Single-char packet "ident" flags.
+ */
+
+typedef enum {
+    TCP = 'T', UDP = 'U', ICMP = 'I', ICMPv6 = 'I', IGMP = 'G', UNKNOWN = '?'
+} netident_t;
+
+/*
  * Prototypes function signatures.
  */
 
@@ -76,6 +84,10 @@ char *get_filter_from_argv(char **);
 int re_match_func(unsigned char *, unsigned int);
 int bin_match_func(unsigned char *, unsigned int);
 int blank_match_func(unsigned char *, unsigned int);
+
+void dump_packet(struct pcap_pkthdr *, u_char *, uint8_t, unsigned char *, unsigned int,
+                 const char *, const char *, uint16_t, uint16_t, uint8_t,
+                 uint16_t, uint8_t, uint16_t, uint32_t);
 
 void dump_unwrapped(unsigned char *, unsigned int);
 void dump_byline(unsigned char *, unsigned int);

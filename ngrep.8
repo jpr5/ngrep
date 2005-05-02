@@ -14,7 +14,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hXViwqpevxlDtTRM> <-IO
+.B ngrep <-NhXViwqpevxlDtTRM> <-IO
 .I pcap_dump
 .B > < -n
 .I num
@@ -57,6 +57,10 @@ and
 .SH OPTIONS
 .IP -h
 Display help/usage information.
+
+.IP -N
+Show sub-protocol number along with single-character identifier
+(useful when observing raw or unknown protocols).
 
 .IP -X
 Treat the match expression as a hexadecimal string.  See the
