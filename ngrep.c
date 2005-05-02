@@ -5,8 +5,6 @@
  *
  * Please refer to the LICENSE file for more information.
  *
- * TODO: condense all the repeat code blocks throughout process
- *
  */
 
 #if defined(BSD) || defined(SOLARIS) || defined(MACOSX)
