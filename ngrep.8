@@ -14,7 +14,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-NhXViwqpevxlDtTRM> <-IO
+.B ngrep <-hNXViwqpevxlDtTRM> <-IO
 .I pcap_dump
 .B > < -n
 .I num
@@ -27,7 +27,7 @@ ngrep \- network grep
 .B > < -S
 .I limitlen
 .B > < -W
-.I normal|byline|none
+.I normal|byline|single|none
 .B > < -c
 .I cols
 .B > < -P
@@ -141,13 +141,16 @@ command-line.
 Specify an alternate character to signify non-printable characters
 when displayed.  The default is ``.''.
 
-.IP "-W normal|byline|none"
+.IP "-W normal|byline|single|none"
 Specify an alternate manner for displaying packets, when not in
 hexadecimal mode.  The ``byline'' mode honors embedded linefeeds,
 wrapping text only when a linefeed is encountered.  The ``none'' mode
 doesn't wrap under any circumstance (entire payload is displayed on
-one line).  ``normal'' is the default mode and is only included for
-completeness.  This option is incompatible with ``-x''.
+one line).  The ``single'' mode is conceptually the same as ``none'',
+except that everything including IP and source/destination header
+information is all on one line.  ``normal'' is the default mode and is
+only included for completeness.  This option is incompatible with
+``-x''.
 
 .IP "-s snaplen"
 Set the bpf caplen to snaplen (default 65536).
