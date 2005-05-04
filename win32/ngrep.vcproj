@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding = "Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="7.00"
 	Name="ngrep"
 	ProjectGUID="{CC0C01CE-0AC3-4F93-9DC8-792862344DBA}"
 	Keyword="Win32Proj">
@@ -20,7 +20,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="support;..\..\WpdPack\include"
-				PreprocessorDefinitions="STDC_HEADERS;WPCAP;REGEX_MALLOC"
+				PreprocessorDefinitions="STDC_HEADERS;WPCAP"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -53,13 +53,7 @@
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
 				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
@@ -73,7 +67,7 @@
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
 				AdditionalIncludeDirectories="support;..\..\WpdPack\include"
-				PreprocessorDefinitions="STDC_HEADERS;WPCAP;REGEX_MALLOC"
+				PreprocessorDefinitions="STDC_HEADERS;WPCAP"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
@@ -107,17 +101,9 @@
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
 				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -126,13 +112,25 @@
 				RelativePath="support\getopt.c">
 			</File>
 			<File
-				RelativePath=".\support\inet_ntop.c">
+				RelativePath="support\inet_ntop.c">
 			</File>
 			<File
 				RelativePath="..\ngrep.c">
 			</File>
 			<File
 				RelativePath="..\regex-0.12\regex.c">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						PreprocessorDefinitions="REGEX_MALLOC"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						PreprocessorDefinitions="REGEX_MALLOC"/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -142,7 +140,7 @@
 				RelativePath="support\getopt.h">
 			</File>
 			<File
-				RelativePath=".\support\inet_ntop.h">
+				RelativePath="support\inet_ntop.h">
 			</File>
 			<File
 				RelativePath="..\ngrep.h">
@@ -154,7 +152,7 @@
 				RelativePath="..\regex-0.12\regex.h">
 			</File>
 			<File
-				RelativePath=".\support\types.h">
+				RelativePath="support\types.h">
 			</File>
 		</Filter>
 		<Filter
