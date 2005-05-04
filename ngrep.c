@@ -821,18 +821,20 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
     if (!live_read && want_delay)
         dump_delay(h);
 
-    netident_t ident;
+    {
+        char ident;
 
-    switch (proto) {
-        case IPPROTO_TCP:    ident = TCP;     break;
-        case IPPROTO_UDP:    ident = UDP;     break;
-        case IPPROTO_ICMP:   ident = ICMP;    break;
-        case IPPROTO_ICMPV6: ident = ICMPv6;  break;
-        case IPPROTO_IGMP:   ident = IGMP;    break;
-        default:             ident = UNKNOWN; break;
+        switch (proto) {
+            case IPPROTO_TCP:    ident = TCP;     break;
+            case IPPROTO_UDP:    ident = UDP;     break;
+            case IPPROTO_ICMP:   ident = ICMP;    break;
+            case IPPROTO_ICMPV6: ident = ICMPv6;  break;
+            case IPPROTO_IGMP:   ident = IGMP;    break;
+            default:             ident = UNKNOWN; break;
+        }
+
+        printf("\n%c", ident);
     }
-
-    printf("\n%c", ident);
 
     if (show_proto)
         printf("(%u)", proto);
