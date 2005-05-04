@@ -104,7 +104,7 @@ static char rcsver[] = "$Revision$";
  * Configuration Options
  */
 
-uint16_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 1000;
+uint16_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
 uint16_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
 
 uint8_t  re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
