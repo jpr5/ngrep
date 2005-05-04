@@ -143,7 +143,7 @@ uint16_t match_len = 0;
 int8_t (*match_func)() = &blank_match_func;
 
 int8_t dump_single = 0;
-void (*dump_func)(unsigned char *, unsigned int) = &dump_formatted;
+void (*dump_func)(unsigned char *, uint32_t) = &dump_formatted;
 
 /*
  * BPF/Network
@@ -151,7 +151,7 @@ void (*dump_func)(unsigned char *, unsigned int) = &dump_formatted;
 
 char *filter = NULL, *filter_file = NULL;
 char pc_err[PCAP_ERRBUF_SIZE];
-unsigned short link_offset;
+uint8_t link_offset;
 
 pcap_t *pd = NULL;
 pcap_dumper_t *pd_dump = NULL;
@@ -176,8 +176,7 @@ void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
  * When !Win32, windowsize stuff
  */
 
-unsigned int ws_row, ws_col = 80, ws_col_forced = 0;
-
+uint32_t ws_row, ws_col = 80, ws_col_forced = 0;
 
 
 int main(int argc, char **argv) {
@@ -261,7 +260,7 @@ int main(int argc, char **argv) {
             case 'T':
                 print_time = &print_time_diff;
 #if defined(_WIN32)
-                prev_ts.tv_sec  = (unsigned long)time(NULL);
+                prev_ts.tv_sec  = (uint32_t)time(NULL);
                 prev_ts.tv_usec = 0;
 #else
                 gettimeofday(&prev_ts, NULL);
@@ -417,8 +416,8 @@ int main(int argc, char **argv) {
 
     if (match_data) {
         if (bin_match) {
-            unsigned int i = 0, n;
-            unsigned int len;
+            uint32_t i = 0, n;
+            uint32_t len;
             char *s, *d;
 
             if (re_match_word || re_ignore_case) {
@@ -426,7 +425,7 @@ int main(int argc, char **argv) {
                 clean_exit(-1);
             }
 
-            len = (unsigned int)strlen(match_data);
+            len = (uint32_t)strlen(match_data);
             if (len % 2 != 0 || !strishex(match_data)) {
                 fprintf(stderr, "fatal: invalid hex string specified\n");
                 clean_exit(-1);
@@ -437,7 +436,7 @@ int main(int argc, char **argv) {
             d = bin_data;
 
             if ((s = strchr(match_data, 'x')))
-                len -= (unsigned int)(++s - match_data - 1);
+                len -= (uint32_t)(++s - match_data - 1);
             else s = match_data;
 
             while (i <= len) {
@@ -452,7 +451,7 @@ int main(int argc, char **argv) {
         } else {
 
 #if USE_PCRE
-            unsigned int pcre_options = PCRE_UNGREEDY;
+            uint32_t pcre_options = PCRE_UNGREEDY;
 
             if (re_ignore_case)
                 pcre_options |= PCRE_CASELESS;
@@ -467,7 +466,7 @@ int main(int argc, char **argv) {
                 re_syntax_options |= RE_DOT_NEWLINE;
 
             if (re_ignore_case) {
-                unsigned int i;
+                uint32_t i;
                 char *s;
 
                 pattern.translate = (char*)malloc(256);
@@ -619,7 +618,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
          ip_dst[INET6_ADDRSTRLEN + 1];
 
     unsigned char *data;
-    unsigned int len = 0;
+    uint32_t len = 0;
 
     switch (ip_ver) {
 
@@ -1008,7 +1007,7 @@ void dump_formatted(unsigned char *data, uint32_t len) {
 }
 
 char *get_filter_from_string(char *str) {
-    char *mine;
+    char *mine, *s;
     uint32_t len;
 
     if (!str || !*str)
@@ -1016,12 +1015,9 @@ char *get_filter_from_string(char *str) {
 
     len = (uint32_t)strlen(str);
 
-    {
-        char *s;
-        for (s = str; *s; s++)
-            if (*s == '\r' || *s == '\n')
-                *s = ' ';
-    }
+    for (s = str; *s; s++)
+        if (*s == '\r' || *s == '\n')
+            *s = ' ';
 
     if (!(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
         return NULL;
@@ -1068,9 +1064,11 @@ char *get_filter_from_argv(char **argv) {
 
 uint8_t strishex(char *str) {
     char *s;
+
     if ((s = strchr(str, 'x')))
         s++;
-    else s = str;
+    else
+        s = str;
 
     while (*s)
         if (!isxdigit(*s++))
@@ -1101,14 +1099,14 @@ void print_time_diff(struct pcap_pkthdr *h) {
 
     printf("+%u.%06u ", secs, usecs);
 
-    prev_ts.tv_sec = h->ts.tv_sec;
+    prev_ts.tv_sec  = h->ts.tv_sec;
     prev_ts.tv_usec = h->ts.tv_usec;
 }
 
 void dump_delay_proc_init(struct pcap_pkthdr *h) {
     dump_delay = &dump_delay_proc;
 
-    prev_delay_ts.tv_sec = h->ts.tv_sec;
+    prev_delay_ts.tv_sec  = h->ts.tv_sec;
     prev_delay_ts.tv_usec = h->ts.tv_usec;
 
     dump_delay(h);
@@ -1138,7 +1136,7 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
         FD_ZERO(&delay_fds);
         FD_SET(delay_socket, &delay_fds);
 
-        delay_tv.tv_sec = secs;
+        delay_tv.tv_sec  = secs;
         delay_tv.tv_usec = usecs;
 
         if (select(0, &delay_fds, 0, 0, &delay_tv) == -1)
@@ -1152,7 +1150,7 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
     usleep(usecs);
 #endif
 
-    prev_delay_ts.tv_sec = h->ts.tv_sec;
+    prev_delay_ts.tv_sec  = h->ts.tv_sec;
     prev_delay_ts.tv_usec = h->ts.tv_usec;
 }
 
@@ -1239,7 +1237,7 @@ void usage(int8_t e) {
            "   -A  is dump num packets after a match\n"
            "   -s  is set the bpf caplen\n"
            "   -S  is set the limitlen on matched packets\n"
-           "   -W  is set the dump format (normal, byline, none)\n"
+           "   -W  is set the dump format (normal, byline, single, none)\n"
            "   -c  is force the column width to the specified size\n"
            "   -P  is set the non-printable display char to what is specified\n"
            "   -F  is read the bpf filter from the specified file\n"
@@ -1269,14 +1267,14 @@ void clean_exit(int32_t sig) {
         printf("exit\n");
 
 #if USE_PCRE
-    if (pattern) pcre_free(pattern);
+    if (pattern)       pcre_free(pattern);
     if (pattern_extra) pcre_free(pattern_extra);
 #else
     if (pattern.translate) free(pattern.translate);
-    if (pattern.fastmap) free(pattern.fastmap);
+    if (pattern.fastmap)   free(pattern.fastmap);
 #endif
 
-    if (bin_data) free(bin_data);
+    if (bin_data)          free(bin_data);
 
     if (quiet < 1 && sig >= 0 && !read_file
      && pd && !pcap_stats(pd, &s))
@@ -1316,7 +1314,7 @@ int8_t win32_initwinsock(void) {
 }
 
 void win32_listdevices(void) {
-    unsigned i = 0;
+    uint32_t i = 0;
     pcap_if_t *alldevs, *d;
     char errbuf[PCAP_ERRBUF_SIZE];
 
