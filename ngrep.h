@@ -74,40 +74,41 @@ typedef enum {
  */
 
 void process(u_char *, struct pcap_pkthdr *, u_char *);
-void clean_exit(signed int);
-void usage(signed int);
+
 void version(void);
+void usage(int8_t);
+void clean_exit(int32_t);
 
-char *get_filter_from_string(char *);
-char *get_filter_from_argv(char **);
-
-int re_match_func(unsigned char *, unsigned int);
-int bin_match_func(unsigned char *, unsigned int);
-int blank_match_func(unsigned char *, unsigned int);
-
-void dump_packet(struct pcap_pkthdr *, u_char *, uint8_t, unsigned char *, unsigned int,
+void dump_packet(struct pcap_pkthdr *, u_char *, uint8_t, unsigned char *, uint32_t,
                  const char *, const char *, uint16_t, uint16_t, uint8_t,
                  uint16_t, uint8_t, uint16_t, uint32_t);
 
-void dump_unwrapped(unsigned char *, unsigned int);
-void dump_byline(unsigned char *, unsigned int);
-void dump_formatted(unsigned char *, unsigned int);
-
-int strishex(char *);
-
-void print_time_absolute(struct pcap_pkthdr *);
-void print_time_diff(struct pcap_pkthdr *);
+void dump_unwrapped(unsigned char *, uint32_t);
+void dump_formatted(unsigned char *, uint32_t);
+void dump_byline   (unsigned char *, uint32_t);
 
 void dump_delay_proc_init(struct pcap_pkthdr *);
-void dump_delay_proc(struct pcap_pkthdr *);
+void dump_delay_proc     (struct pcap_pkthdr *);
+
+int8_t re_match_func   (unsigned char *, uint32_t);
+int8_t bin_match_func  (unsigned char *, uint32_t);
+int8_t blank_match_func(unsigned char *, uint32_t);
+
+void print_time_absolute(struct pcap_pkthdr *);
+void print_time_diff    (struct pcap_pkthdr *);
+
+char *get_filter_from_string(char *);
+char *get_filter_from_argv  (char **);
+
+uint8_t strishex(char *);
 
 #if !defined(_WIN32)
-void update_windowsize(signed int);
+void update_windowsize(int32_t);
 void drop_privs(void);
 #endif
 
 #if defined(_WIN32)
-int win32_initwinsock(void);
+int8_t win32_initwinsock(void);
 void win32_listdevices(void);
 char *win32_usedevice(const char *);
 #endif

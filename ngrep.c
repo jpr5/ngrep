@@ -123,7 +123,7 @@ char nonprint_char = '.';
  */
 
 #if USE_PCRE
-signed int err_offset;
+int32_t err_offset;
 char *re_err = NULL;
 
 pcre *pattern = NULL;
@@ -139,10 +139,10 @@ struct re_pattern_buffer pattern;
  */
 
 char *match_data = NULL, *bin_data = NULL;
-unsigned short match_len = 0;
-signed int (*match_func)() = &blank_match_func;
+uint16_t match_len = 0;
+int8_t (*match_func)() = &blank_match_func;
 
-uint8_t dump_single = 0;
+int8_t dump_single = 0;
 void (*dump_func)(unsigned char *, unsigned int) = &dump_formatted;
 
 /*
@@ -181,7 +181,7 @@ unsigned int ws_row, ws_col = 80, ws_col_forced = 0;
 
 
 int main(int argc, char **argv) {
-    signed int c;
+    int32_t c;
 
     signal(SIGINT,   clean_exit);
     signal(SIGABRT,  clean_exit);
@@ -806,7 +806,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
         keep_matching--;
 }
 
-void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char *data, unsigned int len,
+void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char *data, uint32_t len,
                  const char *ip_src, const char *ip_dst, uint16_t sport, uint16_t dport, uint8_t flags,
                  uint16_t hdr_offset, uint8_t frag, uint16_t frag_offset, uint32_t frag_id) {
 
@@ -885,9 +885,9 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
         pcap_dump((u_char*)pd_dump, h, p);
 }
 
-int re_match_func(unsigned char *data, unsigned int len) {
+int8_t re_match_func(unsigned char *data, uint32_t len) {
 #if USE_PCRE
-    switch(pcre_exec(pattern, 0, data, (signed int)len, 0, 0, 0, 0)) {
+    switch(pcre_exec(pattern, 0, data, (int32_t)len, 0, 0, 0, 0)) {
         case PCRE_ERROR_NULL:
         case PCRE_ERROR_BADOPTION:
         case PCRE_ERROR_BADMAGIC:
@@ -900,7 +900,7 @@ int re_match_func(unsigned char *data, unsigned int len) {
             return 0;
     }
 #else
-    switch (re_search(&pattern, data, (signed int)len, 0, len, 0)) {
+    switch (re_search(&pattern, data, (int32_t)len, 0, len, 0)) {
         case -2:
             perror("she's dead, jim\n");
             clean_exit(-2);
@@ -919,10 +919,9 @@ int re_match_func(unsigned char *data, unsigned int len) {
     return 1;
 }
 
-
-int bin_match_func(unsigned char *data, unsigned int len) {
-    signed int stop = len - match_len;
-    signed int i    = 0;
+int8_t bin_match_func(unsigned char *data, uint32_t len) {
+    int32_t stop = len - match_len;
+    int32_t i    = 0;
 
     if (stop < 0)
         return 0;
@@ -942,14 +941,14 @@ int bin_match_func(unsigned char *data, unsigned int len) {
 }
 
 
-int blank_match_func(unsigned char *data, unsigned int len) {
+int8_t blank_match_func(unsigned char *data, uint32_t len) {
     if (max_matches)
         matches++;
 
     return 1;
 }
 
-void dump_byline(unsigned char *data, unsigned int len) {
+void dump_byline(unsigned char *data, uint32_t len) {
     if (len > 0) {
         const unsigned char *s = data;
 
@@ -962,7 +961,7 @@ void dump_byline(unsigned char *data, unsigned int len) {
     }
 }
 
-void dump_unwrapped(unsigned char *data, unsigned int len) {
+void dump_unwrapped(unsigned char *data, uint32_t len) {
     if (len > 0) {
         const unsigned char *s = data;
 
@@ -975,12 +974,12 @@ void dump_unwrapped(unsigned char *data, unsigned int len) {
     }
 }
 
-void dump_formatted(unsigned char *data, unsigned int len) {
+void dump_formatted(unsigned char *data, uint32_t len) {
     if (len > 0) {
-        unsigned short width = show_hex ? 16 : (ws_col-5);
-        unsigned char *str   = data;
-              unsigned int i = 0,
-                           j = 0;
+        unsigned char *str = data;
+             uint8_t width = show_hex ? 16 : (ws_col-5);
+                uint32_t i = 0,
+                         j = 0;
 
         while (i < len) {
             printf("  ");
@@ -1010,12 +1009,12 @@ void dump_formatted(unsigned char *data, unsigned int len) {
 
 char *get_filter_from_string(char *str) {
     char *mine;
-    unsigned int len;
+    uint32_t len;
 
     if (!str || !*str)
         return NULL;
 
-    len = (unsigned int)strlen(str);
+    len = (uint32_t)strlen(str);
 
     {
         char *s;
@@ -1037,13 +1036,13 @@ char *get_filter_from_string(char *str) {
 char *get_filter_from_argv(char **argv) {
     char **arg = argv, *theirs, *mine;
     char *from, *to;
-    unsigned int len = 0;
+    uint32_t len = 0;
 
     if (!*arg)
         return NULL;
 
     while (*arg)
-        len += (unsigned int)strlen(*arg++) + 1;
+        len += (uint32_t)strlen(*arg++) + 1;
 
     if (!(theirs = (char*)malloc(len + 1)) ||
         !(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
@@ -1067,7 +1066,7 @@ char *get_filter_from_argv(char **argv) {
 }
 
 
-int strishex(char *str) {
+uint8_t strishex(char *str) {
     char *s;
     if ((s = strchr(str, 'x')))
         s++;
@@ -1086,11 +1085,11 @@ void print_time_absolute(struct pcap_pkthdr *h) {
 
     printf("%02u/%02u/%02u %02u:%02u:%02u.%06u ",
            t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour,
-           t->tm_min, t->tm_sec, (unsigned int)h->ts.tv_usec);
+           t->tm_min, t->tm_sec, (uint32_t)h->ts.tv_usec);
 }
 
 void print_time_diff(struct pcap_pkthdr *h) {
-    unsigned int secs, usecs;
+    uint32_t secs, usecs;
 
     secs = h->ts.tv_sec - prev_ts.tv_sec;
     if (h->ts.tv_usec >= prev_ts.tv_usec)
@@ -1116,7 +1115,7 @@ void dump_delay_proc_init(struct pcap_pkthdr *h) {
 }
 
 void dump_delay_proc(struct pcap_pkthdr *h) {
-    unsigned int secs, usecs;
+    uint32_t secs, usecs;
 
     secs = h->ts.tv_sec - prev_delay_ts.tv_sec;
     if (h->ts.tv_usec >= prev_delay_ts.tv_usec)
@@ -1158,7 +1157,7 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
 }
 
 #if !defined(_WIN32)
-void update_windowsize(signed int e) {
+void update_windowsize(int32_t e) {
     if (e == 0 && ws_col_forced)
 
         ws_col = ws_col_forced;
@@ -1210,7 +1209,7 @@ void drop_privs(void) {
 }
 #endif
 
-void usage(signed int e) {
+void usage(int8_t e) {
     printf("usage: ngrep <-"
 #if defined(_WIN32)
            "L"
@@ -1263,9 +1262,11 @@ void version(void) {
 }
 
 
-void clean_exit(signed int sig) {
+void clean_exit(int32_t sig) {
     struct pcap_stat s;
-    if (quiet < 1 && sig >= 0) printf("exit\n");
+
+    if (quiet < 1 && sig >= 0)
+        printf("exit\n");
 
 #if USE_PCRE
     if (pattern) pcre_free(pattern);
@@ -1294,7 +1295,7 @@ void clean_exit(signed int sig) {
 }
 
 #if defined(_WIN32)
-int win32_initwinsock(void) {
+int8_t win32_initwinsock(void) {
     WORD wVersionRequested = MAKEWORD(2, 0);
     WSADATA wsaData;
 
@@ -1338,7 +1339,7 @@ void win32_listdevices(void) {
 }
 
 char *win32_usedevice(const char *index) {
-    unsigned idx = atoi(index), i = 0;
+    uint32_t idx = atoi(index), i = 0;
     pcap_if_t *alldevs, *d;
     char errbuf[PCAP_ERRBUF_SIZE];
     char *dev = NULL;
