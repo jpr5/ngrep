@@ -196,7 +196,8 @@ unsigned short bar = foo.source;
 *bsd*)
 	AC_SUBST(OS, BSD)
 
-	echo 
+	if test "$USE_PCAP_RESTART" = "0"; then 
+
         AC_MSG_WARN(
 Your OS ($target_os) may have an old libpcap installation.
 If the resulting ngrep binary segfaults when a BPF filter is specified 
@@ -204,6 +205,8 @@ without an ngrep match string then you should reconfigure ngrep with
 the option ``--disable-pcap-restart''.
 )
 	sleep 3
+
+	fi
 
         ;;
 
@@ -388,7 +391,6 @@ AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,       $HAVE_DLT_LOOP)
 AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,  $HAVE_DLT_LINUX_SLL) 
 
 
-
 dnl
 dnl And the PCAP library..
 dnl
@@ -422,6 +424,33 @@ dnl
 AC_SUBST(EXTRA_DEFINES)
 AC_SUBST(EXTRA_INCLUDES)
 AC_SUBST(EXTRA_LIBS)
+
+
+dnl
+dnl Emit configuration messages about any flags specified.
+dnl
+
+echo 
+
+if test "$HAVE_DUMB_UDPHDR" = "1"; then
+    echo "CONFIG: support for broken redhat glibc udphdr enabled"
+fi
+
+if test "$USE_PCAP_RESTART" = "0"; then 
+    echo "CONFIG: pcap restart logic disabled"
+fi
+
+if test "$USE_IPv6" = "1"; then
+    echo "CONFIG: ipv6 support enabled"
+else
+    echo "CONFIG: ipv6 support disabled"
+fi
+
+if test "$USE_DROPPRIVS" = "1"; then
+    echo "CONFIG: privilege dropping enabled, using \"$DROPPRIVS_USER\""
+else
+    echo "CONFIG: privilege dropping disabled"
+fi
 
 
 dnl
