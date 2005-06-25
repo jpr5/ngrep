@@ -3006,7 +3006,8 @@ rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 	OS=BSD
 
 
-	echo
+	if test "$USE_PCAP_RESTART" = "0"; then
+
         { echo "$as_me:$LINENO: WARNING: Your OS ($target_os) may have an old libpcap installation.
 If the resulting ngrep binary segfaults when a BPF filter is specified
 without an ngrep match string then you should reconfigure ngrep with
@@ -3018,6 +3019,8 @@ without an ngrep match string then you should reconfigure ngrep with
 the option \`\`--disable-pcap-restart''.
 " >&2;}
 	sleep 3
+
+	fi
 
         ;;
 
@@ -3438,7 +3441,6 @@ _ACEOF
 
 
 
-
 echo "$as_me:$LINENO: checking for pcap_open_live in -lpcap" >&5
 echo $ECHO_N "checking for pcap_open_live in -lpcap... $ECHO_C" >&6
 if test "${ac_cv_lib_pcap_pcap_open_live+set}" = set; then
@@ -3743,6 +3745,30 @@ _ACEOF
 
 
 
+
+
+
+echo
+
+if test "$HAVE_DUMB_UDPHDR" = "1"; then
+    echo "CONFIG: support for broken redhat glibc udphdr enabled"
+fi
+
+if test "$USE_PCAP_RESTART" = "0"; then
+    echo "CONFIG: pcap restart logic disabled"
+fi
+
+if test "$USE_IPv6" = "1"; then
+    echo "CONFIG: ipv6 support enabled"
+else
+    echo "CONFIG: ipv6 support disabled"
+fi
+
+if test "$USE_DROPPRIVS" = "1"; then
+    echo "CONFIG: privilege dropping enabled, using \"$DROPPRIVS_USER\""
+else
+    echo "CONFIG: privilege dropping disabled"
+fi
 
 
 
