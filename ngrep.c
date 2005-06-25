@@ -762,7 +762,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
                 len = h->caplen - link_offset - ip_hl - icmphdr_offset;
 
             dump_packet(h, p, ip_proto, data, len,
-                        ip_src, ip_dst, ic6->icmp_type, ic6->icmp_code, 0,
+                        ip_src, ip_dst, ic6->icmp6_type, ic6->icmp6_code, 0,
                         icmphdr_offset, fragmented, frag_offset, frag_id);
         } break;
 #endif
