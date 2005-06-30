@@ -1215,7 +1215,7 @@ void usage(int8_t e) {
            "L"
 #endif
            "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
-           "             <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>\n"
+           "             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>\n"
            "             <-P char> <-F file> <match expression> <bpf filter>\n"
            "   -h  is help/usage\n"
            "   -V  is version information\n"
