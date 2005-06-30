@@ -2,7 +2,7 @@ $Id$
 
 Program: ngrep
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.43 (2.23.2005)
+Version: 1.44 (6.30.2005)
 
 
 Goal:
@@ -17,13 +17,17 @@ Description:
   applying them to the network layer.  ngrep is a pcap-aware tool that
   will allow you to specify extended regular or hexadecimal
   expressions to match against data payloads of packets.  It currently
-  recognizes TCP, UDP and ICMP across Ethernet, PPP, SLIP, FDDI, Token
-  Ring and null interfaces, and understands bpf filter logic in the
-  same fashion as more common packet sniffing tools, such as tcpdump
-  and snoop.
+  recognizes IPv4/6, TCP, UDP, ICMPv4/6, IGMP and Raw across Ethernet,
+  PPP, SLIP, FDDI, Token Ring and null interfaces, and understands BPF
+  filter logic in the same fashion as more common packet sniffing
+  tools, such as tcpdump and snoop.
 
 
 Usage: ngrep <-LhXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>
+             <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>
+             <-P char> <-F file> <match expression> <bpf filter>
+
+Usage: ngrep <LhNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>
              <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>
              <-P char> <-F file> <match expression> <bpf filter>
    -h  is help/usage
@@ -48,13 +52,17 @@ Usage: ngrep <-LhXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>
    -A  is dump num packets after a match
    -s  is set the bpf caplen
    -S  is set the limitlen on matched packets
-   -W  is set the dump format (normal, byline, none)
+   -W  is set the dump format (normal, byline, single, none)
    -c  is force the column width to the specified size
    -P  is set the non-printable display char to what is specified
    -F  is read the bpf filter from the specified file
+   -N  is show sub protocol number
+
+On UNIX:
    -d  is use specified device instead of the pcap default
 
 On Win32:
+   -d  is use specified device (index) instead of the pcap default
    -L  is show the winpcap device list index
 
 
@@ -122,11 +130,9 @@ Useful sites:
 Known Working Platforms:
 
   o Linux 2.0 - 2.6
-     (RH6+, SuSE, TurboLinux, Debian)/x86
+     (RH6+, SuSE, TurboLinux, Debian, Gentoo, Ubuntu, Mandrake, Slackware)/x86
      RedHat/alpha
      Cobalt (Qube2) Linux/MIPS
-     Slackware 7, 8.1
-     Gentoo
   o Solaris 2.5.1, 2.6/SPARC, Solaris 7, Solaris 8/SPARC, Solaris 9/SPARC
   o FreeBSD 2.2.5, 3.1, 3.2, 3.4-RC, 3.4-RELEASE, 4.0, 5.0
   o OpenBSD 2.4 (after upgrading pcap from 0.2), 2.9, 3.0, 3.1
@@ -136,7 +142,7 @@ Known Working Platforms:
   o IRIX
   o AIX 4.3.3.0/PowerPC
   o BeOS R5
-  o Mac OS X 10.2, 10.2.6
+  o Mac OS X 10.2, 10.2.6, 10.3x, 10.4
 
   In other words, pretty much everything.
 
