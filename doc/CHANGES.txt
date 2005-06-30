@@ -28,7 +28,6 @@ v1.44
         o changed all integer types to be bit- and sign-explicit
 
 v1.43
-
         o healed the win32 code fork: ngrep now builds from the same
           source tree for all platforms including Windows
 
@@ -58,7 +57,6 @@ v1.43
         o updated PCRE from 3.4 to 5.0
 
         o and various minor changes and updates to improve ngrep
-
 
 v1.42
         o rewrote the entire configure.in/config.h.in to autoconf 2.57
