@@ -66,7 +66,7 @@ tardist:
 	   rm -rf $$DESTDIR && mkdir $$DESTDIR                             && \
 	   make distclean                                                  && \
 	   tar cf - . --exclude "CVS" | tar xf - -C $$DESTDIR              && \
-	   find $$DESTDIR -name "*~" -o -name "*#*" | xargs rm -f          && \
+	   find $$DESTDIR -name "*~" -o -name ".*#*" | xargs rm -f         && \
 	   cd $$TMPDIR && tar jcf $$PKG.tar.bz2 $$PKG                       ; \
 	   echo                                                             ; \
 	   ls -l $$TMPDIR/$$PKG.tar.bz2                                     ; \
