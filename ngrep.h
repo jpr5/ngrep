@@ -7,7 +7,7 @@
  *
  */
 
-#define VERSION "1.44-cvs"
+#define VERSION "1.44"
 
 /*
  * We cache the standard frame sizes here to save us time and
