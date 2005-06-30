@@ -1,5 +1,32 @@
 $Id$
 
+v1.44
+        o added post-config section to configure: emit important
+          config option settings that weren't previously indicated
+
+        o for BSD platforms, only emit pcap_restart warning from
+          configure if ``--disable-pcap-restart'' hasn't been
+          specified
+
+        o added IPv6 and ICMPv6 support (all platforms); disabled by
+          default for common case where libpcap wasn't compiled with
+          IPv6 support
+
+        o added support for displaying protocol number (``-N''),
+          useful for when observing raw packets
+
+        o added support for new display method ``single'', similar to
+          ``byline'' but both header and data occupy one single line
+
+        o introduced multiple levels of quiet (``-q''); the more it is
+          specified the more quiet ngrep becomes
+
+        o reorganization of some internal support headers and core
+          code to eliminate redundancy, improve readability and
+          efficiency, and support new features
+
+        o changed all integer types to be bit- and sign-explicit
+
 v1.43
 
         o healed the win32 code fork: ngrep now builds from the same
