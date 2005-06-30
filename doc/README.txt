@@ -23,12 +23,8 @@ Description:
   tools, such as tcpdump and snoop.
 
 
-Usage: ngrep <-LhXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>
-             <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>
-             <-P char> <-F file> <match expression> <bpf filter>
-
 Usage: ngrep <LhNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>
-             <-s snaplen> <-S limitlen> <-W normal|byline|none> <-c cols>
+             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>
              <-P char> <-F file> <match expression> <bpf filter>
    -h  is help/usage
    -V  is version information
