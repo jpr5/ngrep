@@ -3770,6 +3770,12 @@ else
     echo "CONFIG: privilege dropping disabled"
 fi
 
+if test "$USE_PCRE" = "1"; then
+    echo "CONFIG: using PCRE regex library"
+else
+    echo "CONFIG: using GNU regex library"
+fi
+
 
 
 echo
