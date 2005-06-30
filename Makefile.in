@@ -54,6 +54,26 @@ install: $(TARGET)
 clean:
 	rm -f *~ $(OBJS) $(REGEX_OBJS) $(TARGET) $(TARGET).static
 
+tardist:
+	@( VERSION=`perl -ne '/VERSION\s+"(.*)"/ && print "$$1\n"' ngrep.h` ; \
+	   PKG="ngrep-$$VERSION"                                            ; \
+	   TMPDIR="/tmp"                                                    ; \
+	   DESTDIR="$$TMPDIR/$$PKG"                                         ; \
+	   echo                                                             ; \
+	   echo "Building package $$PKG ... "                               ; \
+	   echo                                                             ; \
+	   sleep 2                                                          ; \
+	   rm -rf $$DESTDIR && mkdir $$DESTDIR                             && \
+	   make distclean                                                  && \
+	   tar cf - . --exclude "CVS" | tar xf - -C $$DESTDIR              && \
+	   find $$DESTDIR -name "*~" -o -name "*#*" | xargs rm -f          && \
+	   cd $$TMPDIR && tar jcf $$PKG.tar.bz2 $$PKG                       ; \
+	   echo                                                             ; \
+	   ls -l $$TMPDIR/$$PKG.tar.bz2                                     ; \
+	   echo                                                             ; \
+	)
+
+
 distclean: clean clean-$(REGEX_TARGET)
 	rm -f config.status config.cache config.log config.h Makefile 
 
