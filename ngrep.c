@@ -1339,12 +1339,12 @@ void win32_listdevices(void) {
 }
 
 char *win32_usedevice(const char *index) {
-    uint32_t idx = atoi(index), i = 0;
+    int32_t idx = atoi(index), i = 0;
     pcap_if_t *alldevs, *d;
     char errbuf[PCAP_ERRBUF_SIZE];
     char *dev = NULL;
 
-    if (idx == 0) {
+    if (idx <= 0) {
         perror("invalid device index");
         clean_exit(-1);
     }
@@ -1358,7 +1358,7 @@ char *win32_usedevice(const char *index) {
         if (++i == idx)
             dev = _strdup(d->name);
 
-    if (i == 0) {
+    if (i <= 0) {
         perror("no known devices");
         clean_exit(-1);
     }
