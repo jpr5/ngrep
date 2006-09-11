@@ -1246,6 +1246,14 @@ void version(void) {
 void clean_exit(int32_t sig) {
     struct pcap_stat s;
 
+    signal(SIGINT,   SIG_IGN);
+    signal(SIGABRT,  SIG_IGN);
+#if !defined(_WIN32)
+    signal(SIGQUIT,  SIG_IGN);
+    signal(SIGPIPE,  SIG_IGN);
+    signal(SIGWINCH, SIG_IGN);
+#endif
+
     if (quiet < 1 && sig >= 0)
         printf("exit\n");
 
