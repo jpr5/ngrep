@@ -1157,12 +1157,13 @@ void update_windowsize(int32_t e) {
     }
 }
 
+#if USE_DROPPRIVS
 void drop_privs(void) {
     struct passwd *pw;
     uid_t newuid;
     gid_t newgid;
 
-    if ((getuid() || geteuid()) || dont_dropprivs || !USE_DROPPRIVS)
+    if ((getuid() || geteuid()) || dont_dropprivs)
         return;
 
     pw = getpwnam(DROPPRIVS_USER);
@@ -1189,6 +1190,8 @@ void drop_privs(void) {
         clean_exit(-1);
     }
 }
+
+#endif
 #endif
 
 void usage(int8_t e) {
