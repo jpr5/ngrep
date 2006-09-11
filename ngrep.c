@@ -592,7 +592,7 @@ int main(int argc, char **argv) {
     win32_initwinsock();
 #endif
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && USE_DROPPRIVS
     drop_privs();
 #endif
 
