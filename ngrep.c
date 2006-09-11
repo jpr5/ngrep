@@ -478,8 +478,10 @@ int main(int argc, char **argv) {
                     s[i] = i + 32;
 
                 s = match_data;
-                while (*s)
-                    *s++ = tolower(*s);
+                while (*s) {
+                    *s = tolower(*s);
+                    s++;
+                }
 
             } else pattern.translate = NULL;
 #endif
