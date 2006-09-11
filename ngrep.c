@@ -248,9 +248,11 @@ int main(int argc, char **argv) {
             case 'n':
                 max_matches = atoi(optarg);
                 break;
-            case 's':
-                snaplen = atoi(optarg);
-                break;
+            case 's': {
+                uint16_t value = atoi(optarg);
+                if (value > 0)
+                    snaplen = value;
+            } break;
             case 'M':
                 re_multiline_match = 0;
                 break;
