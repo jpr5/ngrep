@@ -176,8 +176,9 @@ void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
  * When !Win32, windowsize stuff
  */
 
+#if !defined(_WIN32)
 uint32_t ws_row, ws_col = 80, ws_col_forced = 0;
-
+#endif
 
 int main(int argc, char **argv) {
     int32_t c;
