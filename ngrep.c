@@ -363,10 +363,6 @@ int main(int argc, char **argv) {
         }
     }
 
-#if !defined(_WIN32)
-    drop_privs();
-#endif
-
     if (filter_file) {
         char buf[1024] = {0};
         FILE *f = fopen(filter_file, "r");
@@ -592,6 +588,10 @@ int main(int argc, char **argv) {
 
 #if defined(_WIN32)
     win32_initwinsock();
+#endif
+
+#if !defined(_WIN32)
+    drop_privs();
 #endif
 
     while (pcap_loop(pd, 0, (pcap_handler)process, 0));
