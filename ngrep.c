@@ -678,24 +678,15 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             uint16_t tcphdr_offset = (frag_offset) ? 0 : (tcp->th_off * 4);
 
             data = ((unsigned char *)tcp) + tcphdr_offset;
-
-            switch (ip_ver) {
-                case 4: {
-                    if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
-                        len -= ip_hl + tcphdr_offset;
-                    else
-                        len = h->caplen - link_offset - ip_hl - tcphdr_offset;
-                } break;
+            len  = h->caplen - (link_offset + ip_hl + tcphdr_offset);
 
 #if USE_IPv6
-                case 6: {
-                    if ((len = ntohs(ip6_packet->ip6_plen + ip_hl)) < h->caplen)
-                        len -= ip_hl + tcphdr_offset;
-                    else
-                        len = h->caplen - link_offset - ip_hl - tcphdr_offset;
-                } break;
+            if (ip_ver == 6)
+                len -= ntohs(ip6_packet->ip6_plen);
 #endif
-            }
+
+            if ((int32_t)len < 0)
+                len = 0;
 
             dump_packet(h, p, ip_proto, data, len,
                         ip_src, ip_dst, ntohs(tcp->th_sport), ntohs(tcp->th_dport), tcp->th_flags,
@@ -707,24 +698,15 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             uint16_t udphdr_offset = (frag_offset) ? 0 : sizeof(struct udphdr);
 
             data = ((unsigned char *)udp) + udphdr_offset;
-
-            switch (ip_ver) {
-                case 4: {
-                    if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
-                        len -= ip_hl + udphdr_offset;
-                    else
-                        len = h->caplen - link_offset - ip_hl - udphdr_offset;
-                } break;
+            len  = h->caplen - (link_offset + ip_hl + udphdr_offset);
 
 #if USE_IPv6
-                case 6: {
-                    if ((len = ntohs(ip6_packet->ip6_plen + ip_hl)) < h->caplen)
-                        len -= ip_hl + udphdr_offset;
-                    else
-                        len = h->caplen - link_offset - ip_hl - udphdr_offset;
-                } break;
+            if (ip_ver == 6)
+                len -= ntohs(ip6_packet->ip6_plen);
 #endif
-            }
+
+            if ((int32_t)len < 0)
+                len = 0;
 
             dump_packet(h, p, ip_proto, data, len, ip_src, ip_dst,
 #if HAVE_DUMB_UDPHDR
@@ -740,11 +722,10 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             uint16_t icmphdr_offset = (frag_offset) ? 0 : 4;
 
             data = ((unsigned char *)ic4) + icmphdr_offset;
+            len  = h->caplen - (link_offset + ip_hl + icmphdr_offset);
 
-            if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
-                len -= ip_hl + icmphdr_offset;
-            else
-                len = h->caplen - link_offset - ip_hl - icmphdr_offset;
+            if ((int32_t)len < 0)
+                len = 0;
 
             dump_packet(h, p, ip_proto, data, len,
                         ip_src, ip_dst, ic4->icmp_type, ic4->icmp_code, 0,
@@ -754,18 +735,17 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 #if USE_IPv6
         case IPPROTO_ICMPV6: {
             struct icmp6_hdr *ic6   = (struct icmp6_hdr *)(((unsigned char *)ip6_packet) + ip_hl);
-            uint16_t icmphdr_offset = (frag_offset) ? 0 : 4;
+            uint16_t icmp6hdr_offset = (frag_offset) ? 0 : 4;
 
-            data = ((unsigned char *)ic6) + icmphdr_offset;
+            data = ((unsigned char *)ic6) + icmp6hdr_offset;
+            len  = h->caplen - (link_offset + ip_hl + ntohs(ip6_packet->ip6_plen) + icmp6hdr_offset);
 
-            if ((len = ntohs(ip6_packet->ip6_plen + ip_hl)) < h->caplen)
-                len -= ip_hl + icmphdr_offset;
-            else
-                len = h->caplen - link_offset - ip_hl - icmphdr_offset;
+            if ((int32_t)len < 0)
+                len = 0;
 
             dump_packet(h, p, ip_proto, data, len,
                         ip_src, ip_dst, ic6->icmp6_type, ic6->icmp6_code, 0,
-                        icmphdr_offset, fragmented, frag_offset, frag_id);
+                        icmp6hdr_offset, fragmented, frag_offset, frag_id);
         } break;
 #endif
 
@@ -774,11 +754,10 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             uint16_t igmphdr_offset = (frag_offset) ? 0 : 4;
 
             data = ((unsigned char *)ig) + igmphdr_offset;
+            len  = h->caplen - (link_offset + ip_hl + igmphdr_offset);
 
-            if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
-                len -= ip_hl + igmphdr_offset;
-            else
-                len = h->caplen - link_offset - ip_hl - igmphdr_offset;
+            if ((int32_t)len < 0)
+                len = 0;
 
             dump_packet(h, p, ip_proto, data, len,
                         ip_src, ip_dst, ig->igmp_type, ig->igmp_code, 0,
@@ -787,11 +766,10 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 
         default: {
             data = (((unsigned char *)ip_packet) + ip_hl);
+            len  = h->caplen - (link_offset + ip_hl);
 
-            if ((len = ntohs(ip_packet->ip_len)) < h->caplen)
-                len -= ip_hl;
-            else
-                len = h->caplen - link_offset - ip_hl;
+            if ((int32_t)len < 0)
+                len = 0;
 
             dump_packet(h, p, ip_proto, data, len,
                         ip_src, ip_dst, 0, 0, 0,
