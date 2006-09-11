@@ -375,20 +375,20 @@ dnl Now that we're past the OS-specific stuff, which could have
 dnl modified our USE_* and other defines, define them all now.
 dnl 
 
-AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,    $USE_PCAP_RESTART)
+AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,    $USE_PCAP_RESTART,    [whether to call pcap_restart() before subsequent invocations of pcap_compile() (default yes)])
 
-AC_DEFINE_UNQUOTED(USE_PCRE,            $USE_PCRE)
-AC_DEFINE_UNQUOTED(USE_IPv6,            $USE_IPv6)
+AC_DEFINE_UNQUOTED(USE_PCRE,            $USE_PCRE,            [whether to use PCRE (default GNU Regex)])
+AC_DEFINE_UNQUOTED(USE_IPv6,            $USE_IPv6,            [whether to use IPv6 (default off)])
 
-AC_DEFINE_UNQUOTED(USE_DROPPRIVS,       $USE_DROPPRIVS)
-AC_DEFINE_UNQUOTED(DROPPRIVS_USER,     "$DROPPRIVS_USER")
+AC_DEFINE_UNQUOTED(USE_DROPPRIVS,       $USE_DROPPRIVS,       [whether to use privileges dropping (default yes)])
+AC_DEFINE_UNQUOTED(DROPPRIVS_USER,     "$DROPPRIVS_USER",     [pseudo-user for running ngrep (default "nobody")])
 
-AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR,    $HAVE_DUMB_UDPHDR)
+AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR,    $HAVE_DUMB_UDPHDR,    [whether to accommodate broken redhat-glibc udphdr declaration (default no)])
 
-AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,        $HAVE_DLT_RAW) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11, $HAVE_DLT_IEEE802_11) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,       $HAVE_DLT_LOOP) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,  $HAVE_DLT_LINUX_SLL) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,        $HAVE_DLT_RAW,        [presence of DLT_RAW in bpf.h]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11, $HAVE_DLT_IEEE802_11, [presence of DLT_IEEE802_11 in bpf.h]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,       $HAVE_DLT_LOOP,       [presence of DLT_LOOP in bpf.h]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,  $HAVE_DLT_LINUX_SLL,  [presence of DLT_LINUX_SLL in bpf.h]) 
 
 
 dnl
@@ -415,7 +415,7 @@ if test -z "$pcap_restart_func"; then
    pcap_restart_func="unused"
 fi
 
-AC_DEFINE_UNQUOTED(PCAP_RESTART_FUNC, $pcap_restart_func)
+AC_DEFINE_UNQUOTED(PCAP_RESTART_FUNC, $pcap_restart_func, [routine used for restarting the PCAP lexer])
 
 dnl
 dnl AC_SUBST in the tack-on globals..
