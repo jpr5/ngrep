@@ -7,7 +7,7 @@
  *
  */
 
-#define VERSION "1.44"
+#define VERSION "1.45-CVS"
 
 /*
  * We cache the standard frame sizes here to save us time and
@@ -112,3 +112,12 @@ int8_t win32_initwinsock(void);
 void win32_listdevices(void);
 char *win32_usedevice(const char *);
 #endif
+
+
+struct NGREP_rtaphdr_t {
+    uint8_t it_version;
+    uint8_t it_pad;
+    uint16_t it_len;
+    uint32_t it_present;
+};
+
