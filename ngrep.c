@@ -567,16 +567,14 @@ int main(int argc, char **argv) {
             break;
 #endif
 
+#if HAVE_DLT_IEEE802_11_RADIO
+        case DLT_IEEE802_11_RADIO:
+            radiotap_present = 1;
+#endif
+
 #if HAVE_DLT_IEEE802_11
         case DLT_IEEE802_11:
             link_offset = IEEE80211HDR_SIZE;
-            break;
-#endif
-
-#if HAVE_DLT_IEEE802_11_RADIO
-        case DLT_IEEE802_11_RADIO:
-            link_offset = IEEE80211HDR_SIZE;
-            radiotap_present = 1;
             break;
 #endif
 
