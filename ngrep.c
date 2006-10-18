@@ -153,6 +153,7 @@ void (*dump_func)(unsigned char *, uint32_t) = &dump_formatted;
 char *filter = NULL, *filter_file = NULL;
 char pc_err[PCAP_ERRBUF_SIZE];
 uint8_t link_offset;
+uint8_t radiotap_present = 0;
 
 pcap_t *pd = NULL;
 pcap_dumper_t *pd_dump = NULL;
@@ -572,6 +573,13 @@ int main(int argc, char **argv) {
             break;
 #endif
 
+#if HAVE_DLT_IEEE802_11_RADIO
+        case DLT_IEEE802_11_RADIO:
+            link_offset = IEEE80211HDR_SIZE;
+            radiotap_present = 1;
+            break;
+#endif
+
         default:
             fprintf(stderr, "fatal: unsupported interface type %u\n", pcap_datalink(pd));
             clean_exit(-1);
@@ -625,6 +633,14 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 
     unsigned char *data;
     uint32_t len = h->caplen;
+
+#if HAVE_DLT_IEEE802_11_RADIO
+    if (radiotap_present) {
+        uint16_t radio_len = ((struct NGREP_rtaphdr_t *)(p))->it_len;
+        ip4_pkt = (struct ip *)(p + link_offset + radio_len);
+        len    -= radio_len;
+    }
+#endif
 
     ip_ver = ip4_pkt->ip_v;
 
