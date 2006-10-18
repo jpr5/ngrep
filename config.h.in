@@ -2,19 +2,20 @@
  * $Id$
  */
 
-#define USE_PCRE               @USE_PCRE@
-#define USE_IPv6               @USE_IPv6@
+#define USE_PCRE                     @USE_PCRE@
+#define USE_IPv6                     @USE_IPv6@
 
-#define HAVE_DLT_RAW           @HAVE_DLT_RAW@
-#define HAVE_DLT_LOOP          @HAVE_DLT_LOOP@
-#define HAVE_DLT_LINUX_SLL     @HAVE_DLT_LINUX_SLL@
-#define HAVE_DLT_IEEE802_11    @HAVE_DLT_IEEE802_11@
+#define HAVE_DLT_RAW                 @HAVE_DLT_RAW@
+#define HAVE_DLT_LOOP                @HAVE_DLT_LOOP@
+#define HAVE_DLT_LINUX_SLL           @HAVE_DLT_LINUX_SLL@
+#define HAVE_DLT_IEEE802_11          @HAVE_DLT_IEEE802_11@
+#define HAVE_DLT_IEEE802_11_RADIO    @HAVE_DLT_IEEE802_11_RADIO@
 
-#define HAVE_DUMB_UDPHDR       @HAVE_DUMB_UDPHDR@
+#define HAVE_DUMB_UDPHDR             @HAVE_DUMB_UDPHDR@
 
-#define USE_PCAP_RESTART       @USE_PCAP_RESTART@
-#define PCAP_RESTART_FUNC      @PCAP_RESTART_FUNC@
+#define USE_PCAP_RESTART             @USE_PCAP_RESTART@
+#define PCAP_RESTART_FUNC            @PCAP_RESTART_FUNC@
 
-#define USE_DROPPRIVS          @USE_DROPPRIVS@
-#define DROPPRIVS_USER         @DROPPRIVS_USER@
+#define USE_DROPPRIVS                @USE_DROPPRIVS@
+#define DROPPRIVS_USER               @DROPPRIVS_USER@
 
