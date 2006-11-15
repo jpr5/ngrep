@@ -130,10 +130,8 @@ if test $use_pcre = yes; then
   echo 'Configuring Perl-Compatible Regular Expression (PCRE) library ...' 
   echo 
 
-  ( cd pcre-5.0; ./configure && make libtool chartables.c )
-
-  REGEX_TARGET='pcre'
-  REGEX_OBJS='pcre.o study.o'
+  REGEX_DIR='pcre-5.0'
+  REGEX_OBJS="$REGEX_DIR/pcre.o $REGEX_DIR/study.o"
   USE_PCRE="1"
 
 else
@@ -142,15 +140,15 @@ else
   echo 'Configuring GNU Regular Expression library ...'
   echo
 
-  ( cd regex-0.12; ./configure )
-
-  REGEX_TARGET='regex'
-  REGEX_OBJS='regex.o'
+  REGEX_DIR='regex-0.12'
+  REGEX_OBJS="$REGEX_DIR/regex.o"
   USE_PCRE="0"
 
 fi
 
-AC_SUBST(REGEX_TARGET)
+( cd $REGEX_DIR && ./configure )
+
+AC_SUBST(REGEX_DIR)
 AC_SUBST(REGEX_OBJS)
 
 
