@@ -32,27 +32,40 @@ MANDIR_INSTALL = $(mandir)/man8
 
 INSTALL = ./install-sh
 
-REGEX_TARGET=@REGEX_TARGET@
+REGEX_DIR=@REGEX_DIR@
 REGEX_OBJS=@REGEX_OBJS@
 
 
 all: $(TARGET) 
 
-$(TARGET): $(REGEX_TARGET) $(OBJS) 
+$(TARGET): $(REGEX_OBJS) $(OBJS) 
 	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
-debug: $(REGEX_TARGET) $(OBJS)
+debug: $(REGEX_OBJS) $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -g -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
-static: $(REGEX_TARGET) $(OBJS)
+static: $(REGEX_OBJS) $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET).static -static $(OBJS) $(REGEX_OBJS) $(LIBS) 
 
 install: $(TARGET)
 	$(INSTALL) -c -m 0755 $(TARGET)  $(DESTDIR)/$(BINDIR_INSTALL)/$(TARGET)
 	$(INSTALL) -c -m 0644 $(MANPAGE) $(DESTDIR)/$(MANDIR_INSTALL)/$(MANPAGE)
 
+.c.o:	
+	$(CC) $(CFLAGS) $(INCLUDES) -g -c $<
+
 clean:
+	make -C $(REGEX_DIR) clean
 	rm -f *~ $(OBJS) $(REGEX_OBJS) $(TARGET) $(TARGET).static
+
+distclean: clean 
+	make -C $(REGEX_DIR) distclean
+	rm -f config.status config.cache config.log config.h Makefile 
+
+$(REGEX_OBJS): $(REGEX_OBJS:.o=.c) $(REGEX_DIR)/*.h
+	$(MAKE) $(MAKEFLAGS) -C $(REGEX_DIR) $(notdir $(REGEX_OBJS))
+
+$(OBJS): Makefile ngrep.c ngrep.h
 
 tardist:
 	@( VERSION=`perl -ne '/VERSION\s+"(.*)"/ && print "$$1\n"' ngrep.h` ; \
@@ -72,27 +85,3 @@ tardist:
 	   ls -l $$TMPDIR/$$PKG.tar.bz2                                     ; \
 	   echo                                                             ; \
 	)
-
-
-distclean: clean clean-$(REGEX_TARGET)
-	rm -f config.status config.cache config.log config.h Makefile 
-
-$(OBJS): Makefile
-
-.c.o:	
-	$(CC) $(CFLAGS) $(INCLUDES) -g -c $<
-pcre: 
-	@cd pcre-5.0 && make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. 
-
-clean-pcre:
-	cd pcre-5.0 && test -f ./Makefile && make distclean 
-	cd pcre-5.0 && rm -f RunTest dftables libpcre.pc
-
-regex:
-	@cd regex-0.12 && make $(REGEX_OBJS) && cp -f $(REGEX_OBJS) .. 
-
-clean-regex:
-	cd regex-0.12 && test -f ./Makefile && make distclean
-	cd regex-0.12 && rm -f Makefile doc/Makefile test/Makefile config.cache config.log config.status
-
-ngrep.o: ngrep.c ngrep.h
