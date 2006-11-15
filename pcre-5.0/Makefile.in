@@ -269,10 +269,12 @@ install:        all @ON_WINDOWS@ wininstall
 clean:;         -rm -rf *.@OBJEXT@ *.lo *.a *.la .libs pcretest@EXEEXT@ pcregrep@EXEEXT@ testtry
 
 # But "make distclean" should get back to a virgin distribution
+# 11/15/06 jpr5: yes, it should -- added in 3 files still left behind.
 
 distclean:      clean
 		-rm -f chartables.c libtool pcre-config pcre.h \
 		Makefile config.h config.status config.log config.cache
+		-rm -f RunTest dftables libpcre.pc
 
 check:          runtest
 
