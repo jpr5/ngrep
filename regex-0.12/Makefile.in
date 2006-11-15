@@ -71,13 +71,13 @@ default all install TAGS check::
 #                added config.cache and config.log to targets                 
 
 clean mostlyclean:
-	rm -f *.o
 	for d in $(subdirs); do (cd $$d; $(MAKE) $(makeargs) $@); done
+	rm -f *.o
 
 extraclean realclean distclean:
+	for d in $(subdirs); do (cd $$d; $(MAKE) $(makeargs) $@); done
 	rm -f patch* *~* *\#* *.orig *.rej *.bak core a.out
 	rm -f Makefile config.status config.cache config.log regex.o
-	for d in $(subdirs); do (cd $$d; $(MAKE) $(makeargs) $@); done
 
 .PHONY: install mostlyclean clean distclean extraclean realclean TAGS check
 
