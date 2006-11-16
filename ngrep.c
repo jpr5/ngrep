@@ -57,6 +57,7 @@
 #include <winsock2.h>
 #include <types.h>
 #include <inet_ntop.h>
+#include <config.h>
 
 #define strcasecmp stricmp
 
