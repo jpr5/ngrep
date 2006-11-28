@@ -1,13 +1,13 @@
 /*
  * $Id$
  *
- * Copyright (c) 2005  Jordan Ritter <jpr5@darkridge.com>
+ * Copyright (c) 2006  Jordan Ritter <jpr5@darkridge.com>
  *
  * Please refer to the LICENSE file for more information.
  *
  */
 
-#define VERSION "1.45-CVS"
+#define VERSION "1.45"
 
 /*
  * We cache the standard frame sizes here to save us time and
