@@ -20,8 +20,8 @@ source tree.
 
 The latest versions (as of this writing) are located at:
 
-    UNIX:  http://tcpdump.org/release/libpcap-0.8.3.tar.gz
-    Win32: http://www.winpcap.org/install/bin/wpdpack_3_1_beta4.zip
+    UNIX:  http://tcpdump.org/release/libpcap-0.9.5.tar.gz
+    Win32: http://www.winpcap.org/install/bin/wpdpack_3_1.zip
 
 
 2. Unpack the ngrep source
@@ -64,7 +64,7 @@ kernel driver by default, so it is necessary to install one before
 ngrep will work.  The latest version (as of this writing) is located
 at:
 
-    http://www.winpcap.org/install/bin/WinPcap_3_1_beta4.exe
+    http://www.winpcap.org/install/bin/WinPcap_3_1.exe
 
 
 Getting Help
