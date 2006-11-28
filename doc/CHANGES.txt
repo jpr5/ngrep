@@ -1,5 +1,43 @@
 $Id$
 
+v1.45
+
+        o fixed bug where setting the snaplen smaller than the minimum
+          necessary to read the full headres would cause garbage to be
+          fed into the pattern matcher
+
+        o fixed unreported bug in IPv6/TCP packet length calculation
+
+        o relocated the privilege-dropping routine to be invoked right
+          before entering the packet processing loop, to prevent
+          interference with necessary permissions to read or write
+          dumpfiles/etc.
+
+        o fixed integer overflow with the snaplen that resulted from
+          an implicit signed/unsigned conversion
+
+        o minor change to compensate for some broken compiler
+          optimizers
+
+        o fixed double-free race condition during ngrep termination
+
+        o reworked packet length calculation in the main processing
+          loop, improving performance and readability
+
+        o simplified regex build logic in configure and Makefile
+
+        o updated Win32 version to use config.h for preprocessor
+          definitions instead of the Visual Studio project files,
+          making manual tweaking and config of ngrep for Win32
+          consistent with *NIX and more obvious
+
+        o changed third-party Makefiles to properly clean up after
+          themselves
+
+        o added support for radiotap (IEEE802_11_RADIO)
+
+        o changed ``-s 0'' invocation to mimic the equivalent of tcpdump
+
 v1.44
         o added post-config section to configure: emit important
           config option settings that weren't previously indicated
