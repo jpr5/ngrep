@@ -2,7 +2,7 @@ $Id$
 
 Program: ngrep
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.44 (6.30.2005)
+Version: 1.45 (11.18.2006)
 
 
 Goal:
@@ -139,6 +139,7 @@ Known Working Platforms:
   o AIX 4.3.3.0/PowerPC
   o BeOS R5
   o Mac OS X 10.2, 10.2.6, 10.3x, 10.4
+  o Windows 95, 98, NT, 2000, XP, 2003/x86
 
   In other words, pretty much everything.
 
