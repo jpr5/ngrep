@@ -1,5 +1,10 @@
 /*
  * $Id$
+ *
+ * Copyright (c) 2006  Jordan Ritter <jpr5@darkridge.com>
+ *
+ * Please refer to the LICENSE file for more information.
+ *
  */
 
 #define USE_PCRE                     @USE_PCRE@
