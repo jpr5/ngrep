@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# Copyright (c) 2005  Jordan Ritter <jpr5@darkridge.com>
+# Copyright (c) 2006  Jordan Ritter <jpr5@darkridge.com>
 #
 # Please refer to the LICENSE file for more information.
 
@@ -81,7 +81,9 @@ tardist:
 	   tar cf - . --exclude "CVS" | tar xf - -C $$DESTDIR              && \
 	   find $$DESTDIR -name "*~" -o -name ".*#*" | xargs rm -f         && \
 	   cd $$TMPDIR && tar jcf $$PKG.tar.bz2 $$PKG                       ; \
+           rm -rf $$DESTDIR                                                 ; \
+           cd $$TMPDIR && gpg -ba $$PKG.tar.bz2                             ; \
 	   echo                                                             ; \
-	   ls -l $$TMPDIR/$$PKG.tar.bz2                                     ; \
+	   ls -l $$TMPDIR/$$PKG.tar.bz2 $$TMPDIR/$$PKG.tar.bz2.asc          ; \
 	   echo                                                             ; \
 	)
