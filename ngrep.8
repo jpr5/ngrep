@@ -181,21 +181,6 @@ this option to force ngrep to listen on interface \fIdev\fP.
 .IP "-A num"
 Dump \fInum\fP packets of trailing context after matching a packet.
 
-.IP "-W normal|byline|none"
-Alter the method by which ngrep displays packet payload.  ``normal''
-mode represents the standard behaviour, ``byline'' instructs ngrep to
-respect embedded linefeeds (useful for observing HTTP transactions,
-for instance), and ``none'' results in the payload on one single line
-(useful for scripted processing of ngrep output).
-
-.IP "-c cols"
-Ignore the detected terminal width and force the column width to the
-specified size.
-
-.IP "-P char"
-Change the non-printable character from the default ``.'' to the
-character specified.
-
 .IP "\fI match expression\fP"
 A match expression is either an extended regular expression, or if the
 \fI-X\fP option is specified, a string signifying a hexadecimal value.
