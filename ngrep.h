@@ -84,16 +84,16 @@ void dump_packet(struct pcap_pkthdr *, u_char *, uint8_t, unsigned char *, uint3
                  const char *, const char *, uint16_t, uint16_t, uint8_t,
                  uint16_t, uint8_t, uint16_t, uint32_t);
 
-void dump_unwrapped(unsigned char *, uint32_t);
-void dump_formatted(unsigned char *, uint32_t);
-void dump_byline   (unsigned char *, uint32_t);
+void dump_unwrapped(unsigned char *, uint32_t, uint16_t, uint16_t);
+void dump_formatted(unsigned char *, uint32_t, uint16_t, uint16_t);
+void dump_byline   (unsigned char *, uint32_t, uint16_t, uint16_t);
 
 void dump_delay_proc_init(struct pcap_pkthdr *);
 void dump_delay_proc     (struct pcap_pkthdr *);
 
-int8_t re_match_func   (unsigned char *, uint32_t);
-int8_t bin_match_func  (unsigned char *, uint32_t);
-int8_t blank_match_func(unsigned char *, uint32_t);
+int8_t re_match_func   (unsigned char *, uint32_t, uint16_t *, uint16_t *);
+int8_t bin_match_func  (unsigned char *, uint32_t, uint16_t *, uint16_t *);
+int8_t blank_match_func(unsigned char *, uint32_t, uint16_t *, uint16_t *);
 
 void print_time_absolute(struct pcap_pkthdr *);
 void print_time_diff    (struct pcap_pkthdr *);

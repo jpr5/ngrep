@@ -115,6 +115,7 @@ uint8_t  show_empty = 0, show_hex = 0, show_proto = 0, quiet = 0;
 uint8_t  invert_match = 0, bin_match = 0;
 uint8_t  live_read = 1, want_delay = 0;
 uint8_t  dont_dropprivs = 0;
+uint8_t  enable_hilite = 0;
 
 char *read_file = NULL, *dump_file = NULL;
 char *usedev = NULL;
@@ -146,7 +147,7 @@ uint16_t match_len = 0;
 int8_t (*match_func)() = &blank_match_func;
 
 int8_t dump_single = 0;
-void (*dump_func)(unsigned char *, uint32_t) = &dump_formatted;
+void (*dump_func)(unsigned char *, uint32_t, uint16_t, uint16_t) = &dump_formatted;
 
 /*
  * BPF/Network
@@ -199,7 +200,7 @@ int main(int argc, char **argv) {
     setlocale(LC_ALL, "");
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMHs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -261,6 +262,9 @@ int main(int argc, char **argv) {
                 if (value > 0)
                     snaplen = value;
             } break;
+            case 'H':
+                enable_hilite = 1;
+                break;
             case 'M':
                 re_multiline_match = 0;
                 break;
@@ -815,13 +819,15 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
                  const char *ip_src, const char *ip_dst, uint16_t sport, uint16_t dport, uint8_t flags,
                  uint16_t hdr_offset, uint8_t frag, uint16_t frag_offset, uint32_t frag_id) {
 
+    uint16_t match_size, match_index;
+
     if (!show_empty && len == 0)
         return;
 
     if (len > limitlen)
         len = limitlen;
 
-    if ((len > 0 && match_func(data, len) == invert_match) && !keep_matching)
+    if ((len > 0 && match_func(data, len, &match_index, &match_size) == invert_match) && !keep_matching)
         return;
 
     if (!live_read && want_delay)
@@ -886,14 +892,16 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
         printf("\n");
 
     if (quiet < 3)
-        dump_func(data, len);
+        dump_func(data, len, match_index, match_size);
 
     if (pd_dump)
         pcap_dump((u_char*)pd_dump, h, p);
 }
 
-int8_t re_match_func(unsigned char *data, uint32_t len) {
+int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
 #if USE_PCRE
+
+    static int sub[2];
     switch(pcre_exec(pattern, 0, data, (int32_t)len, 0, 0, 0, 0)) {
         case PCRE_ERROR_NULL:
         case PCRE_ERROR_BADOPTION:
@@ -905,15 +913,25 @@ int8_t re_match_func(unsigned char *data, uint32_t len) {
 
         case PCRE_ERROR_NOMATCH:
             return 0;
+
+        default:
+            *mindex = sub[0];
+            *msize  = sub[1] - sub[0];
     }
 #else
-    switch (re_search(&pattern, data, (int32_t)len, 0, len, 0)) {
+
+    static struct re_registers regs;
+    switch (re_search(&pattern, data, (int32_t)len, 0, len, &regs)) {
         case -2:
             perror("she's dead, jim\n");
             clean_exit(-2);
 
         case -1:
             return 0;
+
+        default:
+            *mindex = regs.start[0];
+            *msize  = regs.end[0] - regs.start[0];
     }
 #endif
 
@@ -926,7 +944,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len) {
     return 1;
 }
 
-int8_t bin_match_func(unsigned char *data, uint32_t len) {
+int8_t bin_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
     int32_t stop = len - match_len;
     int32_t i    = 0;
 
@@ -941,49 +959,77 @@ int8_t bin_match_func(unsigned char *data, uint32_t len) {
             if (match_after && keep_matching != match_after)
                 keep_matching = match_after;
 
+            *mindex = i - 1;
+            *msize  = match_len;
+
             return 1;
         }
 
     return 0;
 }
 
-
-int8_t blank_match_func(unsigned char *data, uint32_t len) {
+int8_t blank_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
     if (max_matches)
         matches++;
+
+    *mindex = 0;
+    *msize  = 0;
 
     return 1;
 }
 
-void dump_byline(unsigned char *data, uint32_t len) {
+void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
         const unsigned char *s = data;
+        uint8_t hiliting = 0;
 
         while (s < data + len) {
+            if (enable_hilite && !hiliting && (s == data + mindex)) {
+                hiliting = 1;
+                printf("\33[01;31m");
+            }
+
             printf("%c", (*s == '\n' || isprint(*s)) ? *s : nonprint_char);
             s++;
+
+            if (enable_hilite && hiliting && (s == data + mindex + msize)) {
+                hiliting = 0;
+                printf("\33[00m");
+            }
         }
 
         printf("\n");
     }
 }
 
-void dump_unwrapped(unsigned char *data, uint32_t len) {
+void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
         const unsigned char *s = data;
+        uint8_t hiliting = 0;
 
         while (s < data + len) {
+            if (enable_hilite && !hiliting && (s == data + mindex)) {
+                hiliting = 1;
+                printf("\33[01;31m");
+            }
+
             printf("%c", isprint(*s) ? *s : nonprint_char);
             s++;
+
+            if (enable_hilite && hiliting && (s == data + mindex + msize)) {
+                hiliting = 0;
+                printf("\33[00m");
+            }
         }
 
         printf("\n");
     }
 }
 
-void dump_formatted(unsigned char *data, uint32_t len) {
+void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
         unsigned char *str = data;
+          uint8_t hiliting = 0;
              uint8_t width = show_hex ? 16 : (ws_col-5);
                 uint32_t i = 0,
                          j = 0;
@@ -991,20 +1037,42 @@ void dump_formatted(unsigned char *data, uint32_t len) {
         while (i < len) {
             printf("  ");
 
-            if (show_hex)
+            if (show_hex) {
                 for (j = 0; j < width; j++) {
+                    if (enable_hilite && (mindex <= (i+j) && (i+j) < mindex + msize)) {
+                        hiliting = 1;
+                        printf("\33[01;31m");
+                    }
+
                     if (i + j < len)
                         printf("%02x ", str[j]);
                     else printf("   ");
 
                     if ((j+1) % (width/2) == 0)
                         printf("   ");
+
+                    if (hiliting) {
+                        hiliting = 0;
+                        printf("\33[00m");
+                    }
+                }
+            }
+
+            for (j = 0; j < width; j++) {
+                if (enable_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
+                    hiliting = 1;
+                    printf("\33[01;31m");
                 }
 
-            for (j = 0; j < width; j++)
                 if (i + j < len)
                     printf("%c", isprint(str[j]) ? str[j] : nonprint_char);
                 else printf(" ");
+
+                if (hiliting) {
+                    hiliting = 0;
+                    printf("\33[00m");
+                }
+            }
 
             str += width;
             i   += j;
