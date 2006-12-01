@@ -7,7 +7,7 @@
  *
  */
 
-#define VERSION "1.45"
+#define VERSION "1.45.1-CVS"
 
 /*
  * We cache the standard frame sizes here to save us time and
@@ -77,6 +77,7 @@ void process(u_char *, struct pcap_pkthdr *, u_char *);
 
 void version(void);
 void usage(int8_t);
+void update_windowsize(int32_t);
 void clean_exit(int32_t);
 
 void dump_packet(struct pcap_pkthdr *, u_char *, uint8_t, unsigned char *, uint32_t,
@@ -103,7 +104,6 @@ char *get_filter_from_argv  (char **);
 uint8_t strishex(char *);
 
 #if !defined(_WIN32)
-void update_windowsize(int32_t);
 void drop_privs(void);
 #endif
 
@@ -111,6 +111,7 @@ void drop_privs(void);
 int8_t win32_initwinsock(void);
 void win32_listdevices(void);
 char *win32_usedevice(const char *);
+char *win32_choosedevice(void);
 #endif
 
 
