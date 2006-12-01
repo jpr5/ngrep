@@ -195,7 +195,9 @@ int main(int argc, char **argv) {
     signal(SIGWINCH, update_windowsize);
 #endif
 
+#if !defined(_WIN32)
     setlocale(LC_ALL, "");
+#endif
 
     while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
