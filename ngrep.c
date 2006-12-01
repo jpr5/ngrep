@@ -177,8 +177,7 @@ void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
 
 /*
- * When !Win32, windowsize stuff.  We leave it in regardless to avoid
- * any additional #if complication/obfuscation.
+ * Window-size functionality (adjust output based on width of console display)
  */
 
 uint32_t ws_row, ws_col = 80, ws_col_forced = 0;
@@ -340,7 +339,12 @@ int main(int argc, char **argv) {
 
     } else {
 
-        char *dev = usedev ? usedev : pcap_lookupdev(pc_err);
+        char *dev = usedev ? usedev :
+#if defined(_WIN32)
+            win32_choosedevice();
+#else
+            pcap_lookupdev(pc_err);
+#endif
 
         if (!dev) {
             perror(pc_err);
@@ -594,9 +598,7 @@ int main(int argc, char **argv) {
         } else printf("output: %s\n", dump_file);
     }
 
-#if !defined(_WIN32)
     update_windowsize(0);
-#endif
 
 #if defined(_WIN32)
     win32_initwinsock();
@@ -1158,26 +1160,36 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
     prev_delay_ts.tv_usec = h->ts.tv_usec;
 }
 
-#if !defined(_WIN32)
 void update_windowsize(int32_t e) {
     if (e == 0 && ws_col_forced)
 
         ws_col = ws_col_forced;
 
     else if (!ws_col_forced) {
+
+#if !defined(_WIN32)
         const struct winsize ws;
 
         if (!ioctl(0, TIOCGWINSZ, &ws)) {
             ws_row = ws.ws_row;
             ws_col = ws.ws_col;
-        } else {
+        }
+#else
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+            ws_row = csbi.dwSize.Y;
+            ws_col = csbi.dwSize.X;
+        }
+#endif
+        else {
             ws_row = 24;
             ws_col = 80;
         }
+
     }
 }
 
-#if USE_DROPPRIVS
+#if !defined(_WIN32) && USE_DROPPRIVS
 void drop_privs(void) {
     struct passwd *pw;
     uid_t newuid;
@@ -1211,7 +1223,6 @@ void drop_privs(void) {
     }
 }
 
-#endif
 #endif
 
 void usage(int8_t e) {
@@ -1382,6 +1393,28 @@ char *win32_usedevice(const char *index) {
     }
 
     pcap_freealldevs(alldevs);
+
+    return dev;
+}
+
+char *win32_choosedevice(void) {
+    pcap_if_t *alldevs, *d;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    char *dev = NULL;
+
+    if (pcap_findalldevs(&alldevs, errbuf) == -1) {
+        perror("unable to enumerate devices");
+        clean_exit(-1);
+    }
+
+    for (d = alldevs; d != NULL; d = d->next)
+        if ((d->addresses) && (d->addresses->addr))
+            dev = _strdup(d->name);
+
+    pcap_freealldevs(alldevs);
+
+    if (!dev)
+        dev = pcap_lookupdev(errbuf);
 
     return dev;
 }
