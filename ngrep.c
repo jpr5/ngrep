@@ -74,6 +74,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <locale.h>
 
 #if !defined(_WIN32)
 #include <errno.h>
@@ -194,6 +195,8 @@ int main(int argc, char **argv) {
     signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
 #endif
+
+    setlocale(LC_ALL, "");
 
     while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
