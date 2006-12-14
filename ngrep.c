@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
     setlocale(LC_ALL, "");
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMHs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMCs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
                 if (value > 0)
                     snaplen = value;
             } break;
-            case 'H':
+            case 'C':
                 enable_hilite = 1;
                 break;
             case 'M':
@@ -986,7 +986,7 @@ void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t ms
         while (s < data + len) {
             if (enable_hilite && !hiliting && (s == data + mindex)) {
                 hiliting = 1;
-                printf(ANSI_bold);
+                printf(ANSI_hilite);
             }
 
             printf("%c", (*s == '\n' || isprint(*s)) ? *s : nonprint_char);
@@ -1010,7 +1010,7 @@ void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
         while (s < data + len) {
             if (enable_hilite && !hiliting && (s == data + mindex)) {
                 hiliting = 1;
-                printf(ANSI_bold);
+                printf(ANSI_hilite);
             }
 
             printf("%c", isprint(*s) ? *s : nonprint_char);
@@ -1041,7 +1041,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
                 for (j = 0; j < width; j++) {
                     if (enable_hilite && (mindex <= (i+j) && (i+j) < mindex + msize)) {
                         hiliting = 1;
-                        printf(ANSI_bold);
+                        printf(ANSI_hilite);
                     }
 
                     if (i + j < len)
@@ -1061,7 +1061,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
             for (j = 0; j < width; j++) {
                 if (enable_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
                     hiliting = 1;
-                    printf(ANSI_bold);
+                    printf(ANSI_hilite);
                 }
 
                 if (i + j < len)
