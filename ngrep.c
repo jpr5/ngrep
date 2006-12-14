@@ -921,7 +921,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16
 #else
 
     static struct re_registers regs;
-    switch (re_search(&pattern, data, (int32_t)len, 0, len, &regs)) {
+    switch (re_search(&pattern, (const char *)data, (int32_t)len, 0, len, &regs)) {
         case -2:
             perror("she's dead, jim\n");
             clean_exit(-2);
