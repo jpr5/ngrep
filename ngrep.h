@@ -7,7 +7,7 @@
  *
  */
 
-#define VERSION "1.45.1-CVS"
+#define VERSION "1.46-CVS"
 
 /*
  * We cache the standard frame sizes here to save us time and
@@ -129,5 +129,8 @@ struct NGREP_rtaphdr_t {
 
 const char ANSI_red[]  = "\33[01;31m";
 const char ANSI_bold[] = "\33[01m";
-const char ANSI_off[]  = "\33[00m";
+
+const char *ANSI_hilite = ANSI_red;
+const char  ANSI_off[]  = "\33[00m";
+
 
