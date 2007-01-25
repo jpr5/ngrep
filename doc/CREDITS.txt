@@ -61,3 +61,7 @@ Assistance with IPv6 testing
 
     Ralph Logan	
     Arrigo Triulzi
+
+Timestamp diff from first match patch
+
+    Joseph Heenan <jonu@users.sourceforge.net> 
