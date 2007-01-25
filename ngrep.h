@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2006  Jordan Ritter <jpr5@darkridge.com>
+ * Copyright (c) 2007  Jordan Ritter <jpr5@darkridge.com>
  *
  * Please refer to the LICENSE file for more information.
  *
@@ -97,6 +97,7 @@ int8_t blank_match_func(unsigned char *, uint32_t, uint16_t *, uint16_t *);
 
 void print_time_absolute(struct pcap_pkthdr *);
 void print_time_diff    (struct pcap_pkthdr *);
+void print_time_offset  (struct pcap_pkthdr *);
 
 char *get_filter_from_string(char *);
 char *get_filter_from_argv  (char **);

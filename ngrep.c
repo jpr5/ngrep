@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright (c) 2006  Jordan Ritter <jpr5@darkridge.com>
+ * Copyright (c) 2007  Jordan Ritter <jpr5@darkridge.com>
  *
  * Please refer to the LICENSE file for more information.
  *
@@ -272,13 +272,18 @@ int main(int argc, char **argv) {
                 dont_dropprivs = 1;
                 break;
             case 'T':
-                print_time = &print_time_diff;
+                if (print_time == &print_time_diff) {
+                    print_time = print_time_offset;
+                    memset(&prev_ts, 0, sizeof(prev_ts));
+                } else {
+                    print_time = &print_time_diff;
 #if defined(_WIN32)
-                prev_ts.tv_sec  = (uint32_t)time(NULL);
-                prev_ts.tv_usec = 0;
+                    prev_ts.tv_sec  = (uint32_t)time(NULL);
+                    prev_ts.tv_usec = 0;
 #else
-                gettimeofday(&prev_ts, NULL);
+                    gettimeofday(&prev_ts, NULL);
 #endif
+                }
                 break;
             case 't':
                 print_time = &print_time_absolute;
@@ -1179,6 +1184,27 @@ void print_time_diff(struct pcap_pkthdr *h) {
     prev_ts.tv_usec = h->ts.tv_usec;
 }
 
+void print_time_offset(struct pcap_pkthdr *h) {
+    uint32_t secs, usecs;
+
+    secs = h->ts.tv_sec - prev_ts.tv_sec;
+    if (h->ts.tv_usec >= prev_ts.tv_usec)
+        usecs = h->ts.tv_usec - prev_ts.tv_usec;
+    else {
+        secs--;
+        usecs = 1000000 - (prev_ts.tv_usec - h->ts.tv_usec);
+    }
+
+    if (prev_ts.tv_sec == 0 && prev_ts.tv_usec == 0) {
+        prev_ts.tv_sec  = h->ts.tv_sec;
+        prev_ts.tv_usec = h->ts.tv_usec;
+        secs  = 0;
+        usecs = 0;
+    }
+
+    printf("+%u.%06u ", secs, usecs);
+}
+
 void dump_delay_proc_init(struct pcap_pkthdr *h) {
     dump_delay = &dump_delay_proc;
 
@@ -1318,6 +1344,7 @@ void usage(int8_t e) {
            "   -D  is replay pcap_dumps with their recorded time intervals\n"
            "   -t  is print timestamp every time a packet is matched\n"
            "   -T  is print delta timestamp every time a packet is matched\n"
+           "         specify twice for delta from first match\n"
            "   -M  is don't do multi-line match (do single-line match instead)\n"
            "   -I  is read packet stream from pcap format file pcap_dump\n"
            "   -O  is dump matched packets in pcap format to pcap_dump\n"

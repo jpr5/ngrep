@@ -2,11 +2,11 @@
 .\"
 .\" All content, except portions of the bpf filter explanation, are:
 .\"
-.\" Copyright (c) 2006  Jordan Ritter <jpr5@darkridge.com>
+.\" Copyright (c) 2007  Jordan Ritter <jpr5@darkridge.com>
 .\"
 .\" Please refer to the LICENSE file for more information.
 
-.TH NGREP 8 "November 2006" *nux "User Manuals"
+.TH NGREP 8 "January 2007" *nux "User Manuals"
 
 .SH NAME
 
@@ -106,7 +106,8 @@ a packet is matched.
 
 .IP -T
 Print a timestamp in the form of +S.UUUUUU, indicating the delta
-between packet matches.
+between packet matches.  Specify a second time to indicate the delta
+since the first packet match.
 
 .IP -R
 Do not try to drop privileges to the DROPPRIVS_USER.
