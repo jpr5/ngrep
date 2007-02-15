@@ -41,6 +41,7 @@ Usage: ngrep <LhNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>
    -D  is replay pcap_dumps with their recorded time intervals
    -t  is print timestamp every time a packet is matched
    -T  is print delta timestamp every time a packet is matched
+         specify twice for delta from first match
    -M  is don't do multi-line match (do single-line match instead)
    -I  is read packet stream from pcap format file pcap_dump
    -O  is dump matched packets in pcap format to pcap_dump
