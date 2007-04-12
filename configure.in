@@ -322,7 +322,7 @@ dnl libpcap's
 dnl
 
 present=""
-AC_MSG_CHECKING(for DLT_LINUX_SLL in bpf.h)
+AC_MSG_CHECKING(for DLT_LINUX_SLL in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -334,7 +334,7 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
+AC_MSG_CHECKING(for DLT_LOOP in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -346,7 +346,7 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_IEEE802_11 in bpf.h)
+AC_MSG_CHECKING(for DLT_IEEE802_11 in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -358,7 +358,7 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_IEEE802_11_RADIO in bpf.h)
+AC_MSG_CHECKING(for DLT_IEEE802_11_RADIO in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -370,7 +370,7 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_RAW in bpf.h)
+AC_MSG_CHECKING(for DLT_RAW in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -379,6 +379,18 @@ yes
 #endif
 ],
 [HAVE_DLT_RAW="1" && echo yes], [HAVE_DLT_RAW="0" && echo no])
+
+
+present=""
+AC_MSG_CHECKING(for DLT_PFLOG in $BPF)
+AC_EGREP_CPP(yes,
+[
+#include <$BPF>
+#ifdef DLT_PFLOG
+yes
+#endif
+],
+[HAVE_DLT_PFLOG="1" && echo yes], [HAVE_DLT_PFLOG="0" && echo no])
 
 
 dnl
@@ -396,11 +408,12 @@ AC_DEFINE_UNQUOTED(DROPPRIVS_USER,           "$DROPPRIVS_USER",           [pseud
 
 AC_DEFINE_UNQUOTED(HAVE_DUMB_UDPHDR,          $HAVE_DUMB_UDPHDR,          [whether to accommodate broken redhat-glibc udphdr declaration (default no)])
 
-AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,              $HAVE_DLT_RAW,              [presence of DLT_RAW in bpf.h]) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11,       $HAVE_DLT_IEEE802_11,       [presence of DLT_IEEE802_11 in bpf.h]) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11_RADIO, $HAVE_DLT_IEEE802_11_RADIO, [presence of DLT_IEEE802_11_RADIO in bpf.h]) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,             $HAVE_DLT_LOOP,             [presence of DLT_LOOP in bpf.h]) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,        $HAVE_DLT_LINUX_SLL,        [presence of DLT_LINUX_SLL in bpf.h]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,              $HAVE_DLT_RAW,              [presence of DLT_RAW in $BPF]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_PFLOG,            $HAVE_DLT_PFLOG,            [presence of DLT_PFLOG in $BPF])
+AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11,       $HAVE_DLT_IEEE802_11,       [presence of DLT_IEEE802_11 in $BPF]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11_RADIO, $HAVE_DLT_IEEE802_11_RADIO, [presence of DLT_IEEE802_11_RADIO in $BPF]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,             $HAVE_DLT_LOOP,             [presence of DLT_LOOP in $BPF]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,        $HAVE_DLT_LINUX_SLL,        [presence of DLT_LINUX_SLL in $BPF]) 
 
 
 dnl
