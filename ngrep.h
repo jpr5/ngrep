@@ -23,6 +23,7 @@
 #define FDDIHDR_SIZE 21
 #define ISDNHDR_SIZE 16
 #define IEEE80211HDR_SIZE 32
+#define PFLOGHDR_SIZE 48
 
 /*
  * Default patterns for BPF and regular expression filters.

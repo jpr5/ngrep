@@ -11,6 +11,7 @@
 #define USE_IPv6                     @USE_IPv6@
 
 #define HAVE_DLT_RAW                 @HAVE_DLT_RAW@
+#define HAVE_DLT_PFLOG               @HAVE_DLT_PFLOG@
 #define HAVE_DLT_LOOP                @HAVE_DLT_LOOP@
 #define HAVE_DLT_LINUX_SLL           @HAVE_DLT_LINUX_SLL@
 #define HAVE_DLT_IEEE802_11          @HAVE_DLT_IEEE802_11@
