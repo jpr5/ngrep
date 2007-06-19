@@ -721,11 +721,6 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             data = (unsigned char *)(tcp_pkt) + tcphdr_offset;
             len -= link_offset + ip_hl + tcphdr_offset;
 
-#if USE_IPv6
-            if (ip_ver == 6)
-                len -= ntohs(ip6_pkt->ip6_plen);
-#endif
-
             if ((int32_t)len < 0)
                 len = 0;
 
@@ -740,11 +735,6 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 
             data = (unsigned char *)(udp_pkt) + udphdr_offset;
             len -= link_offset + ip_hl + udphdr_offset;
-
-#if USE_IPv6
-            if (ip_ver == 6)
-                len -= ntohs(ip6_pkt->ip6_plen);
-#endif
 
             if ((int32_t)len < 0)
                 len = 0;
@@ -779,7 +769,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
             uint16_t icmp6hdr_offset    = (frag_offset) ? 0 : 4;
 
             data = (unsigned char *)(icmp6_pkt) + icmp6hdr_offset;
-            len -= link_offset + ip_hl + ntohs(ip6_pkt->ip6_plen) + icmp6hdr_offset;
+            len -= link_offset + ip_hl + icmp6hdr_offset;
 
             if ((int32_t)len < 0)
                 len = 0;
