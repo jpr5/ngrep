@@ -92,8 +92,6 @@ dnl
 dnl Configure the regular expression library.
 dnl
 
-# --with-regex=pcre,*gnu  --with-regex-lib=internal,shared
-
 AC_ARG_WITH(regex,
 [  --with-regex=(pcre,gnu)        specify which regex library to use (default: gnu)],
 [
@@ -115,11 +113,8 @@ AC_ARG_WITH(regex,
   use_regex="gnu"
 ])
 
-#--with-regex-lib=internal,shared
-
-# TODO
 AC_ARG_WITH(regex-impl,
-[  --with-regex-impl=(int,shared) specify which regex impl to use (default: internal)],
+[  --with-regex-impl=(int,sys)    specify which regex impl to use (default: internal)],
 [
    if test $withval = no; then
        echo "!!! error: ngrep requires a regex library to function"
@@ -129,7 +124,7 @@ AC_ARG_WITH(regex-impl,
    use_regex_impl="$withval"
    test $withval = yes && use_regex_impl="int"
 
-   if test $use_regex_impl != int -a $use_regex_impl != shared; then
+   if test $use_regex_impl != int -a $use_regex_impl != sys; then
       echo "!!! error: unknown regex library ($withval)"
       exit ;
    fi
@@ -176,8 +171,8 @@ dnl
 if test $use_regex = gnu; then
   USE_PCRE="0"
 
-  if test $use_regex_impl = shared; then 
-     # FIXME - shared gnu regex is a nop, right?  think it's a libc call.
+  if test $use_regex_impl = sys; then 
+     # TODO - shared gnu regex is a nop, right?  think it's a libc call.
      AC_CHECK_LIB(c, re_search,,
                   echo !!! error: unable to find regex in libc, defaulting to internal; 
           use_regex_impl="int")
@@ -191,7 +186,7 @@ if test $use_regex = gnu; then
 else 
   USE_PCRE="1"
 
-  if test $use_regex_impl = shared; then
+  if test $use_regex_impl = sys; then
      _LIBS="$_LIBS -lpcre"
   else
      CONFIGURE_FLAGS="-C --disable-utf8 --disable-cpp --disable-shared"
@@ -204,7 +199,7 @@ else
   fi
 fi
 
-if test $use_regex_impl != shared; then 
+if test $use_regex_impl != sys; then 
     echo
     echo "Configuring internal regex library ($use_regex) ..."
     echo

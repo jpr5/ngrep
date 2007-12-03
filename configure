@@ -1236,7 +1236,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-dropprivs-user=user     use different user for dropprivs
   --with-regex=(pcre,gnu)        specify which regex library to use (default: gnu)
-  --with-regex-impl=(int,shared) specify which regex impl to use (default: internal)
+  --with-regex-impl=(int,sys)    specify which regex impl to use (default: internal)
   --with-pcap-includes=dir       specify the pcap include directory
 
 Some influential environment variables:
@@ -1746,8 +1746,6 @@ fi
 
 
 
-# --with-regex=pcre,*gnu  --with-regex-lib=internal,shared
-
 
 # Check whether --with-regex was given.
 if test "${with_regex+set}" = set; then
@@ -1772,9 +1770,6 @@ else
 fi
 
 
-#--with-regex-lib=internal,shared
-
-# TODO
 
 # Check whether --with-regex-impl was given.
 if test "${with_regex_impl+set}" = set; then
@@ -1787,7 +1782,7 @@ if test "${with_regex_impl+set}" = set; then
    use_regex_impl="$withval"
    test $withval = yes && use_regex_impl="int"
 
-   if test $use_regex_impl != int -a $use_regex_impl != shared; then
+   if test $use_regex_impl != int -a $use_regex_impl != sys; then
       echo "!!! error: unknown regex library ($withval)"
       exit ;
    fi
@@ -3569,8 +3564,8 @@ _LIBS=""
 if test $use_regex = gnu; then
   USE_PCRE="0"
 
-  if test $use_regex_impl = shared; then
-     # FIXME - shared gnu regex is a nop, right?  think it's a libc call.
+  if test $use_regex_impl = sys; then
+     # TODO - shared gnu regex is a nop, right?  think it's a libc call.
 
 { echo "$as_me:$LINENO: checking for re_search in -lc" >&5
 echo $ECHO_N "checking for re_search in -lc... $ECHO_C" >&6; }
@@ -3655,7 +3650,7 @@ fi
 else
   USE_PCRE="1"
 
-  if test $use_regex_impl = shared; then
+  if test $use_regex_impl = sys; then
      _LIBS="$_LIBS -lpcre"
   else
      CONFIGURE_FLAGS="-C --disable-utf8 --disable-cpp --disable-shared"
@@ -3668,7 +3663,7 @@ else
   fi
 fi
 
-if test $use_regex_impl != shared; then
+if test $use_regex_impl != sys; then
     echo
     echo "Configuring internal regex library ($use_regex) ..."
     echo
@@ -4469,7 +4464,6 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define PCAP_RESTART_FUNC $pcap_restart_func
 _ACEOF
-
 
 
 
