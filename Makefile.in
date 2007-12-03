@@ -7,11 +7,10 @@
 
 CC=@CC@
 
-CFLAGS=@CFLAGS@ -D@OS@ @DEFS@ @EXTRA_DEFINES@ 
-INCLUDES=-I@srcdir@ @PCAP_INCLUDE@ @EXTRA_INCLUDES@
-
-LDFLAGS=@LDFLAGS@ @PCAP_LINK@
-LIBS=-lpcap @EXTRA_LIBS@ 
+CFLAGS   = @CFLAGS@ 
+CPPFLAGS = @DEFS@ -D@OS@ @CPPFLAGS@ -I@srcdir@ 
+LDFLAGS  = @LDFLAGS@
+LIBS     = @LIBS@
 
 STRIPFLAG=@STRIPFLAG@
 
@@ -32,27 +31,27 @@ MANDIR_INSTALL = $(mandir)/man8
 
 INSTALL = ./install-sh
 
-REGEX_DIR=@REGEX_DIR@
 REGEX_OBJS=@REGEX_OBJS@
+REGEX_DIR=@REGEX_DIR@
 
 
 all: $(TARGET) 
 
 $(TARGET): $(REGEX_OBJS) $(OBJS) 
-	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
+	$(CC) $(CFLAGS) $(STRIPFLAG) -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LDFLAGS) $(LIBS)
 
 debug: $(REGEX_OBJS) $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -g -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LIBS) 
+	$(CC) $(CFLAGS) -g -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LDFLAGS) $(LIBS)
 
 static: $(REGEX_OBJS) $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(STRIPFLAG) -o $(TARGET).static -static $(OBJS) $(REGEX_OBJS) $(LIBS) 
+	$(CC) $(CFLAGS) $(STRIPFLAG) -static -o $(TARGET).static $(OBJS) $(REGEX_OBJS) $(LDFLAGS) $(LIBS)
 
 install: $(TARGET)
 	$(INSTALL) -c -m 0755 $(TARGET)  $(DESTDIR)/$(BINDIR_INSTALL)/$(TARGET)
 	$(INSTALL) -c -m 0644 $(MANPAGE) $(DESTDIR)/$(MANDIR_INSTALL)/$(MANPAGE)
 
 .c.o:	
-	$(CC) $(CFLAGS) $(INCLUDES) -g -c $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -g -c $<
 
 clean:
 	$(MAKE) -C $(REGEX_DIR) clean
@@ -65,7 +64,7 @@ distclean: clean
 $(REGEX_OBJS): $(REGEX_OBJS:.o=.c) $(REGEX_DIR)/*.h
 	$(MAKE) $(MAKEFLAGS) -C $(REGEX_DIR) $(notdir $(REGEX_OBJS))
 
-$(OBJS): Makefile ngrep.c ngrep.h
+$(OBJS): Makefile ngrep.c ngrep.h 
 
 tardist:
 	@( VERSION=`perl -ne '/VERSION\s+"(.*)"/ && print "$$1\n"' ngrep.h` ; \
@@ -78,11 +77,11 @@ tardist:
 	   sleep 2                                                          ; \
 	   rm -rf $$DESTDIR && mkdir $$DESTDIR                             && \
 	   make distclean                                                  && \
-	   tar cf - . --exclude "CVS" | tar xf - -C $$DESTDIR              && \
+	   tar --exclude "CVS" -cf - . | tar xf - -C $$DESTDIR             && \
 	   find $$DESTDIR -name "*~" -o -name ".*#*" | xargs rm -f         && \
 	   cd $$TMPDIR && tar jcf $$PKG.tar.bz2 $$PKG                       ; \
-           rm -rf $$DESTDIR                                                 ; \
-           cd $$TMPDIR && gpg -ba $$PKG.tar.bz2                             ; \
+           rm -rf $$DESTDIR                                             ; \
+           cd $$TMPDIR && gpg -ba $$PKG.tar.bz2                         ; \
 	   echo                                                             ; \
 	   ls -l $$TMPDIR/$$PKG.tar.bz2 $$TMPDIR/$$PKG.tar.bz2.asc          ; \
 	   echo                                                             ; \
