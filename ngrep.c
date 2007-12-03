@@ -197,7 +197,13 @@ int main(int argc, char **argv) {
 #endif
 
 #if !defined(_WIN32)
-    setlocale(LC_ALL, "");
+    { 
+        char const *locale = getenv("LANG");
+        if (locale == NULL) 
+            locale = "en_US";
+       
+        setlocale(LC_CTYPE, locale);
+    }
 #endif
 
     while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMCs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
