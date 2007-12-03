@@ -93,9 +93,9 @@
 #endif
 
 #if USE_PCRE
-#include "pcre-5.0/pcre.h"
+#include <pcre.h>
 #else
-#include "regex-0.12/regex.h"
+#include <regex.h>
 #endif
 
 #include "ngrep.h"
@@ -158,7 +158,7 @@ char pc_err[PCAP_ERRBUF_SIZE];
 uint8_t link_offset;
 uint8_t radiotap_present = 0;
 
-pcap_t *pd = NULL;
+pcap_t *pd = NULL, *pd_dumppcap = NULL;
 pcap_dumper_t *pd_dump = NULL;
 struct bpf_program pcapfilter;
 struct in_addr net, mask;
@@ -609,7 +609,8 @@ int main(int argc, char **argv) {
     }
 
     if (dump_file) {
-        if (!(pd_dump = pcap_dump_open(pd, dump_file))) {
+        pd_dump = pcap_dump_open(pd, dump_file);
+        if (!pd_dump) {
             fprintf(stderr, "fatal: %s\n", pcap_geterr(pd));
             clean_exit(-1);
         } else printf("output: %s\n", dump_file);
@@ -740,11 +741,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
                 len = 0;
 
             dump_packet(h, p, ip_proto, data, len, ip_src, ip_dst,
-#if HAVE_DUMB_UDPHDR
-                        ntohs(udp_pkt->source), ntohs(udp_pkt->dest), 0,
-#else
                         ntohs(udp_pkt->uh_sport), ntohs(udp_pkt->uh_dport), 0,
-#endif
                         udphdr_offset, fragmented, frag_offset, frag_id);
         } break;
 
@@ -903,7 +900,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16
 #if USE_PCRE
 
     static int sub[2];
-    switch(pcre_exec(pattern, 0, data, (int32_t)len, 0, 0, 0, 0)) {
+    switch(pcre_exec(pattern, 0, (char const *)data, (int32_t)len, 0, 0, 0, 0)) {
         case PCRE_ERROR_NULL:
         case PCRE_ERROR_BADOPTION:
         case PCRE_ERROR_BADMAGIC:
@@ -922,7 +919,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16
 #else
 
     static struct re_registers regs;
-    switch (re_search(&pattern, (const char *)data, (int32_t)len, 0, len, &regs)) {
+    switch (re_search(&pattern, (char const *)data, (int32_t)len, 0, len, &regs)) {
         case -2:
             perror("she's dead, jim\n");
             clean_exit(-2);
@@ -1399,8 +1396,9 @@ void clean_exit(int32_t sig) {
      && pd && !pcap_stats(pd, &s))
         printf("%u received, %u dropped\n", s.ps_recv, s.ps_drop);
 
-    if (pd)      pcap_close(pd);
-    if (pd_dump) pcap_dump_close(pd_dump);
+    if (pd)           pcap_close(pd);
+    if (pd_dumppcap)  pcap_close(pd_dumppcap);
+    if (pd_dump)      pcap_dump_close(pd_dump);
 
 #if defined(_WIN32)
     if (delay_socket) closesocket(delay_socket);
