@@ -64,6 +64,9 @@ distclean: clean
 $(REGEX_OBJS): $(REGEX_OBJS:.o=.c) $(REGEX_DIR)/*.h
 	$(MAKE) $(MAKEFLAGS) -C $(REGEX_DIR) $(notdir $(REGEX_OBJS))
 
+$(REGEX_DIR)/pcre_chartables.c:
+	$(MAKE) $(MAKEFLAGS) -C $(REGEX_DIR) pcre_chartables.c
+
 $(OBJS): Makefile ngrep.c ngrep.h 
 
 tardist:

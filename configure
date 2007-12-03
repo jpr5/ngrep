@@ -1235,7 +1235,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-dropprivs-user=user     use different user for dropprivs
-  --with-regex=(pcre,gnu)	 specify which regex library to use (default: gnu)
+  --with-regex=(pcre,gnu)        specify which regex library to use (default: gnu)
   --with-regex-impl=(int,shared) specify which regex impl to use (default: internal)
   --with-pcap-includes=dir       specify the pcap include directory
 
@@ -1762,7 +1762,7 @@ if test "${with_regex+set}" = set; then
 
    if test $use_regex != pcre -a $use_regex != gnu; then
         echo "error: unknown regex implementation ($withval)"
-	exit 1
+    exit 1
    fi
 
 else
@@ -3579,7 +3579,7 @@ if test "${ac_cv_lib_c_re_search+set}" = set; then
 else
   ac_check_lib_save_LIBS=$LIBS
 LIBS="-lc defaulting to internal;
-		  use_regex_impl="int" $LIBS"
+          use_regex_impl="int" $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -3658,8 +3658,13 @@ else
   if test $use_regex_impl = shared; then
      _LIBS="$_LIBS -lpcre"
   else
-     REGEX_DIR='pcre-5.0'
-     REGEX_OBJS="$REGEX_DIR/pcre.o $REGEX_DIR/study.o"
+     CONFIGURE_FLAGS="-C --disable-utf8 --disable-cpp --disable-shared"
+
+     REGEX_DIR="pcre-7.4"
+     REGEX_OBJS="$REGEX_DIR/pcre_chartables.o  $REGEX_DIR/pcre_compile.o  $REGEX_DIR/pcre_exec.o \
+                 $REGEX_DIR/pcre_get.o         $REGEX_DIR/pcre_globals.o  $REGEX_DIR/pcre_fullinfo.o \
+                 $REGEX_DIR/pcre_newline.o     $REGEX_DIR/pcre_study.o    $REGEX_DIR/pcre_tables.o \
+                 $REGEX_DIR/pcre_try_flipped.o $REGEX_DIR/pcre_xclass.o "
   fi
 fi
 
@@ -3668,7 +3673,7 @@ if test $use_regex_impl != shared; then
     echo "Configuring internal regex library ($use_regex) ..."
     echo
 
-    ( cd $REGEX_DIR && ./configure )
+    ( cd $REGEX_DIR && ./configure $CONFIGURE_FLAGS )
 
     _INCLUDES="$_INCLUDES -I$REGEX_DIR"
 
@@ -3687,18 +3692,18 @@ STRIPFLAG="-s"
 case "$target_os" in
 
 *linux*)
-	OS=LINUX
+    OS=LINUX
 
 
-        ;;
+    ;;
 
 *bsd*)
-	OS=BSD
+    OS=BSD
 
 
-	if test "$USE_PCAP_RESTART" = "0"; then
+    if test "$USE_PCAP_RESTART" = "0"; then
 
-        { echo "$as_me:$LINENO: WARNING: !!! warning: Your OS ($target_os) may have an old libpcap installation.
+    { echo "$as_me:$LINENO: WARNING: !!! warning: Your OS ($target_os) may have an old libpcap installation.
 If the resulting ngrep binary segfaults when a BPF filter is specified
 without an ngrep match string then you should reconfigure ngrep with
 the option \`\`--disable-pcap-restart''.
@@ -3708,14 +3713,14 @@ If the resulting ngrep binary segfaults when a BPF filter is specified
 without an ngrep match string then you should reconfigure ngrep with
 the option \`\`--disable-pcap-restart''.
 " >&2;}
-	sleep 3
+    sleep 3
 
-	fi
+    fi
 
-        ;;
+    ;;
 
 *solaris*)
-	OS=SOLARIS
+    OS=SOLARIS
 
 
 
@@ -3865,40 +3870,40 @@ else
 fi
 
 
-	_LIBS="$_LIBS -lnsl -lsocket"
+    _LIBS="$_LIBS -lnsl -lsocket"
 
-	;;
+    ;;
 
 *osf*)
-	OS=OSF1
+    OS=OSF1
 
 
-	_DEFINES="$_DEFINES -D__STDC__=2"
+    _DEFINES="$_DEFINES -D__STDC__=2"
 
-	;;
+    ;;
 
 *hpux11*)
-        OS=BSD
+    OS=BSD
 
 
-	;;
+    ;;
 
 *aix*)
-	OS=AIX
+    OS=AIX
 
 
-	;;
+    ;;
 
 *darwin*)
-	OS=MACOSX
+    OS=MACOSX
 
 
-	STRIPFLAG=""
+    STRIPFLAG=""
 
-	;;
+    ;;
 
 *)
-	OS=UNKNOWN_OS
+    OS=UNKNOWN_OS
 
         { echo "$as_me:$LINENO: WARNING: Your OS ($target_os) is not supported yet.
 Try playing with the build host and target options.
@@ -3906,9 +3911,9 @@ Try playing with the build host and target options.
 echo "$as_me: WARNING: Your OS ($target_os) is not supported yet.
 Try playing with the build host and target options.
 " >&2;}
-	sleep 3
+    sleep 3
 
-        ;;
+    ;;
 
 esac
 
@@ -4170,8 +4175,9 @@ _ACEOF
 
 
 
+CFLAGS="$_CFLAGS $CFLAGS"
 CPPFLAGS="$_DEFINES $_INCLUDES $CPPFLAGS"
-LDFLAGS="$_LDFLAGS $LDFLAGS"
+LDFLAGS="$LDFLAGS $_LDFLAGS"
 LIBS="$_LIBS $LIBS"
 
 
@@ -4245,7 +4251,7 @@ _ACEOF
   LIBS="-lpcap $LIBS"
 
 else
-  echo need pcap lib; exit
+  echo !!! need pcap lib; exit
 fi
 
 
@@ -4463,6 +4469,7 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define PCAP_RESTART_FUNC $pcap_restart_func
 _ACEOF
+
 
 
 

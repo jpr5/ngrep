@@ -95,7 +95,7 @@ dnl
 # --with-regex=pcre,*gnu  --with-regex-lib=internal,shared
 
 AC_ARG_WITH(regex,
-[  --with-regex=(pcre,gnu)	 specify which regex library to use (default: gnu)],
+[  --with-regex=(pcre,gnu)        specify which regex library to use (default: gnu)],
 [
    if test $withval = no; then
        echo "error: ngrep requires a regex library to function"
@@ -107,7 +107,7 @@ AC_ARG_WITH(regex,
 
    if test $use_regex != pcre -a $use_regex != gnu; then
         echo "error: unknown regex implementation ($withval)"
-	exit 1
+    exit 1
    fi
 ],
 [
@@ -140,7 +140,7 @@ AC_ARG_WITH(regex-impl,
 ])
 
 AC_ARG_WITH(pcap-includes,
-[  --with-pcap-includes=[dir]       specify the pcap include directory],
+[  --with-pcap-includes=dir       specify the pcap include directory],
 [PCAP_DIR=$withval],
 [
   PCAP_DIR="`eval echo -n ${includedir}` \
@@ -180,10 +180,10 @@ if test $use_regex = gnu; then
      # FIXME - shared gnu regex is a nop, right?  think it's a libc call.
      AC_CHECK_LIB(c, re_search,,
                   echo !!! error: unable to find regex in libc, defaulting to internal; 
-		  use_regex_impl="int")
+          use_regex_impl="int")
   fi
-	
-  if test $use_regex_impl = int; then	  
+    
+  if test $use_regex_impl = int; then     
       REGEX_DIR='regex-0.12'
       REGEX_OBJS="$REGEX_DIR/regex.o"
   fi
@@ -193,9 +193,14 @@ else
 
   if test $use_regex_impl = shared; then
      _LIBS="$_LIBS -lpcre"
-  else 
-     REGEX_DIR='pcre-5.0'
-     REGEX_OBJS="$REGEX_DIR/pcre.o $REGEX_DIR/study.o"
+  else
+     CONFIGURE_FLAGS="-C --disable-utf8 --disable-cpp --disable-shared"
+
+     REGEX_DIR="pcre-7.4"
+     REGEX_OBJS="$REGEX_DIR/pcre_chartables.o  $REGEX_DIR/pcre_compile.o  $REGEX_DIR/pcre_exec.o \
+                 $REGEX_DIR/pcre_get.o         $REGEX_DIR/pcre_globals.o  $REGEX_DIR/pcre_fullinfo.o \
+                 $REGEX_DIR/pcre_newline.o     $REGEX_DIR/pcre_study.o    $REGEX_DIR/pcre_tables.o \
+                 $REGEX_DIR/pcre_try_flipped.o $REGEX_DIR/pcre_xclass.o "
   fi
 fi
 
@@ -204,7 +209,7 @@ if test $use_regex_impl != shared; then
     echo "Configuring internal regex library ($use_regex) ..."
     echo
 
-    ( cd $REGEX_DIR && ./configure )
+    ( cd $REGEX_DIR && ./configure $CONFIGURE_FLAGS )
 
     _INCLUDES="$_INCLUDES -I$REGEX_DIR"
 
@@ -226,72 +231,72 @@ STRIPFLAG="-s"
 case "$target_os" in
 
 *linux*)
-	AC_SUBST(OS, LINUX)
+    AC_SUBST(OS, LINUX)
 
-        ;;
+    ;;
 
 *bsd*)
-	AC_SUBST(OS, BSD)
+    AC_SUBST(OS, BSD)
 
-	if test "$USE_PCAP_RESTART" = "0"; then 
+    if test "$USE_PCAP_RESTART" = "0"; then 
 
-        AC_MSG_WARN(
+    AC_MSG_WARN(
 !!! warning: Your OS ($target_os) may have an old libpcap installation.
 If the resulting ngrep binary segfaults when a BPF filter is specified 
 without an ngrep match string then you should reconfigure ngrep with 
 the option ``--disable-pcap-restart''.
 )
-	sleep 3
+    sleep 3
 
-	fi
+    fi
 
-        ;;
+    ;;
 
 *solaris*)
-	AC_SUBST(OS, SOLARIS)
+    AC_SUBST(OS, SOLARIS)
 
-        AC_CHECK_LIB(socket, socket,,
-                     echo no socket in -lsocket\?; exit)
-        AC_CHECK_LIB(nsl, gethostbyname,,
-                     echo no gethostbyname in -lnsl\?; exit)
+    AC_CHECK_LIB(socket, socket,,
+                 echo no socket in -lsocket\?; exit)
+    AC_CHECK_LIB(nsl, gethostbyname,,
+                 echo no gethostbyname in -lnsl\?; exit)
 
-	_LIBS="$_LIBS -lnsl -lsocket"
+    _LIBS="$_LIBS -lnsl -lsocket"
 
-	;;
+    ;;
 
 *osf*)
-	AC_SUBST(OS, OSF1)
+    AC_SUBST(OS, OSF1)
 
-	_DEFINES="$_DEFINES -D__STDC__=2"
+    _DEFINES="$_DEFINES -D__STDC__=2"
 
-	;;
+    ;;
 
 *hpux11*) 
-        AC_SUBST(OS, BSD)
-	
-	;;
+    AC_SUBST(OS, BSD)
+    
+    ;;
 
 *aix*)
-	AC_SUBST(OS, AIX)
-	
-	;;
+    AC_SUBST(OS, AIX)
+    
+    ;;
 
 *darwin*)
-	AC_SUBST(OS, MACOSX)
+    AC_SUBST(OS, MACOSX)
 
-	STRIPFLAG=""
+    STRIPFLAG=""
 
-	;;
+    ;;
 
 *)
-	AC_SUBST(OS, UNKNOWN_OS)
+    AC_SUBST(OS, UNKNOWN_OS)
         AC_MSG_WARN(
 Your OS ($target_os) is not supported yet.  
 Try playing with the build host and target options.
 )
-	sleep 3
+    sleep 3
 
-        ;;
+    ;;
 
 esac
 
@@ -437,18 +442,19 @@ AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,             $HAVE_DLT_LOOP,             [prese
 AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,        $HAVE_DLT_LINUX_SLL,        [presence of DLT_LINUX_SLL in bpf.h]) 
 
 dnl
-dnl Merge our (CFLAGS, CPPFLAGS, LDFLAGS, LIBS) with autoconf's.
+dnl Merge our (CFLAGS, CPPFLAGS, LDFLAGS) with autoconf's.
 dnl
 
+CFLAGS="$_CFLAGS $CFLAGS"
 CPPFLAGS="$_DEFINES $_INCLUDES $CPPFLAGS"
-LDFLAGS="$_LDFLAGS $LDFLAGS"
+LDFLAGS="$LDFLAGS $_LDFLAGS"
 LIBS="$_LIBS $LIBS"
 
 dnl
 dnl And the PCAP library..
 dnl
 
-AC_CHECK_LIB(pcap, pcap_open_live,,echo need pcap lib; exit)
+AC_CHECK_LIB(pcap, pcap_open_live,,echo !!! need pcap lib; exit)
 
 dnl
 dnl And the PCAP restart function..
