@@ -60,6 +60,7 @@
 #include <config.h>
 
 #define strcasecmp stricmp
+#define strncasecmp strnicmp
 
 #else
 
@@ -155,7 +156,7 @@ void (*dump_func)(unsigned char *, uint32_t, uint16_t, uint16_t) = &dump_formatt
 
 char *filter = NULL, *filter_file = NULL;
 char pc_err[PCAP_ERRBUF_SIZE];
-uint8_t link_offset;
+uint8_t link_offset, vlan_offset = 0;
 uint8_t radiotap_present = 0;
 
 pcap_t *pd = NULL, *pd_dumppcap = NULL;
@@ -197,11 +198,11 @@ int main(int argc, char **argv) {
 #endif
 
 #if !defined(_WIN32)
-    { 
+    {
         char const *locale = getenv("LANG");
-        if (locale == NULL) 
+        if (locale == NULL)
             locale = "en_US";
-       
+
         setlocale(LC_CTYPE, locale);
     }
 #endif
@@ -432,6 +433,17 @@ int main(int argc, char **argv) {
         }
     }
 
+    /* VLAN support: determine # of +4 offsets to accommodate */
+    if (filter) {
+        char const bpf_vlan[] = "vlan";
+        char *s = filter;
+        while (*s)
+            if (strncasecmp(s++, bpf_vlan, sizeof(bpf_vlan)-1) == 0)
+                vlan_offset++;
+
+        vlan_offset *= VLANHDR_SIZE;
+    }
+
     if (filter && quiet < 2)
         printf("filter: %s\n", filter);
 
@@ -613,6 +625,8 @@ int main(int argc, char **argv) {
             fprintf(stderr, "fatal: unsupported interface type %u\n", pcap_datalink(pd));
             clean_exit(-1);
     }
+
+    link_offset += vlan_offset;
 
     if (dump_file) {
         pd_dump = pcap_dump_open(pd, dump_file);
