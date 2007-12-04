@@ -998,22 +998,20 @@ int8_t blank_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uin
 
 void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
-        const unsigned char *s = data;
-        uint8_t hiliting = 0;
+        const unsigned char *s      = data;
+        uint8_t should_hilite       = (msize && enable_hilite);
+        unsigned char *hilite_start = data + mindex;
+        unsigned char *hilite_end   = hilite_start + msize;
 
         while (s < data + len) {
-            if (enable_hilite && !hiliting && (s == data + mindex)) {
-                hiliting = 1;
+            if (should_hilite && s == hilite_start)
                 printf(ANSI_hilite);
-            }
 
             printf("%c", (*s == '\n' || isprint(*s)) ? *s : nonprint_char);
             s++;
 
-            if (enable_hilite && hiliting && (s == data + mindex + msize)) {
-                hiliting = 0;
+            if (should_hilite && s == hilite_end)
                 printf(ANSI_off);
-            }
         }
 
         printf("\n");
@@ -1022,22 +1020,20 @@ void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t ms
 
 void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
-        const unsigned char *s = data;
-        uint8_t hiliting = 0;
+        const unsigned char *s      = data;
+        uint8_t should_hilite       = (msize && enable_hilite);
+        unsigned char *hilite_start = data + mindex;
+        unsigned char *hilite_end   = hilite_start + msize;
 
         while (s < data + len) {
-            if (enable_hilite && !hiliting && (s == data + mindex)) {
-                hiliting = 1;
+            if (should_hilite && s == hilite_start)
                 printf(ANSI_hilite);
-            }
 
             printf("%c", isprint(*s) ? *s : nonprint_char);
             s++;
 
-            if (enable_hilite && hiliting && (s == data + mindex + msize)) {
-                hiliting = 0;
+            if (should_hilite && s == hilite_end)
                 printf(ANSI_off);
-            }
         }
 
         printf("\n");
@@ -1046,18 +1042,19 @@ void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 
 void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
-        unsigned char *str = data;
-          uint8_t hiliting = 0;
-             uint8_t width = show_hex ? 16 : (ws_col-5);
-                uint32_t i = 0,
-                         j = 0;
+        uint8_t should_hilite = (msize && enable_hilite);
+           unsigned char *str = data;
+             uint8_t hiliting = 0;
+                uint8_t width = show_hex ? 16 : (ws_col-5);
+                   uint32_t i = 0,
+                            j = 0;
 
         while (i < len) {
             printf("  ");
 
             if (show_hex) {
                 for (j = 0; j < width; j++) {
-                    if (enable_hilite && (mindex <= (i+j) && (i+j) < mindex + msize)) {
+                    if (should_hilite && (mindex <= (i+j) && (i+j) < mindex + msize)) {
                         hiliting = 1;
                         printf(ANSI_hilite);
                     }
@@ -1077,7 +1074,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
             }
 
             for (j = 0; j < width; j++) {
-                if (enable_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
+                if (should_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
                     hiliting = 1;
                     printf(ANSI_hilite);
                 }
