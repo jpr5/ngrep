@@ -24,6 +24,7 @@
 #define ISDNHDR_SIZE 16
 #define IEEE80211HDR_SIZE 32
 #define PFLOGHDR_SIZE 48
+#define VLANHDR_SIZE 4
 
 /*
  * Default patterns for BPF and regular expression filters.
@@ -35,8 +36,8 @@
 #define BPF_FILTER_IP       "(ip)"
 #endif
 
-#define BPF_FILTER_OTHER    " and ( %s)"
-#define BPF_MAIN_FILTER     BPF_FILTER_IP BPF_FILTER_OTHER
+#define BPF_FILTER_OTHER    "( %s) and "
+#define BPF_MAIN_FILTER     BPF_FILTER_OTHER BPF_FILTER_IP
 
 #define WORD_REGEX "((^%s\\W)|(\\W%s$)|(\\W%s\\W))"
 
