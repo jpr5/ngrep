@@ -646,7 +646,7 @@ int main(int argc, char **argv) {
     drop_privs();
 #endif
 
-    while (pcap_loop(pd, 0, (pcap_handler)process, 0));
+    while (pcap_loop(pd, -1, (pcap_handler)process, 0));
 
     clean_exit(0);
 
