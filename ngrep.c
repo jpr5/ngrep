@@ -58,6 +58,7 @@
 #include <types.h>
 #include <inet_ntop.h>
 #include <config.h>
+#include <wincon.h>
 
 #define strcasecmp stricmp
 #define strncasecmp strnicmp
@@ -179,10 +180,13 @@ void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
 
 /*
- * Window-size functionality (adjust output based on width of console display)
+ * Terminal functionality
+ *   - adjust output based on width of console display
+ *   - color hiliting for matched terms (if enabled)
  */
 
 uint32_t ws_row, ws_col = 80, ws_col_forced = 0;
+uint32_t term_orig_colors;
 
 
 int main(int argc, char **argv) {
@@ -1005,13 +1009,13 @@ void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t ms
 
         while (s < data + len) {
             if (should_hilite && s == hilite_start)
-                printf(ANSI_hilite);
+                TERM_hilite();
 
             printf("%c", (*s == '\n' || isprint(*s)) ? *s : nonprint_char);
             s++;
 
             if (should_hilite && s == hilite_end)
-                printf(ANSI_off);
+                TERM_normal();
         }
 
         printf("\n");
@@ -1027,13 +1031,13 @@ void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 
         while (s < data + len) {
             if (should_hilite && s == hilite_start)
-                printf(ANSI_hilite);
+                TERM_hilite();
 
             printf("%c", isprint(*s) ? *s : nonprint_char);
             s++;
 
             if (should_hilite && s == hilite_end)
-                printf(ANSI_off);
+                TERM_normal();
         }
 
         printf("\n");
@@ -1046,7 +1050,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
            unsigned char *str = data;
              uint8_t hiliting = 0;
                 uint8_t width = show_hex ? 16 : (ws_col-5);
-                   uint32_t i = 0,
+                   uint16_t i = 0,
                             j = 0;
 
         while (i < len) {
@@ -1054,12 +1058,12 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 
             if (show_hex) {
                 for (j = 0; j < width; j++) {
-                    if (should_hilite && (mindex <= (i+j) && (i+j) < mindex + msize)) {
+                    if (should_hilite && (mindex <= (i+j)) && ((i+j) < (mindex + msize))) {
                         hiliting = 1;
-                        printf(ANSI_hilite);
+                        TERM_hilite();
                     }
 
-                    if (i + j < len)
+                    if ((uint32_t)(i+j) < len)
                         printf("%02x ", str[j]);
                     else printf("   ");
 
@@ -1068,7 +1072,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 
                     if (hiliting) {
                         hiliting = 0;
-                        printf(ANSI_off);
+                        TERM_normal();
                     }
                 }
             }
@@ -1076,16 +1080,16 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
             for (j = 0; j < width; j++) {
                 if (should_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
                     hiliting = 1;
-                    printf(ANSI_hilite);
+                    TERM_hilite();
                 }
 
-                if (i + j < len)
+                if ((uint32_t)(i+j) < len)
                     printf("%c", isprint(str[j]) ? str[j] : nonprint_char);
                 else printf(" ");
 
                 if (hiliting) {
                     hiliting = 0;
-                    printf(ANSI_off);
+                    TERM_normal();
                 }
             }
 
@@ -1266,7 +1270,32 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
     prev_delay_ts.tv_usec = h->ts.tv_usec;
 }
 
+void init_termcolor(void) {
+    /*
+     * FIXME: On Windows, I guess we're just going to force them into
+     * white on black.  Until I figure out how to get the current
+     * (ANSI) color from a UNIX terminal, I'm forcing UNIX users into
+     * the same (only if the color stuff is enabled).  :-(
+     *
+     * FFR: Should look into how ``grep --color'' does it.
+     */
+
+#if defined(_WIN32)
+    term_orig_colors = csbiInfo.wAttributes;
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), HILITE_normal);
+#else
+    // ...
+#endif
+}
+
 void update_windowsize(int32_t e) {
+    if (e == 0 && enable_hilite)
+        init_termcolor();
+
+    /*
+     * Now grab the screen dimensions.
+     */
+
     if (e == 0 && ws_col_forced)
 
         ws_col = ws_col_forced;
@@ -1282,7 +1311,11 @@ void update_windowsize(int32_t e) {
         }
 #else
         CONSOLE_SCREEN_BUFFER_INFO csbi;
-        if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+        memset(&csbi, 0, sizeof(csbi));
+
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+
+        if (csbi.dwSize.Y && csbi.dwSize.X) {
             ws_row = csbi.dwSize.Y;
             ws_col = csbi.dwSize.X;
         }
@@ -1291,8 +1324,8 @@ void update_windowsize(int32_t e) {
             ws_row = 24;
             ws_col = 80;
         }
-
     }
+
 }
 
 #if !defined(_WIN32) && USE_DROPPRIVS
@@ -1330,6 +1363,24 @@ void drop_privs(void) {
 }
 
 #endif
+
+void TERM_hilite(void) {
+#if defined(_WIN32)
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), HILITE_on);
+#else
+    printf(HILITE_on);
+#endif
+}
+
+void TERM_normal(void) {
+#if defined(_WIN32)
+    //    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), HILITE_normal);
+    printf("standard handle = %u\n", GetStdHandle(STD_OUTPUT_HANDLE));
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), HILITE_reset);
+#else
+    printf(HILITE_reset);
+#endif
+}
 
 void usage(int8_t e) {
     printf("usage: ngrep <-"
@@ -1525,6 +1576,13 @@ char *win32_choosedevice(void) {
         dev = pcap_lookupdev(errbuf);
 
     return dev;
+}
+
+void win32_save_colors(void) {
+    if (!GetConsoleScreenBufferInfo(hStdout, &csbiInfo))
+        MyErrorExit("GetConsoleScreenBufferInfo");
+
+    wOldColorAttrs = csbiInfo.wAttributes;
 }
 #endif
 

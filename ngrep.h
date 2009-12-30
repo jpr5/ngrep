@@ -130,10 +130,18 @@ struct NGREP_rtaphdr_t {
  * ANSI color/hilite stuff.
  */
 
-const char ANSI_red[]  = "\33[01;31m";
-const char ANSI_bold[] = "\33[01m";
+#if !defined(_WIN32)
 
-const char *ANSI_hilite = ANSI_red;
-const char  ANSI_off[]  = "\33[00m";
+const char HILITE_on[]    = "\33[01;31m"; // red
+const char HILITE_reset[] = "\33[m";
 
+#else
 
+const uint32_t HILITE_on    = FOREGROUND_INTENSITY;
+const uint32_t HILITE_reset = ~FOREGROUND_INTENSITY;
+
+#endif
+
+void init_termcolor(void);
+inline void TERM_hilite(void);
+inline void TERM_normal(void);
