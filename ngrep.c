@@ -1,4 +1,4 @@
-/*
+o/*
  * $Id$
  *
  * Copyright (c) 2007  Jordan Ritter <jpr5@darkridge.com>
@@ -196,6 +196,8 @@ int main(int argc, char **argv) {
     signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
 #endif
+
+    setlocale(LC_ALL, "");
 
 #if !defined(_WIN32)
     {
