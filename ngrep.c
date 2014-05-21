@@ -110,6 +110,9 @@ static char rcsver[] = "$Revision$";
 
 uint16_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
 uint16_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+#if USE_TCPKILL
+uint16_t tcpkill_active = 0;
+#endif
 
 uint8_t  re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
 uint8_t  show_empty = 0, show_hex = 0, show_proto = 0, quiet = 0;
@@ -209,7 +212,7 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMCs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -332,6 +335,11 @@ int main(int argc, char **argv) {
             case 'N':
                 show_proto++;
                 break;
+#if USE_TCPKILL
+            case 'K':
+                tcpkill_active = atoi(optarg);
+                break;
+#endif
             case 'h':
                 usage(0);
             default:
@@ -346,6 +354,11 @@ int main(int argc, char **argv) {
 
     if (argv[optind])
         match_data = argv[optind++];
+
+#if USE_TCPKILL
+    if (tcpkill_active)
+        tcpkill_init();
+#endif
 
     if (read_file) {
 
@@ -916,6 +929,11 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
 
     if (pd_dump)
         pcap_dump((u_char*)pd_dump, h, p);
+
+#if USE_TCPKILL
+    if (tcpkill_active)
+        tcpkill_kill(h, p, link_offset, tcpkill_active);
+#endif
 }
 
 int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
@@ -1340,7 +1358,12 @@ void usage(int8_t e) {
 #endif
            "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>\n"
-           "             <-P char> <-F file> <match expression> <bpf filter>\n"
+           "             <-P char> <-F file>"
+#if USE_TCPKILL
+           "             <-K count>"
+#endif
+           "\n"
+           "             <match expression> <bpf filter>\n"
            "   -h  is help/usage\n"
            "   -V  is version information\n"
            "   -q  is be quiet (don't print packet reception hash marks)\n"
@@ -1374,6 +1397,9 @@ void usage(int8_t e) {
            "   -L  is show the winpcap device list index\n"
 #else
            "   -d  is use specified device instead of the pcap default\n"
+#endif
+#if USE_TCPKILL
+           "   -K  is send N packets to kill observed connections\n"
 #endif
            "");
 

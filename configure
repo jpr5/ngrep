@@ -664,6 +664,7 @@ with_dropprivs_user
 enable_dropprivs
 enable_ipv6
 enable_pcre
+enable_tcpkill
 with_pcap_includes
 '
       ac_precious_vars='build_alias
@@ -1291,6 +1292,7 @@ Optional Features:
   --disable-dropprivs     disable privilege dropping logic
   --enable-ipv6           enable IPv6 (and ICMPv6) support
   --enable-pcre           use PCRE instead of GNU regex
+  --enable-tcpkill           enable connection killing support
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -3424,18 +3426,22 @@ fi
 
 
 
-   use_regex_impl="$withval"
-   test $withval = yes && use_regex_impl="int"
 
-   if test $use_regex_impl != int -a $use_regex_impl != sys; then
-      echo "!!! error: unknown regex library ($withval)"
-      exit ;
-   fi
-],
+# Check whether --enable-tcpkill was given.
+if test "${enable_tcpkill+set}" = set; then :
+  enableval=$enable_tcpkill;
+#  AC_CHECK_LIB(net, libnet_init_packet,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
+  USE_TCPKILL="1"
+  EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
+  EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
+  EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
 
-  dnl Default when the parameter wasn't specified.
-  use_regex_impl="int"
-)
+else
+
+  USE_TCPKILL="0"
+
+fi
+
 
 
 
@@ -3847,6 +3853,11 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+cat >>confdefs.h <<_ACEOF
+#define USE_TCPKILL $USE_TCPKILL
+_ACEOF
+
+
 
 cat >>confdefs.h <<_ACEOF
 #define USE_DROPPRIVS $USE_DROPPRIVS
@@ -4109,6 +4120,12 @@ if test "$USE_PCRE" = "1"; then
     echo "CONFIG: using PCRE regex library"
 else
     echo "CONFIG: using GNU regex library"
+fi
+
+if test "$USE_TCPKILL" = "1"; then
+    echo "CONFIG: tcpkill feature enabled"
+else
+    echo "CONFIG: tcpkill feature disabled"
 fi
 
 

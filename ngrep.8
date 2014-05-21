@@ -142,6 +142,10 @@ command-line.
 Specify an alternate character to signify non-printable characters
 when displayed.  The default is ``.''.
 
+.IP "-K num"
+Kill matching TCP connections (like tcpkill).  The numeric argument
+controls how many RST segments are sent.
+
 .IP "-W normal|byline|single|none"
 Specify an alternate manner for displaying packets, when not in
 hexadecimal mode.  The ``byline'' mode honors embedded linefeeds,
