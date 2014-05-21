@@ -1,4 +1,5 @@
-$Id$
+
+NOTE: These instructions are from the 2006 release of ngrep 1.45.
 
 ngrep Installation Guide
 ------------------------
@@ -78,4 +79,4 @@ Please email me for help if you if you still have problems, however
 please try to help yourself first and search Google for possible
 answers before contacting me.
 
-Jordan Ritter <jordan@darkridge.com>
+Jordan Ritter <jpr5@darkridge.com>

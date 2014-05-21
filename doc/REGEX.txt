@@ -1,5 +1,3 @@
-$Id$
-
 Date: 2/21/05
 
 A note about PCRE vs. GNU regex:
