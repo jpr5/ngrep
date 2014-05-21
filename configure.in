@@ -9,21 +9,40 @@ dnl NOTE: configure.in requires autoconf 2.57 or more recent.
 
 AC_INIT(ngrep.c)
 
+echo
+echo 'Configuring System ...'
+echo
+
+AC_CANONICAL_SYSTEM
+AC_PROG_CC
+AC_HEADER_STDC
+
+AC_PREFIX_DEFAULT(/usr/local)
+if test -n "`which tcpdump 2> /dev/null`"; then
+   AC_PREFIX_PROGRAM(tcpdump)
+fi
+
+EXTRA_DEFINES=""
+EXTRA_INCLUDES=""
+EXTRA_LDFLAGS=""
+EXTRA_OBJS=""
+EXTRA_LIBS=""
+
 dnl
 dnl Define the arguments that we accept.  Parse them first.
 dnl
 
 dnl
-dnl For libpcap's that don't need the restart function called for 
-dnl multiple lexer passes, allow them to turn it off here.  This option
-dnl exists solely to address a very rude email from the maintainer 
-dnl indicating that it shouldn't be called directly (and of course he
-dnl was wrong because this is still needed). 
+dnl For libpcap's that don't need the restart function called for multiple lexer
+dnl passes, allow them to turn it off here.  This option exists solely to
+dnl address a very rude email from the pcap maintainer indicating that it
+dnl shouldn't be called directly (and of course he was wrong because this is
+dnl still needed on some older platforms).
 dnl
 
 AC_ARG_ENABLE(pcap-restart,
 [  --disable-pcap-restart  disable libpcap restart in parser],
-[ 
+[
   use_pcap_restart="$enableval"
 ],
 [
@@ -31,9 +50,9 @@ AC_ARG_ENABLE(pcap-restart,
 ])
 
 if test $use_pcap_restart = yes; then
-   USE_PCAP_RESTART="1"
+  USE_PCAP_RESTART="1"
 else
-   USE_PCAP_RESTART="0"
+  USE_PCAP_RESTART="0"
 fi
 
 dnl
@@ -64,20 +83,20 @@ AC_ARG_ENABLE(dropprivs,
 
 if test $use_dropprivs = yes; then
    USE_DROPPRIVS="1"
-else 
+else
    USE_DROPPRIVS="0"
 fi
 
-dnl 
+dnl
 dnl IPv6 (and ICMPv6) support
 dnl
 
 AC_ARG_ENABLE(ipv6,
 [  --enable-ipv6           enable IPv6 (and ICMPv6) support],
-[ 
+[
   use_ipv6="$enableval"
 ],
-[ 
+[
   use_ipv6="no"
 ])
 
@@ -92,34 +111,32 @@ dnl
 dnl Configure the regular expression library.
 dnl
 
-AC_ARG_WITH(regex,
-[  --with-regex=(pcre,gnu)        specify which regex library to use (default: gnu)],
+REGEX_DIR=''
+REGEX_OBJS=''
+
+AC_ARG_ENABLE(pcre,
+[  --enable-pcre           use PCRE instead of GNU regex],
 [
-   if test $withval = no; then
-       echo "error: ngrep requires a regex library to function"
-       exit 1
-   fi
-
-   use_regex="$withval"
-   test $withval = yes && use_regex="gnu"
-
-   if test $use_regex != pcre -a $use_regex != gnu; then
-        echo "error: unknown regex implementation ($withval)"
-    exit 1
-   fi
+  USE_PCRE="1"
+  EXTRA_LIBS="$EXTRA_LIBS -lpcre"
 ],
 [
-  dnl Default when the parameter wasn't specified.
-  use_regex="gnu"
+  USE_PCRE="0"
+
+  echo
+  echo 'Configuring GNU Regular Expression library ...'
+  echo
+
+  REGEX_DIR='regex-0.12'
+  REGEX_OBJS="$REGEX_DIR/regex.o"
+
+  ( cd $REGEX_DIR && ./configure )
+
+  EXTRA_INCLUDES="$EXTRA_INCLUDES -I$REGEX_DIR"
 ])
 
-AC_ARG_WITH(regex-impl,
-[  --with-regex-impl=(int,sys)    specify which regex impl to use (default: internal)],
-[
-   if test $withval = no; then
-       echo "!!! error: ngrep requires a regex library to function"
-       exit 1
-   fi
+AC_SUBST(REGEX_DIR)
+AC_SUBST(REGEX_OBJS)
 
    use_regex_impl="$withval"
    test $withval = yes && use_regex_impl="int"
@@ -134,6 +151,7 @@ AC_ARG_WITH(regex-impl,
   use_regex_impl="int"
 ])
 
+
 AC_ARG_WITH(pcap-includes,
 [  --with-pcap-includes=dir       specify the pcap include directory],
 [PCAP_DIR=$withval],
@@ -141,81 +159,14 @@ AC_ARG_WITH(pcap-includes,
   PCAP_DIR="`eval echo -n ${includedir}` \
             /usr/include /usr/include/pcap \
             /usr/local/include /usr/local/include/pcap \
+            /opt/local/include /opt/local/include/pcap \
             /usr/share/include /usr/share/include/pcap"
 ])
-
-echo
-echo 'Configuring System ...'
-echo
-
-AC_CANONICAL_SYSTEM
-AC_PROG_CC
-
-CFLAGS=""
-AC_HEADER_STDC
-
-AC_PREFIX_DEFAULT(/usr/local) 
-if test -n "`which tcpdump 2> /dev/null`"; then
-   AC_PREFIX_PROGRAM(tcpdump)
-fi
-
-_DEFINES=""
-_INCLUDES=""
-_LDFLAGS=""
-_LIBS=""
-
-dnl
-dnl Now configure the regex impl stuff.
-dnl
-
-if test $use_regex = gnu; then
-  USE_PCRE="0"
-
-  if test $use_regex_impl = sys; then 
-     # TODO - shared gnu regex is a nop, right?  think it's a libc call.
-     AC_CHECK_LIB(c, re_search,,
-                  echo !!! error: unable to find regex in libc, defaulting to internal; 
-          use_regex_impl="int")
-  fi
-    
-  if test $use_regex_impl = int; then     
-      REGEX_DIR='regex-0.12'
-      REGEX_OBJS="$REGEX_DIR/regex.o"
-  fi
-
-else 
-  USE_PCRE="1"
-
-  if test $use_regex_impl = sys; then
-     _LIBS="$_LIBS -lpcre"
-  else
-     CONFIGURE_FLAGS="-C --disable-utf8 --disable-cpp --disable-shared"
-
-     REGEX_DIR="pcre-7.4"
-     REGEX_OBJS="$REGEX_DIR/pcre_chartables.o  $REGEX_DIR/pcre_compile.o  $REGEX_DIR/pcre_exec.o \
-                 $REGEX_DIR/pcre_get.o         $REGEX_DIR/pcre_globals.o  $REGEX_DIR/pcre_fullinfo.o \
-                 $REGEX_DIR/pcre_newline.o     $REGEX_DIR/pcre_study.o    $REGEX_DIR/pcre_tables.o \
-                 $REGEX_DIR/pcre_try_flipped.o $REGEX_DIR/pcre_xclass.o "
-  fi
-fi
-
-if test $use_regex_impl != sys; then 
-    echo
-    echo "Configuring internal regex library ($use_regex) ..."
-    echo
-
-    ( cd $REGEX_DIR && ./configure $CONFIGURE_FLAGS )
-
-    _INCLUDES="$_INCLUDES -I$REGEX_DIR"
-
-    AC_SUBST(REGEX_OBJS)
-    AC_SUBST(REGEX_DIR)
-fi
 
 
 echo
 echo 'Configuring Network Grep (ngrep) ...'
-echo 
+echo
 
 dnl
 dnl OS-specific options
@@ -233,12 +184,12 @@ case "$target_os" in
 *bsd*)
     AC_SUBST(OS, BSD)
 
-    if test "$USE_PCAP_RESTART" = "0"; then 
+    if test "$USE_PCAP_RESTART" = "0"; then
 
     AC_MSG_WARN(
 !!! warning: Your OS ($target_os) may have an old libpcap installation.
-If the resulting ngrep binary segfaults when a BPF filter is specified 
-without an ngrep match string then you should reconfigure ngrep with 
+If the resulting ngrep binary segfaults when a BPF filter is specified
+without an ngrep match string then you should reconfigure ngrep with
 the option ``--disable-pcap-restart''.
 )
     sleep 3
@@ -255,25 +206,25 @@ the option ``--disable-pcap-restart''.
     AC_CHECK_LIB(nsl, gethostbyname,,
                  echo no gethostbyname in -lnsl\?; exit)
 
-    _LIBS="$_LIBS -lnsl -lsocket"
+    EXTRA_LIBS="$EXTRA_LIBS -lnsl -lsocket"
 
     ;;
 
 *osf*)
     AC_SUBST(OS, OSF1)
 
-    _DEFINES="$_DEFINES -D__STDC__=2"
+    EXTRA_DEFINES="$EXTRA_DEFINES -D__STDC__=2"
 
     ;;
 
-*hpux11*) 
+*hpux11*)
     AC_SUBST(OS, BSD)
-    
+
     ;;
 
 *aix*)
     AC_SUBST(OS, AIX)
-    
+
     ;;
 
 *darwin*)
@@ -286,7 +237,7 @@ the option ``--disable-pcap-restart''.
 *)
     AC_SUBST(OS, UNKNOWN_OS)
         AC_MSG_WARN(
-Your OS ($target_os) is not supported yet.  
+Your OS ($target_os) is not supported yet.
 Try playing with the build host and target options.
 )
     sleep 3
@@ -297,48 +248,71 @@ esac
 
 AC_SUBST(STRIPFLAG)
 
-_DEFINES="$_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
-
+EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
 
 dnl
-dnl First find some usable PCAP headers.
+dnl Quick Background:
+dnl
+dnl A long time ago, the libpcap team decided to change the functionality split
+dnl and installation location of their header files.  Consequently, installing
+dnl the prior version's headers, followed by the newer version's, would result
+dnl in two sets of different but similarly-named headers.  This broke a lot of
+dnl packages, since most developers just included <pcap.h> in their programs.
+dnl Many (including ngrep) addressed the problem by detecting this condition and
+dnl alerting the user to fix it manually.  Eventually the libpcap team decided
+dnl to add back in the top-level pcap.h, presumably to rectify the hassle.
+dnl
+dnl On modern Linux distros, checking for this condition likely doesn't matter
+dnl anymore.  However, ngrep targets a much broader range of (older) OSes, so
+dnl it's still a possibility.  The re-addition of a top-level pcap.h confounds
+dnl the old header presence check, so I've updated it to search for the version,
+dnl PCAP_VERSION_MAJOR.  Maybe I'll delete it in another 5 years.  ;-)
 dnl
 
 AC_MSG_CHECKING(for a complete set of pcap headers)
 
-pcap_dir=""
-for dir in $PCAP_DIR ; do 
-    if test -d $dir -a -r "$dir/pcap.h" ; then 
-       if test -n "$pcap_dir" -a "$pcap_dir" != "$dir"; then
-          echo 
+pcap_base=""
+for dir in $PCAP_DIR ; do
+    if test -d $dir -a -r "$dir/pcap.h"; then
+
+       AC_EGREP_HEADER([PCAP_VERSION_MAJOR], [$dir/pcap.h], [found=$dir], [found=""])
+
+       if test -n "$found" -a "$found" != "$pcap_base"; then
+          echo
           echo; echo more than one set found in:
-          echo  $pcap_dir 
-          echo  $dir
+          echo  $pcap_base
+          echo  $found
           echo; echo please wipe out all unused pcap installations
           exit
-       else 
-          pcap_dir="$dir"
+       else
+          pcap_base="$dir"
        fi
+
     fi
 done
 
-if test -z "$pcap_dir" ; then
+if test -z "$pcap_base" ; then
    echo no; echo !!! error: couldn\'t find a complete set of pcap headers
    exit
 else
-   echo found $pcap_dir
+   echo found $pcap_base
 
-   _INCLUDES="$_INCLUDES -I$pcap_dir"
-   _LDFLAGS="$_LDFLAGS -L`dirname $pcap_dir`/lib"
+   EXTRA_INCLUDES="$EXTRA_INCLUDES -I$pcap_base"
+
+   dnl Best-effort; newer ld warns on missing dirs.
+   DIR="`dirname $pcap_base`/lib"
+   if test -d $DIR; then
+     EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+   fi
 fi
 
 
-dnl 
+dnl
 dnl Next figure out which bpf header file to look at.
 dnl
 
 AC_MSG_CHECKING(for BPF include path)
-BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_dir/pcap.h`
+BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap.h`
 echo $BPF
 
 dnl
@@ -347,7 +321,7 @@ dnl libpcap's
 dnl
 
 present=""
-AC_MSG_CHECKING(for DLT_LINUX_SLL in bpf.h)
+AC_MSG_CHECKING(for DLT_LINUX_SLL in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -358,7 +332,7 @@ yes
 [HAVE_DLT_LINUX_SLL="1" && echo yes], [HAVE_DLT_LINUX_SLL="0" && echo no])
 
 present=""
-AC_MSG_CHECKING(for DLT_LOOP in bpf.h)
+AC_MSG_CHECKING(for DLT_LOOP in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -369,7 +343,7 @@ yes
 [HAVE_DLT_LOOP="1" && echo yes], [HAVE_DLT_LOOP="0" && echo no])
 
 present=""
-AC_MSG_CHECKING(for DLT_IEEE802_11 in bpf.h)
+AC_MSG_CHECKING(for DLT_IEEE802_11 in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -381,7 +355,7 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_IEEE802_11_RADIO in bpf.h)
+AC_MSG_CHECKING(for DLT_IEEE802_11_RADIO in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -393,7 +367,7 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_RAW in bpf.h)
+AC_MSG_CHECKING(for DLT_RAW in $BPF)
 AC_EGREP_CPP(yes,
 [
 #include <$BPF>
@@ -419,7 +393,7 @@ yes
 dnl
 dnl Now that we're past the OS-specific stuff, which could have
 dnl modified our USE_* and other defines, define them all now.
-dnl 
+dnl
 
 AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,          $USE_PCAP_RESTART,          [whether to call pcap_restart() before subsequent invocations of pcap_compile() (default yes)])
 
@@ -429,34 +403,35 @@ AC_DEFINE_UNQUOTED(USE_IPv6,                  $USE_IPv6,                  [wheth
 AC_DEFINE_UNQUOTED(USE_DROPPRIVS,             $USE_DROPPRIVS,             [whether to use privileges dropping (default yes)])
 AC_DEFINE_UNQUOTED(DROPPRIVS_USER,           "$DROPPRIVS_USER",           [pseudo-user for running ngrep (default "nobody")])
 
-AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,              $HAVE_DLT_RAW,              [presence of DLT_RAW in bpf.h]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_RAW,              $HAVE_DLT_RAW,              [presence of DLT_RAW in bpf.h])
 AC_DEFINE_UNQUOTED(HAVE_DLT_PFLOG,            $HAVE_DLT_PFLOG,            [presence of DLT_PFLOG in $BPF])
-AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11,       $HAVE_DLT_IEEE802_11,       [presence of DLT_IEEE802_11 in bpf.h]) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11_RADIO, $HAVE_DLT_IEEE802_11_RADIO, [presence of DLT_IEEE802_11_RADIO in bpf.h]) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,             $HAVE_DLT_LOOP,             [presence of DLT_LOOP in bpf.h]) 
-AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,        $HAVE_DLT_LINUX_SLL,        [presence of DLT_LINUX_SLL in bpf.h]) 
+AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11,       $HAVE_DLT_IEEE802_11,       [presence of DLT_IEEE802_11 in bpf.h])
+AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11_RADIO, $HAVE_DLT_IEEE802_11_RADIO, [presence of DLT_IEEE802_11_RADIO in bpf.h])
+AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,             $HAVE_DLT_LOOP,             [presence of DLT_LOOP in bpf.h])
+AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,        $HAVE_DLT_LINUX_SLL,        [presence of DLT_LINUX_SLL in bpf.h])
 
 dnl
-dnl Merge our (CFLAGS, CPPFLAGS, LDFLAGS) with autoconf's.
+dnl Merge our global tack-ons with autoconf's.
 dnl
 
-CFLAGS="$_CFLAGS $CFLAGS"
-CPPFLAGS="$_DEFINES $_INCLUDES $CPPFLAGS"
-LDFLAGS="$LDFLAGS $_LDFLAGS"
-LIBS="$_LIBS $LIBS"
+AC_SUBST(EXTRA_DEFINES)
+AC_SUBST(EXTRA_INCLUDES)
+AC_SUBST(EXTRA_LDFLAGS)
+AC_SUBST(EXTRA_OBJS)
+AC_SUBST(EXTRA_LIBS)
 
 dnl
 dnl And the PCAP library..
 dnl
 
-AC_CHECK_LIB(pcap, pcap_open_live,,echo !!! need pcap lib; exit)
+AC_CHECK_LIB(pcap, pcap_open_live,,echo !!! error: need a viable pcap lib; exit)
 
 dnl
 dnl And the PCAP restart function..
 dnl
 
 pcap_restart_func=""
-if test "$use_pcap_restart" = "yes" ; then 
+if test "$use_pcap_restart" = "yes" ; then
    AC_CHECK_LIB(pcap, pcap_restart, pcap_restart_func="pcap_restart",
      AC_CHECK_LIB(pcap, pcap_yyrestart, pcap_restart_func="pcap_yyrestart",
        AC_CHECK_LIB(pcap, yyrestart, pcap_restart_func="yyrestart",
@@ -475,9 +450,9 @@ dnl
 dnl Emit configuration messages about any flags specified.
 dnl
 
-echo 
+echo
 
-if test "$USE_PCAP_RESTART" = "0"; then 
+if test "$USE_PCAP_RESTART" = "0"; then
     echo "CONFIG: pcap restart logic disabled"
 fi
 
@@ -494,9 +469,9 @@ else
 fi
 
 if test "$USE_PCRE" = "1"; then
-    echo "CONFIG: using PCRE regex library ($use_regex_impl)"
+    echo "CONFIG: using PCRE regex library"
 else
-    echo "CONFIG: using GNU regex library ($use_regex_impl)"
+    echo "CONFIG: using GNU regex library"
 fi
 
 dnl
