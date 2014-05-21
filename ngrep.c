@@ -1007,13 +1007,13 @@ void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t ms
 
         while (s < data + len) {
             if (should_hilite && s == hilite_start)
-                printf(ANSI_hilite);
+                printf("%s", ANSI_hilite);
 
             printf("%c", (*s == '\n' || isprint(*s)) ? *s : nonprint_char);
             s++;
 
             if (should_hilite && s == hilite_end)
-                printf(ANSI_off);
+                printf("%s", ANSI_off);
         }
 
         printf("\n");
@@ -1029,13 +1029,13 @@ void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 
         while (s < data + len) {
             if (should_hilite && s == hilite_start)
-                printf(ANSI_hilite);
+                printf("%s", ANSI_hilite);
 
             printf("%c", isprint(*s) ? *s : nonprint_char);
             s++;
 
             if (should_hilite && s == hilite_end)
-                printf(ANSI_off);
+                printf("%s", ANSI_off);
         }
 
         printf("\n");
@@ -1058,7 +1058,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
                 for (j = 0; j < width; j++) {
                     if (should_hilite && (mindex <= (i+j) && (i+j) < mindex + msize)) {
                         hiliting = 1;
-                        printf(ANSI_hilite);
+                        printf("%s", ANSI_hilite);
                     }
 
                     if (i + j < len)
@@ -1070,7 +1070,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 
                     if (hiliting) {
                         hiliting = 0;
-                        printf(ANSI_off);
+                        printf("%s", ANSI_off);
                     }
                 }
             }
@@ -1078,7 +1078,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
             for (j = 0; j < width; j++) {
                 if (should_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
                     hiliting = 1;
-                    printf(ANSI_hilite);
+                    printf("%s", ANSI_hilite);
                 }
 
                 if (i + j < len)
@@ -1087,7 +1087,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 
                 if (hiliting) {
                     hiliting = 0;
-                    printf(ANSI_off);
+                    printf("%s", ANSI_off);
                 }
             }
 
