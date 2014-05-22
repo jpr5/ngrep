@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * This is Win32-specific support functionality for inet_ntop(),
  * which is missing from Win32.  The code was used from FreeBSD:
  *

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright (c) 2014  Jordan Ritter <jpr5@darkridge.com>
  *
  * Please refer to the LICENSE file for more information.
@@ -101,8 +99,6 @@
 
 #include "ngrep.h"
 
-
-static char rcsver[] = "$Revision$";
 
 /*
  * Configuration Options
@@ -1408,7 +1404,7 @@ void usage(int8_t e) {
 
 
 void version(void) {
-    printf("ngrep: V%s, %s\n", VERSION, rcsver);
+    printf("ngrep: V%s\n", VERSION);
     exit(0);
 }
 

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Win32-specific version for manual manipulation.
  */
 

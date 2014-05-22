@@ -1,7 +1,4 @@
-
 /*
- * $Id$
- *
  * Because Windows standard headers are woefully inadequate for (real)
  * network application development, and because I'm basically lazy, I
  * created this header as a container for the types ngrep needs.

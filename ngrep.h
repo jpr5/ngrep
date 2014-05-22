@@ -1,13 +1,11 @@
 /*
- * $Id$
- *
  * Copyright (c) 2014  Jordan Ritter <jpr5@darkridge.com>
  *
  * Please refer to the LICENSE file for more information.
  *
  */
 
-#define VERSION "1.46-CVS"
+#define VERSION "1.46-git"
 
 /*
  * We cache the standard frame sizes here to save us time and

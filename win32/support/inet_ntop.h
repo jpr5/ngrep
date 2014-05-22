@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Compatibility header, supporting Win32-specific inet_ntop() implementation.
  */
 

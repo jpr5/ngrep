@@ -1,6 +1,3 @@
-/*
- * $Id$
- */
 
 #include <stdio.h>                  /* for EOF */ 
 #include <string.h>                 /* for strchr() */ 

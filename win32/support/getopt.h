@@ -1,6 +1,3 @@
-/*
- * $Id$ 
- */
 
 #define _next_char(string)  (char)(*(string+1))
 
