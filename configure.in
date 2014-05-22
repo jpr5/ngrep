@@ -31,29 +31,6 @@ dnl Define the arguments that we accept.  Parse them first.
 dnl
 
 dnl
-dnl For libpcap's that don't need the restart function called for multiple lexer
-dnl passes, allow them to turn it off here.  This option exists solely to
-dnl address a very rude email from the pcap maintainer indicating that it
-dnl shouldn't be called directly (and of course he was wrong because this is
-dnl still needed on some older platforms).
-dnl
-
-AC_ARG_ENABLE(pcap-restart,
-[  --disable-pcap-restart  disable libpcap restart in parser],
-[
-  use_pcap_restart="$enableval"
-],
-[
-  use_pcap_restart="yes"
-])
-
-if test $use_pcap_restart = yes; then
-  USE_PCAP_RESTART="1"
-else
-  USE_PCAP_RESTART="0"
-fi
-
-dnl
 dnl Allow user to specify alternate ``nobody'' user.
 dnl
 
@@ -103,6 +80,52 @@ if test $use_ipv6 = yes; then
 else
    USE_IPv6="0"
 fi
+
+dnl
+dnl PCAP BPF filter expression lexer bugfix
+dnl
+dnl Typically ngrep is invoked with a (optional) search string plus a BPF
+dnl filter. However, ngrep doesn't semantically understand BPF filter terms
+dnl itself, so it assumes the first non-option parameter is the search string,
+dnl and attempts to compile the remainder as the BPF filter expression. If the
+dnl compilation fails, it probably means that no search string was specified, so
+dnl it restarts the BPF filter expression lexer and attempts to compile the
+dnl entire non-option parameter string as the expression. If that fails, then
+dnl the specified BPF filter expression is definitely bogus and ngrep errors
+dnl out.
+dnl
+dnl I favored this approach because it made invocation simpler & more fluid. In
+dnl order to make it work however, I had to solve for a bug in older versions of
+dnl libpcap where the library would segfault if the BPF filter compilation
+dnl function was invoked more than once. The workaround turned out to be a
+dnl simple invocation of the lexer's restart function in between compilation
+dnl invocations, however that function wasn't normally exposed in the header
+dnl since it was an internal built-in of whatever grammar lexer libpcap had
+dnl compiled with (bison/yacc/etc).
+dnl
+dnl The default behavior has long been to restart the lexer (keeping invocation
+dnl simpler) and provide a compile-time option to disable the mechanism, if
+dnl anyone cared to.  Based on a more recent bug report however[1], it seems
+dnl that the newer libpcap breaks when the lexer restart function is called.
+dnl So, given the choice between old platforms working by default (always call
+dnl restart/allow disablement at compile-time) vs. newer platforms working by
+dnl default (never call restart/allow enablement at compile-time), the default
+dnl behavior now is to do the latter.
+dnl
+dnl For versions of libpcap that require restart function invocation in between
+dnl multiple lexer passes, allow them to enable it here.
+dnl
+dnl [1] https://github.com/jpr5/ngrep/issues/2
+dnl
+
+AC_ARG_ENABLE(pcap-restart,
+[  --enable-pcap-restart    enable BPF lexer restart bugfix for older versions of PCAP],
+[
+  USE_PCAP_RESTART="1"
+],
+[
+  USE_PCAP_RESTART="0"
+])
 
 
 dnl
@@ -185,18 +208,6 @@ case "$target_os" in
 
 *bsd*)
     AC_SUBST(OS, BSD)
-
-    if test "$USE_PCAP_RESTART" = "0"; then
-
-    AC_MSG_WARN(
-!!! warning: Your OS ($target_os) may have an old libpcap installation.
-If the resulting ngrep binary segfaults when a BPF filter is specified
-without an ngrep match string then you should reconfigure ngrep with
-the option ``--disable-pcap-restart''.
-)
-    sleep 3
-
-    fi
 
     ;;
 
@@ -310,6 +321,34 @@ fi
 
 
 dnl
+dnl Check for a working PCAP library we can link against..
+dnl
+
+AC_CHECK_LIB(pcap, pcap_open_live,,echo !!! error: need a viable pcap lib; exit)
+
+dnl
+dnl And the PCAP restart function.
+dnl
+
+if test "$USE_PCAP_RESTART" = "1"; then
+    PCAP_RESTART_FUNC="unused"
+
+    for func in pcap_restart pcap_yyrestart yyrestart; do
+        AC_CHECK_LIB(pcap, $func, found="$func")
+        if test -n "$found"; then
+            USE_PCAP_RESTART="1"
+            PCAP_RESTART_FUNC="$found"
+            break
+        fi
+    done
+
+    if test "$PCAP_RESTART_FUNC" = "unused"; then
+        AC_MSG_ERROR(BPF lexer restart fix requested, but no restart function found)
+    fi
+fi
+
+
+dnl
 dnl Next figure out which bpf header file to look at.
 dnl
 
@@ -397,7 +436,8 @@ dnl Now that we're past the OS-specific stuff, which could have
 dnl modified our USE_* and other defines, define them all now.
 dnl
 
-AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,          $USE_PCAP_RESTART,          [whether to call pcap_restart() before subsequent invocations of pcap_compile() (default yes)])
+AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,          $USE_PCAP_RESTART,          [whether to call the BPF lexer restart function between multiple BPF filter compilation attempts (default no)])
+AC_DEFINE_UNQUOTED(PCAP_RESTART_FUNC,         $PCAP_RESTART_FUNC,         [routine used for restarting the BPF lexer])
 
 AC_DEFINE_UNQUOTED(USE_PCRE,                  $USE_PCRE,                  [whether to use PCRE (default GNU Regex)])
 AC_DEFINE_UNQUOTED(USE_IPv6,                  $USE_IPv6,                  [whether to use IPv6 (default off)])
@@ -424,39 +464,13 @@ AC_SUBST(EXTRA_OBJS)
 AC_SUBST(EXTRA_LIBS)
 
 dnl
-dnl And the PCAP library..
-dnl
-
-AC_CHECK_LIB(pcap, pcap_open_live,,echo !!! error: need a viable pcap lib; exit)
-
-dnl
-dnl And the PCAP restart function..
-dnl
-
-pcap_restart_func=""
-if test "$use_pcap_restart" = "yes" ; then
-   AC_CHECK_LIB(pcap, pcap_restart, pcap_restart_func="pcap_restart",
-     AC_CHECK_LIB(pcap, pcap_yyrestart, pcap_restart_func="pcap_yyrestart",
-       AC_CHECK_LIB(pcap, yyrestart, pcap_restart_func="yyrestart",
-         echo no yacc restart func found
-         echo perhaps libpcap wasn\'t compiled with bison/flex\?
-         exit)))
-fi
-
-if test -z "$pcap_restart_func"; then
-   pcap_restart_func="unused"
-fi
-
-AC_DEFINE_UNQUOTED(PCAP_RESTART_FUNC, $pcap_restart_func, [routine used for restarting the PCAP lexer])
-
-dnl
 dnl Emit configuration messages about any flags specified.
 dnl
 
 echo
 
-if test "$USE_PCAP_RESTART" = "0"; then
-    echo "CONFIG: pcap restart logic disabled"
+if test "$USE_PCAP_RESTART" = "1"; then
+    AC_MSG_RESULT([CONFIG: BPF filter lexer restart enabled (using $PCAP_RESTART_FUNC)])
 fi
 
 if test "$USE_IPv6" = "1"; then

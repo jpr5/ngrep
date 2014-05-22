@@ -659,10 +659,10 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-enable_pcap_restart
 with_dropprivs_user
 enable_dropprivs
 enable_ipv6
+enable_pcap_restart
 enable_pcre
 enable_tcpkill
 with_pcap_includes
@@ -1288,9 +1288,9 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --disable-pcap-restart  disable libpcap restart in parser
   --disable-dropprivs     disable privilege dropping logic
   --enable-ipv6           enable IPv6 (and ICMPv6) support
+  --enable-pcap-restart    enable BPF lexer restart bugfix for older versions of PCAP
   --enable-pcre           use PCRE instead of GNU regex
   --enable-tcpkill           enable connection killing support
 
@@ -3324,25 +3324,6 @@ EXTRA_LIBS=""
 
 
 
-# Check whether --enable-pcap-restart was given.
-if test "${enable_pcap_restart+set}" = set; then :
-  enableval=$enable_pcap_restart;
-  use_pcap_restart="$enableval"
-
-else
-
-  use_pcap_restart="yes"
-
-fi
-
-
-if test $use_pcap_restart = yes; then
-  USE_PCAP_RESTART="1"
-else
-  USE_PCAP_RESTART="0"
-fi
-
-
 
 # Check whether --with-dropprivs-user was given.
 if test "${with_dropprivs_user+set}" = set; then :
@@ -3393,6 +3374,19 @@ if test $use_ipv6 = yes; then
 else
    USE_IPv6="0"
 fi
+
+
+# Check whether --enable-pcap-restart was given.
+if test "${enable_pcap_restart+set}" = set; then :
+  enableval=$enable_pcap_restart;
+  USE_PCAP_RESTART="1"
+
+else
+
+  USE_PCAP_RESTART="0"
+
+fi
+
 
 
 
@@ -3478,22 +3472,6 @@ case "$target_os" in
 *bsd*)
     OS=BSD
 
-
-    if test "$USE_PCAP_RESTART" = "0"; then
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: !!! warning: Your OS ($target_os) may have an old libpcap installation.
-If the resulting ngrep binary segfaults when a BPF filter is specified
-without an ngrep match string then you should reconfigure ngrep with
-the option \`\`--disable-pcap-restart''.
-" >&5
-$as_echo "$as_me: WARNING: !!! warning: Your OS ($target_os) may have an old libpcap installation.
-If the resulting ngrep binary segfaults when a BPF filter is specified
-without an ngrep match string then you should reconfigure ngrep with
-the option \`\`--disable-pcap-restart''.
-" >&2;}
-    sleep 3
-
-    fi
 
     ;;
 
@@ -3699,6 +3677,115 @@ fi
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_live in -lpcap" >&5
+$as_echo_n "checking for pcap_open_live in -lpcap... " >&6; }
+if ${ac_cv_lib_pcap_pcap_open_live+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpcap  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pcap_open_live ();
+int
+main ()
+{
+return pcap_open_live ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pcap_pcap_open_live=yes
+else
+  ac_cv_lib_pcap_pcap_open_live=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcap_pcap_open_live" >&5
+$as_echo "$ac_cv_lib_pcap_pcap_open_live" >&6; }
+if test "x$ac_cv_lib_pcap_pcap_open_live" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBPCAP 1
+_ACEOF
+
+  LIBS="-lpcap $LIBS"
+
+else
+  echo !!! error: need a viable pcap lib; exit
+fi
+
+
+
+if test "$USE_PCAP_RESTART" = "1"; then
+    PCAP_RESTART_FUNC="unused"
+
+    for func in pcap_restart pcap_yyrestart yyrestart; do
+        as_ac_Lib=`$as_echo "ac_cv_lib_pcap_$func" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $func in -lpcap" >&5
+$as_echo_n "checking for $func in -lpcap... " >&6; }
+if eval \${$as_ac_Lib+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpcap  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $func ();
+int
+main ()
+{
+return $func ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  eval "$as_ac_Lib=yes"
+else
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"; then :
+  found="$func"
+fi
+
+        if test -n "$found"; then
+            USE_PCAP_RESTART="1"
+            PCAP_RESTART_FUNC="$found"
+            break
+        fi
+    done
+
+    if test "$PCAP_RESTART_FUNC" = "unused"; then
+        as_fn_error but no restart function found "BPF lexer restart fix requested" "$LINENO" 5
+    fi
+fi
+
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for BPF include path" >&5
 $as_echo_n "checking for BPF include path... " >&6; }
 BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap.h`
@@ -3842,6 +3929,11 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+cat >>confdefs.h <<_ACEOF
+#define PCAP_RESTART_FUNC $PCAP_RESTART_FUNC
+_ACEOF
+
+
 
 cat >>confdefs.h <<_ACEOF
 #define USE_PCRE $USE_PCRE
@@ -3908,200 +4000,11 @@ _ACEOF
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_live in -lpcap" >&5
-$as_echo_n "checking for pcap_open_live in -lpcap... " >&6; }
-if ${ac_cv_lib_pcap_pcap_open_live+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpcap  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pcap_open_live ();
-int
-main ()
-{
-return pcap_open_live ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pcap_pcap_open_live=yes
-else
-  ac_cv_lib_pcap_pcap_open_live=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcap_pcap_open_live" >&5
-$as_echo "$ac_cv_lib_pcap_pcap_open_live" >&6; }
-if test "x$ac_cv_lib_pcap_pcap_open_live" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBPCAP 1
-_ACEOF
-
-  LIBS="-lpcap $LIBS"
-
-else
-  echo !!! error: need a viable pcap lib; exit
-fi
-
-
-
-pcap_restart_func=""
-if test "$use_pcap_restart" = "yes" ; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_restart in -lpcap" >&5
-$as_echo_n "checking for pcap_restart in -lpcap... " >&6; }
-if ${ac_cv_lib_pcap_pcap_restart+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpcap  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pcap_restart ();
-int
-main ()
-{
-return pcap_restart ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pcap_pcap_restart=yes
-else
-  ac_cv_lib_pcap_pcap_restart=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcap_pcap_restart" >&5
-$as_echo "$ac_cv_lib_pcap_pcap_restart" >&6; }
-if test "x$ac_cv_lib_pcap_pcap_restart" = xyes; then :
-  pcap_restart_func="pcap_restart"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_yyrestart in -lpcap" >&5
-$as_echo_n "checking for pcap_yyrestart in -lpcap... " >&6; }
-if ${ac_cv_lib_pcap_pcap_yyrestart+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpcap  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pcap_yyrestart ();
-int
-main ()
-{
-return pcap_yyrestart ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pcap_pcap_yyrestart=yes
-else
-  ac_cv_lib_pcap_pcap_yyrestart=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcap_pcap_yyrestart" >&5
-$as_echo "$ac_cv_lib_pcap_pcap_yyrestart" >&6; }
-if test "x$ac_cv_lib_pcap_pcap_yyrestart" = xyes; then :
-  pcap_restart_func="pcap_yyrestart"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for yyrestart in -lpcap" >&5
-$as_echo_n "checking for yyrestart in -lpcap... " >&6; }
-if ${ac_cv_lib_pcap_yyrestart+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpcap  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char yyrestart ();
-int
-main ()
-{
-return yyrestart ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pcap_yyrestart=yes
-else
-  ac_cv_lib_pcap_yyrestart=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcap_yyrestart" >&5
-$as_echo "$ac_cv_lib_pcap_yyrestart" >&6; }
-if test "x$ac_cv_lib_pcap_yyrestart" = xyes; then :
-  pcap_restart_func="yyrestart"
-else
-  echo no yacc restart func found
-         echo perhaps libpcap wasn\'t compiled with bison/flex\?
-         exit
-fi
-
-fi
-
-fi
-
-fi
-
-if test -z "$pcap_restart_func"; then
-   pcap_restart_func="unused"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define PCAP_RESTART_FUNC $pcap_restart_func
-_ACEOF
-
-
-
 echo
 
-if test "$USE_PCAP_RESTART" = "0"; then
-    echo "CONFIG: pcap restart logic disabled"
+if test "$USE_PCAP_RESTART" = "1"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: BPF filter lexer restart enabled (using $PCAP_RESTART_FUNC)" >&5
+$as_echo "CONFIG: BPF filter lexer restart enabled (using $PCAP_RESTART_FUNC)" >&6; }
 fi
 
 if test "$USE_IPv6" = "1"; then
