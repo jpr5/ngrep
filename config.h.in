@@ -16,7 +16,10 @@
 #define HAVE_DLT_IEEE802_11_RADIO    @HAVE_DLT_IEEE802_11_RADIO@
 
 #define USE_PCAP_RESTART             @USE_PCAP_RESTART@
+#if USE_PCAP_RESTART
 #define PCAP_RESTART_FUNC            @PCAP_RESTART_FUNC@
+extern void PCAP_RESTART_FUNC();
+#endif
 
 #define USE_DROPPRIVS                @USE_DROPPRIVS@
 #define DROPPRIVS_USER               @DROPPRIVS_USER@
