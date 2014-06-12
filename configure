@@ -1292,7 +1292,7 @@ Optional Features:
   --enable-ipv6           enable IPv6 (and ICMPv6) support
   --enable-pcap-restart    enable BPF lexer restart bugfix for older versions of PCAP
   --enable-pcre           use PCRE instead of GNU regex
-  --enable-tcpkill           enable connection killing support
+  --enable-tcpkill        enable connection killing support
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1905,9 +1905,12 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-echo
-echo 'Configuring System ...'
-echo
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Configuring System ..." >&5
+$as_echo "Configuring System ..." >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -3403,9 +3406,12 @@ else
 
   USE_PCRE="0"
 
-  echo
-  echo 'Configuring GNU Regular Expression library ...'
-  echo
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: Configuring GNU Regular Expression library ..." >&5
+$as_echo "Configuring GNU Regular Expression library ..." >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
 
   REGEX_DIR='regex-0.12'
   REGEX_OBJS="$REGEX_DIR/regex.o"
@@ -3424,7 +3430,6 @@ fi
 # Check whether --enable-tcpkill was given.
 if test "${enable_tcpkill+set}" = set; then :
   enableval=$enable_tcpkill;
-#  AC_CHECK_LIB(net, libnet_init_packet,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
   USE_TCPKILL="1"
   EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
   EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
@@ -3454,9 +3459,12 @@ fi
 
 
 
-echo
-echo 'Configuring Network Grep (ngrep) ...'
-echo
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Configuring Network Grep ..." >&5
+$as_echo "Configuring Network Grep ..." >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
 
 
 STRIPFLAG="-s"
@@ -3523,7 +3531,7 @@ _ACEOF
   LIBS="-lsocket $LIBS"
 
 else
-  echo no socket in -lsocket\?; exit
+  as_fn_error $? "no socket in -lsocket" "$LINENO" 5
 fi
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in -lnsl" >&5
@@ -3570,7 +3578,7 @@ _ACEOF
   LIBS="-lnsl $LIBS"
 
 else
-  echo no gethostbyname in -lnsl\?; exit
+  as_fn_error $? "no gethostbyname in -lnsl" "$LINENO" 5
 fi
 
 
@@ -3609,7 +3617,7 @@ fi
 *)
     OS=UNKNOWN_OS
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Your OS ($target_os) is not supported yet.
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Your OS ($target_os) is not supported yet.
 Try playing with the build host and target options.
 " >&5
 $as_echo "$as_me: WARNING: Your OS ($target_os) is not supported yet.
@@ -3648,12 +3656,19 @@ rm -f conftest*
 
 
        if test -n "$found" -a "$found" != "$pcap_base"; then
-          echo
-          echo; echo more than one set found in:
-          echo  $pcap_base
-          echo  $found
-          echo; echo please wipe out all unused pcap installations
-          exit
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: more than one set found in:" >&5
+$as_echo "more than one set found in:" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $pcap_base" >&5
+$as_echo "$pcap_base" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $found" >&5
+$as_echo "$found" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+          as_fn_error $? "please wipe out all unused pcap installations" "$LINENO" 5
        else
           pcap_base="$dir"
        fi
@@ -3662,16 +3677,18 @@ rm -f conftest*
 done
 
 if test -z "$pcap_base" ; then
-   echo no; echo !!! error: couldn\'t find a complete set of pcap headers
-   exit
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+   as_fn_error $? "could not find a complete set of pcap headers" "$LINENO" 5
 else
-   echo found $pcap_base
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: found $pcap_base" >&5
+$as_echo "found $pcap_base" >&6; }
 
    EXTRA_INCLUDES="$EXTRA_INCLUDES -I$pcap_base"
 
       DIR="`dirname $pcap_base`/lib"
    if test -d $DIR; then
-     EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+       EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
    fi
 fi
 
@@ -3721,7 +3738,7 @@ _ACEOF
   LIBS="-lpcap $LIBS"
 
 else
-  echo !!! error: need a viable pcap lib; exit
+  as_fn_error $? "a viable pcap lib is required" "$LINENO" 5
 fi
 
 
@@ -3789,7 +3806,8 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for BPF include path" >&5
 $as_echo_n "checking for BPF include path... " >&6; }
 BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap.h`
-echo $BPF
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $BPF" >&5
+$as_echo "$BPF" >&6; }
 
 
 present=""
@@ -3806,9 +3824,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then :
-  HAVE_DLT_LINUX_SLL="1" && echo yes
+  HAVE_DLT_LINUX_SLL="1" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
-  HAVE_DLT_LINUX_SLL="0" && echo no
+  HAVE_DLT_LINUX_SLL="0" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 rm -f conftest*
 
@@ -3827,9 +3847,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then :
-  HAVE_DLT_LOOP="1" && echo yes
+  HAVE_DLT_LOOP="1" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
-  HAVE_DLT_LOOP="0" && echo no
+  HAVE_DLT_LOOP="0" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 rm -f conftest*
 
@@ -3848,9 +3870,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then :
-  HAVE_DLT_IEEE802_11="1" && echo yes
+  HAVE_DLT_IEEE802_11="1" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
-  HAVE_DLT_IEEE802_11="0" && echo no
+  HAVE_DLT_IEEE802_11="0" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 rm -f conftest*
 
@@ -3870,9 +3894,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then :
-  HAVE_DLT_IEEE802_11_RADIO="1" && echo yes
+  HAVE_DLT_IEEE802_11_RADIO="1" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
-  HAVE_DLT_IEEE802_11_RADIO="0" && echo no
+  HAVE_DLT_IEEE802_11_RADIO="0" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 rm -f conftest*
 
@@ -3892,9 +3918,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then :
-  HAVE_DLT_RAW="1" && echo yes
+  HAVE_DLT_RAW="1" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
-  HAVE_DLT_RAW="0" && echo no
+  HAVE_DLT_RAW="0" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 rm -f conftest*
 
@@ -3914,9 +3942,11 @@ yes
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then :
-  HAVE_DLT_PFLOG="1" && echo yes
+  HAVE_DLT_PFLOG="1" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
-  HAVE_DLT_PFLOG="0" && echo no
+  HAVE_DLT_PFLOG="0" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 rm -f conftest*
 
@@ -4000,7 +4030,8 @@ _ACEOF
 
 
 
-echo
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
 
 if test "$USE_PCAP_RESTART" = "1"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: BPF filter lexer restart enabled (using $PCAP_RESTART_FUNC)" >&5
@@ -4008,31 +4039,40 @@ $as_echo "CONFIG: BPF filter lexer restart enabled (using $PCAP_RESTART_FUNC)" >
 fi
 
 if test "$USE_IPv6" = "1"; then
-    echo "CONFIG: ipv6 support enabled"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: IPV6 support enabled" >&5
+$as_echo "CONFIG: IPV6 support enabled" >&6; }
 else
-    echo "CONFIG: ipv6 support disabled"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: IPV6 support disabled" >&5
+$as_echo "CONFIG: IPV6 support disabled" >&6; }
 fi
 
 if test "$USE_DROPPRIVS" = "1"; then
-    echo "CONFIG: privilege dropping enabled, using \"$DROPPRIVS_USER\""
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: privilege dropping enabled (using $DROPPRIVS_USER)" >&5
+$as_echo "CONFIG: privilege dropping enabled (using $DROPPRIVS_USER)" >&6; }
 else
-    echo "CONFIG: privilege dropping disabled"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: privilege dropping DISABLED" >&5
+$as_echo "CONFIG: privilege dropping DISABLED" >&6; }
 fi
 
 if test "$USE_PCRE" = "1"; then
-    echo "CONFIG: using PCRE regex library"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: using PCRE regex library" >&5
+$as_echo "CONFIG: using PCRE regex library" >&6; }
 else
-    echo "CONFIG: using GNU regex library"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: using GNU regex library" >&5
+$as_echo "CONFIG: using GNU regex library" >&6; }
 fi
 
 if test "$USE_TCPKILL" = "1"; then
-    echo "CONFIG: tcpkill feature enabled"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: tcpkill feature enabled" >&5
+$as_echo "CONFIG: tcpkill feature enabled" >&6; }
 else
-    echo "CONFIG: tcpkill feature disabled"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: tcpkill feature disabled" >&5
+$as_echo "CONFIG: tcpkill feature disabled" >&6; }
 fi
 
 
-echo
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
 
 ac_config_headers="$ac_config_headers config.h"
 
