@@ -1404,7 +1404,7 @@ void usage(int8_t e) {
 
 
 void version(void) {
-    printf("ngrep: V%s\n", VERSION);
+    printf("ngrep: V%s, %s\n", VERSION, pcap_lib_version());
     exit(0);
 }
 
