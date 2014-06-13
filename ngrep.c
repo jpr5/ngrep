@@ -436,9 +436,9 @@ int main(int argc, char **argv) {
         }
 
     } else {
-        char *default_filter = BPF_FILTER_IP;
+        filter = strdup(BPF_FILTER_IP);
 
-        if (pcap_compile(pd, &pcapfilter, default_filter, 0, mask.s_addr)) {
+        if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
             pcap_perror(pd, "pcap compile");
             clean_exit(-1);
         }
