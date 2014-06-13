@@ -26,13 +26,32 @@
 
 /*
  * Default patterns for BPF and regular expression filters.
+ *
+ * When targeting IP frames with a BPF filter, optionally-present VLAN frames
+ * will be excluded by default, thus any IP traffic on a VLAN'd network is
+ * invisible to ngrep by default.  This requires the user to specify "vlan"
+ * every time they are on a VLAN'd network, which gets irritating fast.
+ *
+ * In turn, this leads to a surprising behavior when working with pcap dump
+ * files created from a "vlan" filter: reading and re-processing them requires
+ * the same "vlan" filter to be specified, otherwise the traffic will be
+ * invisible.  IOW, when the dump reader is targeting IP traffic in the dump but
+ * doesn't know (or remember) the "vlan" filter was specified, they will see
+ * nothing -- and mistakenly blame ngrep.
+ *
+ * While the behavior is technically consistent, to the user it can be
+ * surprising, confusing, and therefore Dumb As Shit.  For convenience' sake, we
+ * fix this for them by including VLAN (optionally) back into the stream
+ * targeting IP traffic.
  */
 
 #if USE_IPv6
-#define BPF_FILTER_IP       "(ip or ip6)"
+#define BPF_FILTER_IP_TYPE  "(ip || ip6)"
 #else
-#define BPF_FILTER_IP       "(ip)"
+#define BPF_FILTER_IP_TYPE  "(ip)"
 #endif
+
+#define BPF_FILTER_IP       "(" BPF_FILTER_IP_TYPE " || (vlan && " BPF_FILTER_IP_TYPE "))"
 
 #define BPF_FILTER_OTHER    "( %s) and "
 #define BPF_MAIN_FILTER     BPF_FILTER_OTHER BPF_FILTER_IP
