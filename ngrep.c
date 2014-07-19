@@ -480,7 +480,7 @@ int main(int argc, char **argv) {
                 clean_exit(-1);
             }
 
-            bin_data = malloc(len / 2);
+            bin_data = (char*)malloc(len / 2);
             memset(bin_data, 0, len / 2);
             d = bin_data;
 
@@ -536,7 +536,7 @@ int main(int argc, char **argv) {
 #endif
 
             if (re_match_word) {
-                char *word_regex = malloc(strlen(match_data) * 3 + strlen(WORD_REGEX));
+                char *word_regex = (char*)malloc(strlen(match_data) * 3 + strlen(WORD_REGEX));
                 sprintf(word_regex, WORD_REGEX, match_data, match_data, match_data);
                 match_data = word_regex;
             }
