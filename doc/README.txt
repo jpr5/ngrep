@@ -96,7 +96,7 @@ Tips:
   filter: ip and ( not port 80 )
 
 
-  Please see http://ngrep.sourceforge.net/usage.html for more detailed examples
+  Please see http://ngrep.sf.net/usage.html for more detailed examples
   describing ngrep usage.
 
 
@@ -141,19 +141,16 @@ Known Working Platforms:
   o BeOS R5
   o Mac OS X 10 - 10.9.3
 
-  NOTE: To build on Win32, use the 1.45 source code.  ngrep 1.46.1 hasn't been
-        updated for Win32 yet.
-
-  1.45 works on: Windows 95, 98, NT, 2000, XP, 2003/x86, 7
+  1.45 is known to work on: Windows 95, 98, NT, 2000, XP, 2003/x86, 7
+  1.46.1 has been tested on: Windows 7, 8, 8.1
 
 
 Support, Feedback, & Patches
 
   If you need help, have constructive feedback, or would like to submit a patch,
-  please visit ngrep's project at SourceForge and use the online tools there.
-  It will help the author better manage the various requests and patches so that
+  please visit ngrep's project at GitHub and use the online tools there.  It
+  will help the author better manage the various requests and patches so that
   nothing is lost or missed (as has been the case in the past, unfortunately).
 
-  ngrep Project Website:
+  ngrep Issues: https://github.com/jpr5/ngrep/issues
 
-    http://sourceforge.net/projects/ngrep/

@@ -33,7 +33,7 @@
 
 #define EXTRACT_16BITS(p) \
   ((uint16_t)((uint16_t)*((const uint8_t *)(p) + 0) << 8 | \
-	       (uint16_t)*((const uint8_t *)(p) + 1)))
+           (uint16_t)*((const uint8_t *)(p) + 1)))
 
 /*
  * Default patterns for BPF and regular expression filters.

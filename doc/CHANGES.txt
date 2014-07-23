@@ -8,9 +8,9 @@ v1.46.1
 
 v1.46
 
-		o configure.in: re-organized, in part to sync with downstream patches
-		  (which were never sent upstream)
-   
+        o configure.in: re-organized, in part to sync with downstream patches
+          (which were never sent upstream)
+
         o configure.in: removed included PCRE library, now builds against system
           version when specified (default is included GNU Regex)
 
@@ -19,17 +19,17 @@ v1.46
 
         o configure.in: prefixed all tack-on autoconf variables from _FOO -> EXTRA_FOO
 
-		o Makefile.in: capitulated to Debian: use tar.gz instead of tar.bz2 :-(
+        o Makefile.in: capitulated to Debian: use tar.gz instead of tar.bz2 :-(
 
         o ngrep.c: Call setlocale to make isprint() work based on current
           locale.  See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=307496++
 
         o include tcpkill functionality (-K), a long-standing downstream patch
           under Debian
-		
+
         o updated to latest autoconf
-		
-		o updated copyrights to 2014
+
+        o updated copyrights to 2014
 
 v1.45
 
