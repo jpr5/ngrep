@@ -155,7 +155,7 @@ void (*dump_func)(unsigned char *, uint32_t, uint16_t, uint16_t) = &dump_formatt
 
 char *filter = NULL, *filter_file = NULL;
 char pc_err[PCAP_ERRBUF_SIZE];
-uint8_t link_offset, vlan_offset = 0;
+uint8_t link_offset;
 uint8_t radiotap_present = 0;
 
 pcap_t *pd = NULL, *pd_dumppcap = NULL;
@@ -444,17 +444,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    /* VLAN support: determine # of +4 offsets to accommodate */
-    if (filter) {
-        char const bpf_vlan[] = "vlan";
-        char *s = filter;
-        while (*s)
-            if (strncasecmp(s++, bpf_vlan, sizeof(bpf_vlan)-1) == 0)
-                vlan_offset++;
-
-        vlan_offset *= VLANHDR_SIZE;
-    }
-
     if (filter && quiet < 2)
         printf("filter: %s\n", filter);
 
@@ -637,8 +626,6 @@ int main(int argc, char **argv) {
             clean_exit(-1);
     }
 
-    link_offset += vlan_offset;
-
     if (dump_file) {
         pd_dump = pcap_dump_open(pd, dump_file);
         if (!pd_dump) {
@@ -665,10 +652,28 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+static inline uint8_t vlan_frame_count(u_char *p, uint16_t limit) {
+  uint8_t *et = (uint8_t*)(p + 12);
+  uint16_t ether_type = EXTRACT_16BITS(et);
+  uint8_t count = 0;
+
+  while ((void*)et < (void*)(p + limit) &&
+         ether_type != ETHERTYPE_IP &&
+         ether_type != ETHERTYPE_IPV6) {
+      count++;
+      et += VLANHDR_SIZE;
+      ether_type = EXTRACT_16BITS(et);
+  }
+
+  return count;
+}
+
 void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
-    struct ip      *ip4_pkt = (struct ip *)    (p + link_offset);
+    uint8_t vlan_offset = vlan_frame_count(p, h->caplen) * VLANHDR_SIZE;
+
+    struct ip      *ip4_pkt = (struct ip *)    (p + link_offset + vlan_offset);
 #if USE_IPv6
-    struct ip6_hdr *ip6_pkt = (struct ip6_hdr*)(p + link_offset);
+    struct ip6_hdr *ip6_pkt = (struct ip6_hdr*)(p + link_offset + vlan_offset);
 #endif
 
     uint32_t ip_ver;
