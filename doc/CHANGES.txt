@@ -1,3 +1,11 @@
+v1.46.1
+
+        o actual bugfix for the VLAN parsing issue.  prior version 1.46 expanded
+          the BPF filter to include IPv4/6 traffic, but the offset calculation
+          forgot to account for the variable presence of VLAN headers.  now
+          ngrep detects VLAN frames in every packet and adjusts the offset on
+          the fly.
+
 v1.46
 
 		o configure.in: re-organized, in part to sync with downstream patches

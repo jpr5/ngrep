@@ -1,6 +1,6 @@
 Program: ngrep
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.46 (5.21.2014)
+Version: 1.46.1 (7.23.2014)
 
 
 Goal:
@@ -141,7 +141,7 @@ Known Working Platforms:
   o BeOS R5
   o Mac OS X 10 - 10.9.3
 
-  NOTE: To build on Win32, use the 1.45 source code.  ngrep 1.46 hasn't been
+  NOTE: To build on Win32, use the 1.45 source code.  ngrep 1.46.1 hasn't been
         updated for Win32 yet.
 
   1.45 works on: Windows 95, 98, NT, 2000, XP, 2003/x86, 7
