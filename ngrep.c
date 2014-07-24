@@ -53,8 +53,8 @@
 #include <io.h>
 #include <getopt.h>
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <types.h>
-#include <inet_ntop.h>
 #include <config.h>
 
 #define strcasecmp stricmp
