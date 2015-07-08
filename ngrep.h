@@ -35,6 +35,9 @@
   ((uint16_t)((uint16_t)*((const uint8_t *)(p) + 0) << 8 | \
            (uint16_t)*((const uint8_t *)(p) + 1)))
 
+#define _atoui32(p) \
+  ((uint32_t)strtoul((p), (char **)NULL, 10))
+
 /*
  * Default patterns for BPF and regular expression filters.
  *

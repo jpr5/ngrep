@@ -104,8 +104,9 @@
  * Configuration Options
  */
 
-uint16_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
-uint16_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+uint32_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
+uint32_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+
 #if USE_TCPKILL
 uint16_t tcpkill_active = 0;
 #endif
@@ -232,9 +233,10 @@ int main(int argc, char **argv) {
             case 'P':
                 nonprint_char = *optarg;
                 break;
-            case 'S':
-                limitlen = atoi(optarg);
+            case 'S': {
+                limitlen = _atoui32(optarg);
                 break;
+            }
             case 'O':
                 dump_file = optarg;
                 break;
@@ -242,7 +244,9 @@ int main(int argc, char **argv) {
                 read_file = optarg;
                 break;
             case 'A':
-                match_after = atoi(optarg) + 1;
+                match_after = _atoui32(optarg);
+                if (match_after < UINT32_MAX)
+                    match_after++;
                 break;
 #if defined(_WIN32)
             case 'L':
@@ -263,10 +267,10 @@ int main(int argc, char **argv) {
                 ws_col_forced = atoi(optarg);
                 break;
             case 'n':
-                max_matches = atoi(optarg);
+                max_matches = _atoui32(optarg);
                 break;
             case 's': {
-                uint16_t value = atoi(optarg);
+                uint16_t value = _atoui32(optarg);
                 if (value > 0)
                     snaplen = value;
             } break;
