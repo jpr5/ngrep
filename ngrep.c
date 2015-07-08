@@ -105,9 +105,10 @@
  */
 
 uint16_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
-uint16_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+unsigned long match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+
 #if USE_TCPKILL
-uint16_t tcpkill_active = 0;
+unsigned long tcpkill_active = 0;
 #endif
 
 uint8_t  re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
@@ -183,7 +184,7 @@ void dierange(char *msg, unsigned long value);
  * Window-size functionality (adjust output based on width of console display)
  */
 
-uint32_t ws_row, ws_col = 80, ws_col_forced = 0;
+unsigned long ws_row, ws_col = 80, ws_col_forced = 0;
 
 
 int main(int argc, char **argv) {
@@ -250,7 +251,7 @@ int main(int argc, char **argv) {
                 read_file = optarg;
                 break;
             case 'A':
-                match_after = atoi(optarg) + 1;
+                match_after = parseulong(optarg) + 1; /* FIXME: range check */
                 break;
 #if defined(_WIN32)
             case 'L':
@@ -268,15 +269,17 @@ int main(int argc, char **argv) {
                 break;
 #endif
             case 'c':
-                ws_col_forced = atoi(optarg);
+                ws_col_forced = parseulong(optarg);
                 break;
             case 'n':
-                max_matches = atoi(optarg);
+                max_matches = parseulong(optarg);
                 break;
             case 's': {
-                uint16_t value = atoi(optarg);
-                if (value > 0)
-                    snaplen = value;
+                unsigned long value = parseulong(optarg);
+                if (value > UINT16_MAX) {
+                    dierange("-s", value);
+                }
+                snaplen = value;
             } break;
             case 'C':
                 enable_hilite = 1;
@@ -341,7 +344,7 @@ int main(int argc, char **argv) {
                 break;
 #if USE_TCPKILL
             case 'K':
-                tcpkill_active = atoi(optarg);
+                tcpkill_active = parseulong(optarg);
                 break;
 #endif
             case 'h':
