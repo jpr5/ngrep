@@ -176,6 +176,8 @@ SOCKET delay_socket = 0;
 
 void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
+unsigned long parseulong(const char *s);
+void dierange(char *msg, unsigned long value);
 
 /*
  * Window-size functionality (adjust output based on width of console display)
@@ -1557,4 +1559,27 @@ char *win32_choosedevice(void) {
 }
 #endif
 
+/* Parse an unsigned long, exit program if anything goes wrong. */
+unsigned long parseulong(const char *s) {
+    unsigned long n = 0;
+    char *end = NULL;
 
+    errno = 0;
+    n = strtoul(s, &end, 0);
+
+    if (errno != 0 || *s == '\0' || end == NULL || *end != '\0') {
+        if (errno != 0) { /* GNU strtoul will set errno. */
+            perror("strtoul");
+        }
+        fprintf(stderr, "Could not convert unsigned long: `%s'.\n", s);
+
+        clean_exit(-1);
+    }
+
+    return n;
+}
+
+void dierange(char *msg, unsigned long value) {
+    fprintf(stderr, "`%s': value `%lu' is out of range.\n", msg, value);
+    clean_exit(-1);
+}
