@@ -234,9 +234,15 @@ int main(int argc, char **argv) {
             case 'P':
                 nonprint_char = *optarg;
                 break;
-            case 'S':
-                limitlen = atoi(optarg);
+            case 'S': {
+                unsigned long limitlenul = parseulong(optarg);
+                if (limitlenul > UINT16_MAX) {
+                    dierange("-S", limitlenul);
+                }
+
+                limitlen = limitlenul;
                 break;
+            }
             case 'O':
                 dump_file = optarg;
                 break;
