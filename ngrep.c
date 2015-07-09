@@ -74,6 +74,7 @@
 #include <string.h>
 #include <signal.h>
 #include <locale.h>
+#include <limits.h>
 
 #if !defined(_WIN32)
 #include <errno.h>
@@ -251,7 +252,11 @@ int main(int argc, char **argv) {
                 read_file = optarg;
                 break;
             case 'A':
-                match_after = parseulong(optarg) + 1; /* FIXME: range check */
+                match_after = parseulong(optarg);
+                if (match_after == ULONG_MAX) {
+                    dierange("-A", match_after);
+                }
+                ++match_after;
                 break;
 #if defined(_WIN32)
             case 'L':
