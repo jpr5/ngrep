@@ -106,7 +106,7 @@
  */
 
 uint16_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
-unsigned long match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+uint64_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
 
 #if USE_TCPKILL
 unsigned long tcpkill_active = 0;
@@ -178,14 +178,14 @@ SOCKET delay_socket = 0;
 
 void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
-unsigned long parseulong(const char *s);
+uint64_t parse_uint64(const char *s);
 void dierange(char *msg, unsigned long value);
 
 /*
  * Window-size functionality (adjust output based on width of console display)
  */
 
-unsigned long ws_row, ws_col = 80, ws_col_forced = 0;
+uint64_t ws_row, ws_col = 80, ws_col_forced = 0;
 
 
 int main(int argc, char **argv) {
@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
                 nonprint_char = *optarg;
                 break;
             case 'S': {
-                unsigned long limitlenul = parseulong(optarg);
+                uint64_t limitlenul = parse_uint64(optarg);
                 if (limitlenul > UINT16_MAX) {
                     dierange("-S", limitlenul);
                 }
@@ -252,7 +252,7 @@ int main(int argc, char **argv) {
                 read_file = optarg;
                 break;
             case 'A':
-                match_after = parseulong(optarg);
+                match_after = parse_uint64(optarg);
                 if (match_after == ULONG_MAX) {
                     dierange("-A", match_after);
                 }
@@ -274,13 +274,13 @@ int main(int argc, char **argv) {
                 break;
 #endif
             case 'c':
-                ws_col_forced = parseulong(optarg);
+                ws_col_forced = parse_uint64(optarg);
                 break;
             case 'n':
-                max_matches = parseulong(optarg);
+                max_matches = parse_uint64(optarg);
                 break;
             case 's': {
-                unsigned long value = parseulong(optarg);
+                uint64_t value = parse_uint64(optarg);
                 if (value > UINT16_MAX) {
                     dierange("-s", value);
                 }
@@ -349,7 +349,7 @@ int main(int argc, char **argv) {
                 break;
 #if USE_TCPKILL
             case 'K':
-                tcpkill_active = parseulong(optarg);
+                tcpkill_active = parse_uint64(optarg);
                 /* Parameter kill_count of tcpkill_kill has type
                    unsigned: check that tcpkill_active is not beyond
                    range. */
@@ -1580,18 +1580,19 @@ char *win32_choosedevice(void) {
 #endif
 
 /* Parse an unsigned long, exit program if anything goes wrong. */
-unsigned long parseulong(const char *s) {
-    unsigned long n = 0;
+uint64_t parse_uint64(const char *s) {
+    unsigned long long n = 0;
     char *end = NULL;
 
     errno = 0;
-    n = strtoul(s, &end, 0);
+    n = strtoull(s, &end, 0);
 
-    if (errno != 0 || *s == '\0' || end == NULL || *end != '\0') {
-        if (errno != 0) { /* GNU strtoul will set errno. */
-            perror("strtoul");
+    if (errno != 0 || *s == '\0' || end == NULL || *end != '\0'
+        || n > UINT64_MAX) {
+        if (errno != 0) { /* GNU strtoull will set errno. */
+            perror("strtoull");
         }
-        fprintf(stderr, "Could not convert unsigned long: `%s'.\n", s);
+        fprintf(stderr, "Could not convert uint64_t: `%s'.\n", s);
 
         clean_exit(-1);
     }
