@@ -75,6 +75,7 @@
 #include <signal.h>
 #include <locale.h>
 #include <limits.h>
+#include <inttypes.h>
 
 #if !defined(_WIN32)
 #include <errno.h>
@@ -179,7 +180,7 @@ SOCKET delay_socket = 0;
 void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
 uint64_t parse_uint64(const char *s);
-void dierange(char *msg, unsigned long value);
+void dierange(char *msg, uint64_t value);
 
 /*
  * Window-size functionality (adjust output based on width of console display)
@@ -1600,7 +1601,8 @@ uint64_t parse_uint64(const char *s) {
     return n;
 }
 
-void dierange(char *msg, unsigned long value) {
-    fprintf(stderr, "`%s': value `%lu' is out of range.\n", msg, value);
+void dierange(char *msg, uint64_t value) {
+    fprintf(stderr, "`%s': value `%" PRIu64 "' is out of range.\n",
+            msg, value);
     clean_exit(-1);
 }
