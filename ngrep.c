@@ -350,6 +350,12 @@ int main(int argc, char **argv) {
 #if USE_TCPKILL
             case 'K':
                 tcpkill_active = parseulong(optarg);
+                /* Parameter kill_count of tcpkill_kill has type
+                   unsigned: check that tcpkill_active is not beyond
+                   range. */
+                if (tcpkill_active > UINT_MAX) {
+                    dierange("-K", tcpkill_active);
+                }
                 break;
 #endif
             case 'h':
