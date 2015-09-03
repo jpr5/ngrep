@@ -166,6 +166,7 @@ dnl
 AC_ARG_ENABLE(tcpkill,
 [  --enable-tcpkill        enable connection killing support],
 [
+  AC_CHECK_LIB(net, libnet_init_packet,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
   USE_TCPKILL="1"
   EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
   EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
