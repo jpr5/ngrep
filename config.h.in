@@ -7,6 +7,7 @@
 
 #define USE_PCRE                     @USE_PCRE@
 #define USE_IPv6                     @USE_IPv6@
+#define USE_TCPKILL                  @USE_TCPKILL@
 
 #define HAVE_DLT_RAW                 @HAVE_DLT_RAW@
 #define HAVE_DLT_PFLOG               @HAVE_DLT_PFLOG@
@@ -23,4 +24,3 @@ extern void PCAP_RESTART_FUNC();
 
 #define USE_DROPPRIVS                @USE_DROPPRIVS@
 #define DROPPRIVS_USER               @DROPPRIVS_USER@
-
