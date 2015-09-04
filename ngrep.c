@@ -74,6 +74,8 @@
 #include <string.h>
 #include <signal.h>
 #include <locale.h>
+#include <limits.h>
+#include <inttypes.h>
 
 #if !defined(_WIN32)
 #include <errno.h>
@@ -105,9 +107,10 @@
  */
 
 uint16_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
-uint16_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+uint64_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+
 #if USE_TCPKILL
-uint16_t tcpkill_active = 0;
+unsigned long tcpkill_active = 0;
 #endif
 
 uint8_t  re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
@@ -176,12 +179,14 @@ SOCKET delay_socket = 0;
 
 void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
 
+uint64_t parse_uint64(const char *s);
+void dierange(char *msg, uint64_t value);
 
 /*
  * Window-size functionality (adjust output based on width of console display)
  */
 
-uint32_t ws_row, ws_col = 80, ws_col_forced = 0;
+uint64_t ws_row, ws_col = 80, ws_col_forced = 0;
 
 
 int main(int argc, char **argv) {
@@ -232,9 +237,15 @@ int main(int argc, char **argv) {
             case 'P':
                 nonprint_char = *optarg;
                 break;
-            case 'S':
-                limitlen = atoi(optarg);
+            case 'S': {
+                uint64_t limitlenul = parse_uint64(optarg);
+                if (limitlenul > UINT16_MAX) {
+                    dierange("-S", limitlenul);
+                }
+
+                limitlen = limitlenul;
                 break;
+            }
             case 'O':
                 dump_file = optarg;
                 break;
@@ -242,7 +253,11 @@ int main(int argc, char **argv) {
                 read_file = optarg;
                 break;
             case 'A':
-                match_after = atoi(optarg) + 1;
+                match_after = parse_uint64(optarg);
+                if (match_after == ULONG_MAX) {
+                    dierange("-A", match_after);
+                }
+                ++match_after;
                 break;
 #if defined(_WIN32)
             case 'L':
@@ -260,15 +275,17 @@ int main(int argc, char **argv) {
                 break;
 #endif
             case 'c':
-                ws_col_forced = atoi(optarg);
+                ws_col_forced = parse_uint64(optarg);
                 break;
             case 'n':
-                max_matches = atoi(optarg);
+                max_matches = parse_uint64(optarg);
                 break;
             case 's': {
-                uint16_t value = atoi(optarg);
-                if (value > 0)
-                    snaplen = value;
+                uint64_t value = parse_uint64(optarg);
+                if (value > UINT16_MAX) {
+                    dierange("-s", value);
+                }
+                snaplen = value;
             } break;
             case 'C':
                 enable_hilite = 1;
@@ -333,7 +350,13 @@ int main(int argc, char **argv) {
                 break;
 #if USE_TCPKILL
             case 'K':
-                tcpkill_active = atoi(optarg);
+                tcpkill_active = parse_uint64(optarg);
+                /* Parameter kill_count of tcpkill_kill has type
+                   unsigned: check that tcpkill_active is not beyond
+                   range. */
+                if (tcpkill_active > UINT_MAX) {
+                    dierange("-K", tcpkill_active);
+                }
                 break;
 #endif
             case 'h':
@@ -1557,4 +1580,29 @@ char *win32_choosedevice(void) {
 }
 #endif
 
+/* Parse an unsigned long, exit program if anything goes wrong. */
+uint64_t parse_uint64(const char *s) {
+    unsigned long long n = 0;
+    char *end = NULL;
 
+    errno = 0;
+    n = strtoull(s, &end, 0);
+
+    if (errno != 0 || *s == '\0' || end == NULL || *end != '\0'
+        || n > UINT64_MAX) {
+        if (errno != 0) { /* GNU strtoull will set errno. */
+            perror("strtoull");
+        }
+        fprintf(stderr, "Could not convert uint64_t: `%s'.\n", s);
+
+        clean_exit(-1);
+    }
+
+    return n;
+}
+
+void dierange(char *msg, uint64_t value) {
+    fprintf(stderr, "`%s': value `%" PRIu64 "' is out of range.\n",
+            msg, value);
+    clean_exit(-1);
+}
