@@ -23,13 +23,12 @@ libnet_t *l;
 
 void
 tcpkill_kill(const struct pcap_pkthdr *pcap, const u_char *pkt,
-       unsigned pcap_off, unsigned kill_count)
+       uint32_t pcap_off, uint32_t kill_count)
 {
   struct libnet_ipv4_hdr *ip;
   struct libnet_tcp_hdr *tcp;
   u_char ctext[64];
-  u_int32_t seq, win;
-  int i, len;
+  uint32_t seq, win, i, len;
 
   pkt += pcap_off;
   len = pcap->caplen - pcap_off;

@@ -108,7 +108,7 @@ uint32_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
 uint32_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
 
 #if USE_TCPKILL
-uint16_t tcpkill_active = 0;
+uint32_t tcpkill_active = 0;
 #endif
 
 uint8_t  re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
@@ -337,7 +337,7 @@ int main(int argc, char **argv) {
                 break;
 #if USE_TCPKILL
             case 'K':
-                tcpkill_active = atoi(optarg);
+                tcpkill_active = _atoui32(optarg);
                 break;
 #endif
             case 'h':
