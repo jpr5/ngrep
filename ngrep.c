@@ -694,7 +694,7 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
          ip_dst[INET6_ADDRSTRLEN + 1];
 
     unsigned char *data;
-    uint32_t len = h->caplen;
+    uint32_t len = h->caplen - vlan_offset;
 
 #if HAVE_DLT_IEEE802_11_RADIO
     if (radiotap_present) {
