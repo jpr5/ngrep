@@ -104,6 +104,7 @@
  * Configuration Options
  */
 
+int framenum = 0;
 uint32_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
 uint32_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
 
@@ -117,6 +118,7 @@ uint8_t  invert_match = 0, bin_match = 0;
 uint8_t  live_read = 1, want_delay = 0;
 uint8_t  dont_dropprivs = 0;
 uint8_t  enable_hilite = 0;
+uint8_t  show_frame_num = 0;
 
 char *read_file = NULL, *dump_file = NULL;
 char *usedev = NULL;
@@ -209,7 +211,7 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXVfiwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -334,6 +336,9 @@ int main(int argc, char **argv) {
                 break;
             case 'N':
                 show_proto++;
+                break;
+            case 'f':
+                show_frame_num = 1;
                 break;
 #if USE_TCPKILL
             case 'K':
@@ -696,6 +701,9 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
     unsigned char *data;
     uint32_t len = h->caplen - vlan_offset;
 
+    /* Increment Frame Number */
+    framenum++;
+
 #if HAVE_DLT_IEEE802_11_RADIO
     if (radiotap_present) {
         uint16_t radio_len = ((struct NGREP_rtaphdr_t *)(p))->it_len;
@@ -883,7 +891,11 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
             default:             ident = UNKNOWN; break;
         }
 
-        printf("\n%c", ident);
+        if (show_frame_num) {
+            printf("\n%u: %c", framenum, ident);
+        } else {
+            printf("\n%c", ident);
+        }
     }
 
     if (show_proto)
@@ -1361,7 +1373,7 @@ void usage(int8_t e) {
 #if defined(_WIN32)
            "L"
 #endif
-           "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+           "hNXVfiwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>\n"
            "             <-P char> <-F file>"
 #if USE_TCPKILL
@@ -1397,6 +1409,7 @@ void usage(int8_t e) {
            "   -P  is set the non-printable display char to what is specified\n"
            "   -F  is read the bpf filter from the specified file\n"
            "   -N  is show sub protocol number\n"
+           "   -f  is show frame number for a matched packet\n"
 #if defined(_WIN32)
            "   -d  is use specified device (index) instead of the pcap default\n"
            "   -L  is show the winpcap device list index\n"
