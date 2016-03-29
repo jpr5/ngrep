@@ -119,6 +119,7 @@ uint8_t  live_read = 1, want_delay = 0;
 uint8_t  dont_dropprivs = 0;
 uint8_t  enable_hilite = 0;
 uint8_t  show_frame_num = 0;
+uint8_t  default_bpf_filter = 1;
 
 char *read_file = NULL, *dump_file = NULL;
 char *usedev = NULL;
@@ -211,7 +212,7 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXVfiwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXVfziwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -340,6 +341,9 @@ int main(int argc, char **argv) {
             case 'f':
                 show_frame_num = 1;
                 break;
+            case 'z':
+                default_bpf_filter = 0;
+                break;
 #if USE_TCPKILL
             case 'K':
                 tcpkill_active = _atoui32(optarg);
@@ -445,7 +449,9 @@ int main(int argc, char **argv) {
         }
 
     } else {
-        filter = strdup(BPF_FILTER_IP);
+        if (default_bpf_filter) {
+            filter = strdup(BPF_FILTER_IP);
+        }
 
         if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
             pcap_perror(pd, "pcap compile");
@@ -1153,9 +1159,13 @@ char *get_filter_from_string(char *str) {
 
     memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
 
-    sprintf(mine, BPF_MAIN_FILTER, str);
-
+    if (default_bpf_filter) {
+        sprintf(mine, BPF_MAIN_FILTER, str);
+    } else {
+        strcpy(mine, str);
+    }
     return mine;
+
 }
 
 char *get_filter_from_argv(char **argv) {
@@ -1184,7 +1194,11 @@ char *get_filter_from_argv(char **argv) {
         *(to-1) = ' ';
     }
 
-    sprintf(mine, BPF_MAIN_FILTER, theirs);
+    if (default_bpf_filter) {
+        sprintf(mine, BPF_MAIN_FILTER, theirs);
+    } else {
+        strcpy(mine, theirs);
+    }
 
     free(theirs);
     return mine;
@@ -1411,6 +1425,7 @@ void usage(int8_t e) {
            "   -F  is read the bpf filter from the specified file\n"
            "   -N  is show sub protocol number\n"
            "   -f  is show frame number for a matched packet\n"
+           "   -z  is disable built-in default bpf ip filter\n"
 #if defined(_WIN32)
            "   -d  is use specified device (index) instead of the pcap default\n"
            "   -L  is show the winpcap device list index\n"
