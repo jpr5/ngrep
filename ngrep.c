@@ -1485,6 +1485,12 @@ void clean_exit(int32_t sig) {
     if (usedev)       free(usedev);
 #endif
 
+    if (show_frame_num) {
+        if (quiet < 2 && sig >= 0) {
+            printf("matches: %u\n", matches);
+        }
+    }
+
     exit(sig);
 }
 
