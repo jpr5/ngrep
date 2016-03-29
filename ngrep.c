@@ -655,7 +655,11 @@ int main(int argc, char **argv) {
 
     while (pcap_loop(pd, -1, (pcap_handler)process, 0));
 
-    clean_exit(0);
+    if (matches > 0) {
+      clean_exit(0);
+    } else {
+      clean_exit(-1);
+    }
 
     /* NOT REACHED */
     return 0;
@@ -990,8 +994,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16
     }
 #endif
 
-    if (max_matches)
-        matches++;
+    matches++;
 
     if (match_after && keep_matching != match_after)
         keep_matching = match_after;
@@ -1008,8 +1011,7 @@ int8_t bin_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint1
 
     while (i <= stop)
         if (!memcmp(data+(i++), bin_data, match_len)) {
-            if (max_matches)
-                matches++;
+            matches++;
 
             if (match_after && keep_matching != match_after)
                 keep_matching = match_after;
@@ -1024,8 +1026,7 @@ int8_t bin_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint1
 }
 
 int8_t blank_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
-    if (max_matches)
-        matches++;
+    matches++;
 
     *mindex = 0;
     *msize  = 0;
