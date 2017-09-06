@@ -1002,8 +1002,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16
     }
 #endif
 
-    if (max_matches)
-        matches++;
+    matches++;
 
     if (match_after && keep_matching != match_after)
         keep_matching = match_after;
@@ -1020,8 +1019,7 @@ int8_t bin_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint1
 
     while (i <= stop)
         if (!memcmp(data+(i++), bin_data, match_len)) {
-            if (max_matches)
-                matches++;
+            matches++;
 
             if (match_after && keep_matching != match_after)
                 keep_matching = match_after;
@@ -1036,8 +1034,7 @@ int8_t bin_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint1
 }
 
 int8_t blank_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
-    if (max_matches)
-        matches++;
+    matches++;
 
     *mindex = 0;
     *msize  = 0;
@@ -1468,9 +1465,11 @@ void clean_exit(int32_t sig) {
 
     if (bin_data)          free(bin_data);
 
-    if (quiet < 1 && sig >= 0 && !read_file
-     && pd && !pcap_stats(pd, &s))
-        printf("%u received, %u dropped\n", s.ps_recv, s.ps_drop);
+    /* We used to report pcap_stats; but PCAP manpage says pcap_stats "may or
+       may not" be accurate. So useless. :-( And confusing for a user to see
+       counts not match what ngrep thinks. */
+    if (quiet < 1 && sig >= 0 && !read_file)
+        printf("%u received, %u matched\n", seen_frames, matches);
 
     if (pd)           pcap_close(pd);
     if (pd_dumppcap)  pcap_close(pd_dumppcap);
