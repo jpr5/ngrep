@@ -111,7 +111,7 @@ typedef enum {
 void process(u_char *, struct pcap_pkthdr *, u_char *);
 
 void version(void);
-void usage(int8_t);
+void usage();
 void update_windowsize(int32_t);
 void clean_exit(int32_t);
 

@@ -225,7 +225,7 @@ int main(int argc, char **argv) {
                     dump_single = 1;
                 } else {
                     printf("fatal: unknown wrap method '%s'\n", optarg);
-                    usage(-1);
+                    usage();
                 }
             } break;
 
@@ -253,14 +253,14 @@ int main(int argc, char **argv) {
 #if defined(_WIN32)
             case 'L':
                 win32_listdevices();
-                clean_exit(0);
+                clean_exit(2);
             case 'd':
                 usedev = win32_usedevice(optarg);
                 break;
 #else
             case 'L':
                 perror("-L is a Win32-only option");
-                clean_exit(-1);
+                clean_exit(2);
             case 'd':
                 usedev = optarg;
                 /* Linux: any = DLT_LINUX_SLL, pcap says incompatible with VLAN */
@@ -346,15 +346,15 @@ int main(int argc, char **argv) {
                 break;
 #endif
             case 'h':
-                usage(0);
+                usage();
             default:
-                usage(-1);
+                usage();
         }
     }
 
     if (show_hex && dump_func != &dump_formatted) {
         printf("fatal: -x (hex dump) is incompatible with -W (alternate format)\n");
-        usage(-1);
+        usage();
     }
 
     if (argv[optind])
@@ -371,7 +371,7 @@ int main(int argc, char **argv) {
 
         if (!(pd = pcap_open_offline(read_file, pc_err))) {
             perror(pc_err);
-            clean_exit(-1);
+            clean_exit(2);
         }
 
         live_read = 0;
@@ -388,12 +388,12 @@ int main(int argc, char **argv) {
 
         if (!dev) {
             perror(pc_err);
-            clean_exit(-1);
+            clean_exit(2);
         }
 
         if ((pd = pcap_open_live(dev, snaplen, promisc, to, pc_err)) == NULL) {
             perror(pc_err);
-            clean_exit(-1);
+            clean_exit(2);
         }
 
         if (pcap_lookupnet(dev, &net.s_addr, &mask.s_addr, pc_err) == -1) {
@@ -481,7 +481,7 @@ int main(int argc, char **argv) {
 
         default:
             fprintf(stderr, "fatal: unsupported interface type %u\n", pcap_datalink(pd));
-            clean_exit(-1);
+            clean_exit(2);
     }
 
     /* Setup BPF filter */
@@ -492,7 +492,7 @@ int main(int argc, char **argv) {
 
         if (!f || !fgets(buf, sizeof(buf)-1, f)) {
             fprintf(stderr, "fatal: unable to get filter from %s: %s\n", filter_file, strerror(errno));
-            usage(-1);
+            usage();
         }
 
         fclose(f);
@@ -501,7 +501,7 @@ int main(int argc, char **argv) {
 
         if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
             pcap_perror(pd, "pcap compile");
-            clean_exit(-1);
+            clean_exit(2);
         }
 
     } else if (argv[optind]) {
@@ -516,7 +516,7 @@ int main(int argc, char **argv) {
 #endif
             if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
                 pcap_perror(pd, "pcap compile");
-                clean_exit(-1);
+                clean_exit(2);
             } else match_data = NULL;
         }
 
@@ -525,7 +525,7 @@ int main(int argc, char **argv) {
 
         if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
             pcap_perror(pd, "pcap compile");
-            clean_exit(-1);
+            clean_exit(2);
         }
     }
 
@@ -534,7 +534,7 @@ int main(int argc, char **argv) {
 
     if (pcap_setfilter(pd, &pcapfilter)) {
         pcap_perror(pd, "pcap set");
-        clean_exit(-1);
+        clean_exit(2);
     }
 
     /* Setup matcher */
@@ -547,13 +547,13 @@ int main(int argc, char **argv) {
 
             if (re_match_word || re_ignore_case) {
                 fprintf(stderr, "fatal: regex switches are incompatible with binary matching\n");
-                clean_exit(-1);
+                clean_exit(2);
             }
 
             len = (uint32_t)strlen(match_data);
             if (len % 2 != 0 || !strishex(match_data)) {
                 fprintf(stderr, "fatal: invalid hex string specified\n");
-                clean_exit(-1);
+                clean_exit(2);
             }
 
             bin_data = (char*)malloc(len / 2);
@@ -622,7 +622,7 @@ int main(int argc, char **argv) {
 
             if (!pattern) {
                 fprintf(stderr, "compile failed: %s\n", re_err);
-                clean_exit(-1);
+                clean_exit(2);
             }
 
             pattern_extra = pcre_study(pattern, 0, (const char **)&re_err);
@@ -630,13 +630,13 @@ int main(int argc, char **argv) {
             re_err = re_compile_pattern(match_data, strlen(match_data), &pattern);
             if (re_err) {
                 fprintf(stderr, "regex compile: %s\n", re_err);
-                clean_exit(-1);
+                clean_exit(2);
             }
 
             pattern.fastmap = (char*)malloc(256);
             if (re_compile_fastmap(&pattern)) {
                 perror("fastmap compile failed");
-                clean_exit(-1);
+                clean_exit(2);
             }
 #endif
 
@@ -656,7 +656,7 @@ int main(int argc, char **argv) {
         pd_dump = pcap_dump_open(pd, dump_file);
         if (!pd_dump) {
             fprintf(stderr, "fatal: %s\n", pcap_geterr(pd));
-            clean_exit(-1);
+            clean_exit(2);
         } else printf("output: %s\n", dump_file);
     }
 
@@ -976,7 +976,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16
         case PCRE_ERROR_UNKNOWN_NODE:
         case PCRE_ERROR_NOMEMORY:
             perror("she's dead, jim\n");
-            clean_exit(-2);
+            clean_exit(2);
 
         case PCRE_ERROR_NOMATCH:
             return 0;
@@ -991,7 +991,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16
     switch (re_search(&pattern, (char const *)data, (int32_t)len, 0, len, &regs)) {
         case -2:
             perror("she's dead, jim\n");
-            clean_exit(-2);
+            clean_exit(2);
 
         case -1:
             return 0;
@@ -1358,7 +1358,7 @@ void drop_privs(void) {
     pw = getpwnam(DROPPRIVS_USER);
     if (!pw) {
         perror("attempt to drop privileges failed: getpwnam failed");
-        clean_exit(-1);
+        clean_exit(2);
     }
 
     newgid = pw->pw_gid;
@@ -1367,7 +1367,7 @@ void drop_privs(void) {
     if (getgroups(0, NULL) > 0)
         if (setgroups(1, &newgid) == -1) {
             perror("attempt to drop privileges failed");
-            clean_exit(-1);
+            clean_exit(2);
         }
 
     if (((getgid()  != newgid) && (setgid(newgid)  == -1)) ||
@@ -1376,13 +1376,13 @@ void drop_privs(void) {
         ((geteuid() != newuid) && (seteuid(newuid) == -1))) {
 
         perror("attempt to drop privileges failed");
-        clean_exit(-1);
+        clean_exit(2);
     }
 }
 
 #endif
 
-void usage(int8_t e) {
+void usage(void) {
     printf("usage: ngrep <-"
 #if defined(_WIN32)
            "L"
@@ -1434,7 +1434,7 @@ void usage(int8_t e) {
 #endif
            "");
 
-    exit(e);
+    exit(2);
 }
 
 
@@ -1482,7 +1482,7 @@ void clean_exit(int32_t sig) {
     if (usedev)       free(usedev);
 #endif
 
-    exit(sig);
+    exit(matches ? 0 : 1);
 }
 
 #if defined(_WIN32)
@@ -1513,7 +1513,7 @@ void win32_listdevices(void) {
 
     if (pcap_findalldevs(&alldevs, errbuf) == -1) {
         perror("unable to enumerate device list");
-        clean_exit(-1);
+        clean_exit(2);
     }
 
     printf("idx\tdev\n");
@@ -1537,12 +1537,12 @@ char *win32_usedevice(const char *index) {
 
     if (idx <= 0) {
         perror("invalid device index");
-        clean_exit(-1);
+        clean_exit(2);
     }
 
     if (pcap_findalldevs(&alldevs, errbuf) == -1) {
         perror("unable to enumerate devices");
-        clean_exit(-1);
+        clean_exit(2);
     }
 
     for (d = alldevs; d != NULL && i != idx; d = d->next)
@@ -1551,12 +1551,12 @@ char *win32_usedevice(const char *index) {
 
     if (i <= 0) {
         perror("no known devices");
-        clean_exit(-1);
+        clean_exit(2);
     }
 
     if (i != idx) {
         perror("unknown device specified");
-        clean_exit(-1);
+        clean_exit(2);
     }
 
     pcap_freealldevs(alldevs);
@@ -1571,7 +1571,7 @@ char *win32_choosedevice(void) {
 
     if (pcap_findalldevs(&alldevs, errbuf) == -1) {
         perror("unable to enumerate devices");
-        clean_exit(-1);
+        clean_exit(2);
     }
 
     for (d = alldevs; d != NULL; d = d->next)
