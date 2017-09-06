@@ -104,6 +104,7 @@
  * Configuration Options
  */
 
+int framenum = 0;
 uint32_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
 uint32_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
 
@@ -117,6 +118,8 @@ uint8_t  invert_match = 0, bin_match = 0;
 uint8_t  live_read = 1, want_delay = 0;
 uint8_t  dont_dropprivs = 0;
 uint8_t  enable_hilite = 0;
+uint8_t  show_frame_num = 0;
+uint8_t  default_bpf_filter = 1;
 
 char *read_file = NULL, *dump_file = NULL;
 char *usedev = NULL;
@@ -209,7 +212,7 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXVfziwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -335,6 +338,12 @@ int main(int argc, char **argv) {
             case 'N':
                 show_proto++;
                 break;
+            case 'f':
+                show_frame_num = 1;
+                break;
+            case 'z':
+                default_bpf_filter = 0;
+                break;
 #if USE_TCPKILL
             case 'K':
                 tcpkill_active = _atoui32(optarg);
@@ -440,7 +449,9 @@ int main(int argc, char **argv) {
         }
 
     } else {
-        filter = strdup(BPF_FILTER_IP);
+        if (default_bpf_filter) {
+            filter = strdup(BPF_FILTER_IP);
+        }
 
         if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
             pcap_perror(pd, "pcap compile");
@@ -650,7 +661,11 @@ int main(int argc, char **argv) {
 
     while (pcap_loop(pd, -1, (pcap_handler)process, 0));
 
-    clean_exit(0);
+    if (matches > 0) {
+      clean_exit(0);
+    } else {
+      clean_exit(-1);
+    }
 
     /* NOT REACHED */
     return 0;
@@ -695,6 +710,9 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
 
     unsigned char *data;
     uint32_t len = h->caplen - vlan_offset;
+
+    /* Increment Frame Number */
+    framenum++;
 
 #if HAVE_DLT_IEEE802_11_RADIO
     if (radiotap_present) {
@@ -883,7 +901,11 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
             default:             ident = UNKNOWN; break;
         }
 
-        printf("\n%c", ident);
+        if (show_frame_num) {
+            printf("\n%u: %c", framenum, ident);
+        } else {
+            printf("\n%c", ident);
+        }
     }
 
     if (show_proto)
@@ -978,8 +1000,7 @@ int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16
     }
 #endif
 
-    if (max_matches)
-        matches++;
+    matches++;
 
     if (match_after && keep_matching != match_after)
         keep_matching = match_after;
@@ -996,8 +1017,7 @@ int8_t bin_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint1
 
     while (i <= stop)
         if (!memcmp(data+(i++), bin_data, match_len)) {
-            if (max_matches)
-                matches++;
+            matches++;
 
             if (match_after && keep_matching != match_after)
                 keep_matching = match_after;
@@ -1012,8 +1032,7 @@ int8_t bin_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint1
 }
 
 int8_t blank_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
-    if (max_matches)
-        matches++;
+    matches++;
 
     *mindex = 0;
     *msize  = 0;
@@ -1140,9 +1159,13 @@ char *get_filter_from_string(char *str) {
 
     memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
 
-    sprintf(mine, BPF_MAIN_FILTER, str);
-
+    if (default_bpf_filter) {
+        sprintf(mine, BPF_MAIN_FILTER, str);
+    } else {
+        strcpy(mine, str);
+    }
     return mine;
+
 }
 
 char *get_filter_from_argv(char **argv) {
@@ -1171,7 +1194,11 @@ char *get_filter_from_argv(char **argv) {
         *(to-1) = ' ';
     }
 
-    sprintf(mine, BPF_MAIN_FILTER, theirs);
+    if (default_bpf_filter) {
+        sprintf(mine, BPF_MAIN_FILTER, theirs);
+    } else {
+        strcpy(mine, theirs);
+    }
 
     free(theirs);
     return mine;
@@ -1361,7 +1388,7 @@ void usage(int8_t e) {
 #if defined(_WIN32)
            "L"
 #endif
-           "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+           "hNXVfiwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>\n"
            "             <-P char> <-F file>"
 #if USE_TCPKILL
@@ -1397,6 +1424,8 @@ void usage(int8_t e) {
            "   -P  is set the non-printable display char to what is specified\n"
            "   -F  is read the bpf filter from the specified file\n"
            "   -N  is show sub protocol number\n"
+           "   -f  is show frame number for a matched packet\n"
+           "   -z  is disable built-in default bpf ip filter\n"
 #if defined(_WIN32)
            "   -d  is use specified device (index) instead of the pcap default\n"
            "   -L  is show the winpcap device list index\n"
@@ -1455,6 +1484,12 @@ void clean_exit(int32_t sig) {
     if (want_delay)   WSACleanup();
     if (usedev)       free(usedev);
 #endif
+
+    if (show_frame_num) {
+        if (quiet < 2 && sig >= 0) {
+            printf("matches: %u\n", matches);
+        }
+    }
 
     exit(sig);
 }
