@@ -158,6 +158,11 @@ char *filter = NULL, *filter_file = NULL;
 char pc_err[PCAP_ERRBUF_SIZE];
 uint8_t link_offset;
 uint8_t radiotap_present = 0;
+uint8_t disable_vlan_filter = 0;
+
+#if defined(SOLARIS)
+uint8_t is_ipnet = 0;
+#endif
 
 pcap_t *pd = NULL, *pd_dumppcap = NULL;
 pcap_dumper_t *pd_dump = NULL;
@@ -395,6 +400,10 @@ int main(int argc, char **argv) {
             memset(&mask, 0, sizeof(mask));
         }
 
+        if ((!strncasecmp(dev, "lo", 2)) || (!strcasecmp(dev, "any"))) {
+            disable_vlan_filter = 1;
+        }
+
         if (quiet < 2) {
             printf("interface: %s", dev);
             if (net.s_addr && mask.s_addr) {
@@ -440,7 +449,11 @@ int main(int argc, char **argv) {
         }
 
     } else {
-        filter = strdup(BPF_FILTER_IP);
+        if (disable_vlan_filter) {
+            filter = strdup(BPF_FILTER_IP);
+        } else {
+            filter = strdup(BPF_FILTER_IP_VLAN);
+        }
 
         if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
             pcap_perror(pd, "pcap compile");
@@ -602,6 +615,13 @@ int main(int argc, char **argv) {
             break;
 #endif
 
+#if defined(SOLARIS)
+        case DLT_IPNET:
+            link_offset = IPNETHDR_SIZE;
+            is_ipnet = 1;
+            break;
+#endif
+
 #if HAVE_DLT_LINUX_SLL
         case DLT_LINUX_SLL:
             link_offset = ISDNHDR_SIZE;
@@ -673,7 +693,14 @@ static inline uint8_t vlan_frame_count(u_char *p, uint16_t limit) {
 }
 
 void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
+#if defined(SOLARIS)
+    uint8_t vlan_offset = 0;
+    if (!is_ipnet) {
+        vlan_offset = vlan_frame_count(p, h->caplen) * VLANHDR_SIZE;
+    }
+#else
     uint8_t vlan_offset = vlan_frame_count(p, h->caplen) * VLANHDR_SIZE;
+#endif
 
     struct ip      *ip4_pkt = (struct ip *)    (p + link_offset + vlan_offset);
 #if USE_IPv6
@@ -1135,12 +1162,21 @@ char *get_filter_from_string(char *str) {
         if (*s == '\r' || *s == '\n')
             *s = ' ';
 
-    if (!(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
-        return NULL;
+    if (disable_vlan_filter) {
+        if (!(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
+            return NULL;
 
-    memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
+        memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
 
-    sprintf(mine, BPF_MAIN_FILTER, str);
+        sprintf(mine, BPF_MAIN_FILTER, str);
+    } else {
+        if (!(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER_VLAN))))
+            return NULL;
+
+        memset(mine, 0, len + sizeof(BPF_MAIN_FILTER_VLAN));
+
+        sprintf(mine, BPF_MAIN_FILTER_VLAN, str);
+    }
 
     return mine;
 }
@@ -1156,12 +1192,21 @@ char *get_filter_from_argv(char **argv) {
     while (*arg)
         len += (uint32_t)strlen(*arg++) + 1;
 
-    if (!(theirs = (char*)malloc(len + 1)) ||
-        !(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
-        return NULL;
+     if (disable_vlan_filter) {
+        if (!(theirs = (char*)malloc(len + 1)) ||
+            !(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
+            return NULL;
 
-    memset(theirs, 0, len + 1);
-    memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
+        memset(theirs, 0, len + 1);
+        memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
+    } else {
+        if (!(theirs = (char*)malloc(len + 1)) ||
+            !(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER_VLAN))))
+            return NULL;
+
+        memset(theirs, 0, len + 1);
+        memset(mine, 0, len + sizeof(BPF_MAIN_FILTER_VLAN));
+    }
 
     arg = argv;
     to = theirs;
@@ -1171,7 +1216,11 @@ char *get_filter_from_argv(char **argv) {
         *(to-1) = ' ';
     }
 
-    sprintf(mine, BPF_MAIN_FILTER, theirs);
+    if (disable_vlan_filter) {
+        sprintf(mine, BPF_MAIN_FILTER, theirs);
+    } else {
+        sprintf(mine, BPF_MAIN_FILTER_VLAN, theirs);
+    }
 
     free(theirs);
     return mine;

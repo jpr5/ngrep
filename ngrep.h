@@ -23,6 +23,7 @@
 #define IEEE80211HDR_SIZE 32
 #define PFLOGHDR_SIZE 48
 #define VLANHDR_SIZE 4
+#define IPNETHDR_SIZE 24
 
 #ifndef ETHERTYPE_IP
 #define ETHERTYPE_IP      0x0800
@@ -66,10 +67,12 @@
 #define BPF_FILTER_IP_TYPE  "(ip)"
 #endif
 
-#define BPF_FILTER_IP       "(" BPF_FILTER_IP_TYPE " || (vlan && " BPF_FILTER_IP_TYPE "))"
+#define BPF_FILTER_IP       BPF_FILTER_IP_TYPE
+#define BPF_FILTER_IP_VLAN  "(" BPF_FILTER_IP_TYPE " || (vlan && " BPF_FILTER_IP_TYPE "))"
 
 #define BPF_FILTER_OTHER    "( %s) and "
 #define BPF_MAIN_FILTER     BPF_FILTER_OTHER BPF_FILTER_IP
+#define BPF_MAIN_FILTER_VLAN BPF_FILTER_OTHER BPF_FILTER_IP_VLAN
 
 #define WORD_REGEX "((^%s\\W)|(\\W%s$)|(\\W%s\\W))"
 
