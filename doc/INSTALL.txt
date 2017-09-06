@@ -1,5 +1,8 @@
 
+=================================================================
 NOTE: These instructions are from the 2006 release of ngrep 1.45.
+      They are outdated but will still give you the gist.
+=================================================================
 
 ngrep Installation Guide
 ------------------------

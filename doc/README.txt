@@ -1,6 +1,6 @@
 Program: ngrep
 Author: Jordan Ritter <jpr5@darkridge.com>
-Version: 1.46.1 (7.23.2014)
+Version: 1.47 (9.6.2017)
 
 
 Goal:
@@ -126,7 +126,7 @@ Useful sites:
 
 Known Working Platforms:
 
-  o Linux 2.0 - 3.14
+  o Linux 2.0+
      (RH6+, SuSE, TurboLinux, Debian, Gentoo, Ubuntu, Mandrake, Slackware)/x86
      RedHat/alpha
      Cobalt (Qube2) Linux/MIPS
@@ -139,11 +139,10 @@ Known Working Platforms:
   o IRIX
   o AIX 4.3.3.0/PowerPC
   o BeOS R5
-  o Mac OS X 10 - 10.9.3
+  o Mac OS X 10+
 
   1.45 is known to work on: Windows 95, 98, NT, 2000, XP, 2003/x86, 7
   1.46.1 has been tested on: Windows 7, 8, 8.1
-
 
 Support, Feedback, & Patches
 
@@ -153,4 +152,3 @@ Support, Feedback, & Patches
   nothing is lost or missed (as has been the case in the past, unfortunately).
 
   ngrep Issues: https://github.com/jpr5/ngrep/issues
-

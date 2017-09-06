@@ -1,3 +1,15 @@
+v1.47
+	o Updates to fix building under MS VS2012 / Win32
+
+	o Updates to use 32bit values where relevant
+
+	o Fix to reduce searchable space when VLAN header present
+
+	o Import debian patches related to autotools, manpage, and compilation
+  	  on other platforms
+
+        o Update to latest autotools
+
 v1.46.1
 
         o actual bugfix for the VLAN parsing issue.  prior version 1.46 expanded

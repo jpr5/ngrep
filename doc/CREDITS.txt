@@ -57,11 +57,13 @@ Excellent patch for adding IPv6 support to ngrep
 
     Bernard Massot <bmassot@users.sourceforge.net>
 
-Assistance with IPv6 testing 
+Assistance with IPv6 testing
 
-    Ralph Logan	
+    Ralph Logan
     Arrigo Triulzi
 
 Timestamp diff from first match patch
 
-    Joseph Heenan <jonu@users.sourceforge.net> 
+    Joseph Heenan <jonu@users.sourceforge.net>
+
+And many others.
