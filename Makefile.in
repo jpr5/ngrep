@@ -51,11 +51,11 @@ install: $(TARGET)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -g -c $<
 
 clean:
-	$(MAKE) -C $(REGEX_DIR) clean
+	test -n "$(REGEX_DIR)" && $(MAKE) -C $(REGEX_DIR) clean || exit 0
 	rm -f *~ $(OBJS) $(REGEX_OBJS) $(TARGET) $(TARGET).static
 
 distclean: clean
-	$(MAKE) -C $(REGEX_DIR) distclean
+	test -n "$(REGEX_DIR)" && $(MAKE) -C $(REGEX_DIR) distclean || exit 0
 	rm -f config.status config.cache config.log config.h Makefile
 
 $(REGEX_OBJS): $(REGEX_OBJS:.o=.c) $(REGEX_DIR)/*.h
