@@ -106,6 +106,7 @@
 
 uint32_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
 uint32_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
+uint32_t seen_frames = 0;
 
 #if USE_TCPKILL
 uint32_t tcpkill_active = 0;
@@ -717,6 +718,8 @@ void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
     unsigned char *data;
     uint32_t len = h->caplen - vlan_offset;
 
+    seen_frames++;
+
 #if HAVE_DLT_IEEE802_11_RADIO
     if (radiotap_present) {
         uint16_t radio_len = ((struct NGREP_rtaphdr_t *)(p))->it_len;
@@ -948,7 +951,7 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
     if (dump_single)
         printf(" ");
     else
-        printf("\n");
+        printf(" #%u\n", seen_frames);
 
     if (quiet < 3)
         dump_func(data, len, match_index, match_size);
