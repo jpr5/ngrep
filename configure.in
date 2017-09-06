@@ -432,6 +432,18 @@ yes
 [HAVE_DLT_PFLOG="1" && AC_MSG_RESULT(yes)], [HAVE_DLT_PFLOG="0" && AC_MSG_RESULT(no)])
 
 
+present=""
+AC_MSG_CHECKING(for DLT_IPNET in $BPF)
+AC_EGREP_CPP(yes,
+[
+#include <$BPF>
+#ifdef DLT_IPNET
+yes
+#endif
+],
+[HAVE_DLT_IPNET="1" && AC_MSG_RESULT(yes)], [HAVE_DLT_IPNET="0" && AC_MSG_RESULT(no)])
+
+
 dnl
 dnl Now that we're past the OS-specific stuff, which could have
 dnl modified our USE_* and other defines, define them all now.
@@ -453,6 +465,7 @@ AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11,       $HAVE_DLT_IEEE802_11,       [prese
 AC_DEFINE_UNQUOTED(HAVE_DLT_IEEE802_11_RADIO, $HAVE_DLT_IEEE802_11_RADIO, [presence of DLT_IEEE802_11_RADIO in bpf.h])
 AC_DEFINE_UNQUOTED(HAVE_DLT_LOOP,             $HAVE_DLT_LOOP,             [presence of DLT_LOOP in bpf.h])
 AC_DEFINE_UNQUOTED(HAVE_DLT_LINUX_SLL,        $HAVE_DLT_LINUX_SLL,        [presence of DLT_LINUX_SLL in bpf.h])
+AC_DEFINE_UNQUOTED(HAVE_DLT_IPNET,            $HAVE_DLT_IPNET,            [presence of DLT_IPNET in bpf.h])
 
 dnl
 dnl Merge our global tack-ons with autoconf's.

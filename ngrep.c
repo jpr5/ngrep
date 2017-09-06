@@ -471,6 +471,13 @@ int main(int argc, char **argv) {
             break;
 #endif
 
+#if HAVE_DLT_IPNET
+        case DLT_IPNET:
+            link_offset = IPNETHDR_SIZE;
+            include_vlan = 0;
+            break;
+#endif
+
         default:
             fprintf(stderr, "fatal: unsupported interface type %u\n", pcap_datalink(pd));
             clean_exit(-1);

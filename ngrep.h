@@ -23,6 +23,7 @@
 #define IEEE80211HDR_SIZE 32
 #define PFLOGHDR_SIZE 48
 #define VLANHDR_SIZE 4
+#define IPNETHDR_SIZE 24
 
 #ifndef ETHERTYPE_IP
 #define ETHERTYPE_IP      0x0800
