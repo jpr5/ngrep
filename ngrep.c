@@ -30,7 +30,7 @@
 #include <pwd.h>
 #endif
 
-#if defined(LINUX)
+#if defined(LINUX) || defined(__GLIBC__) || defined(__GNU__)
 #include <getopt.h>
 #include <arpa/inet.h>
 #include <ctype.h>
