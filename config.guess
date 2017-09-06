@@ -1,4 +1,9 @@
 #! /bin/sh
+
+if [ -x /usr/share/misc/config.guess ]; then
+   exec /usr/share/misc/config.guess "$@"
+fi
+
 # Attempt to guess a canonical system name.
 #   Copyright 1992-2017 Free Software Foundation, Inc.
 

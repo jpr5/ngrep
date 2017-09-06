@@ -1,4 +1,9 @@
 #! /bin/sh
+
+if [ -x /usr/share/misc/config.sub ]; then
+   exec /usr/share/misc/config.sub "$@"
+fi
+
 # Configuration validation subroutine script.
 #   Copyright 1992-2017 Free Software Foundation, Inc.
 
