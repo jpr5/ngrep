@@ -1,4 +1,4 @@
-Copyright (c) 2014 Jordan Ritter.  All rights reserved.
+Copyright (c) 2017 Jordan Ritter.  All rights reserved.
 
 Permission is granted to anyone to use this software for any purpose on
 any computer system, and to alter it and redistribute it, subject
