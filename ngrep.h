@@ -66,10 +66,10 @@
 #define BPF_FILTER_IP_TYPE  "(ip)"
 #endif
 
-#define BPF_FILTER_IP       "(" BPF_FILTER_IP_TYPE " || (vlan && " BPF_FILTER_IP_TYPE "))"
-
-#define BPF_FILTER_OTHER    "( %s) and "
-#define BPF_MAIN_FILTER     BPF_FILTER_OTHER BPF_FILTER_IP
+#define BPF_TEMPLATE_IP               BPF_FILTER_IP_TYPE
+#define BPF_TEMPLATE_IP_VLAN          "(" BPF_FILTER_IP_TYPE " || (vlan && " BPF_FILTER_IP_TYPE "))"
+#define BPF_TEMPLATE_USERSPEC_IP      "( %s) and " BPF_TEMPLATE_IP
+#define BPF_TEMPLATE_USERSPEC_IP_VLAN "( %s) and " BPF_TEMPLATE_IP_VLAN
 
 #define WORD_REGEX "((^%s\\W)|(\\W%s$)|(\\W%s\\W))"
 
@@ -167,5 +167,3 @@ const char ANSI_bold[] = "\33[01m";
 
 const char *ANSI_hilite = ANSI_red;
 const char  ANSI_off[]  = "\33[00m";
-
-

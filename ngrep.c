@@ -158,6 +158,7 @@ char *filter = NULL, *filter_file = NULL;
 char pc_err[PCAP_ERRBUF_SIZE];
 uint8_t link_offset;
 uint8_t radiotap_present = 0;
+uint8_t include_vlan = 1;
 
 pcap_t *pd = NULL, *pd_dumppcap = NULL;
 pcap_dumper_t *pd_dump = NULL;
@@ -261,6 +262,9 @@ int main(int argc, char **argv) {
                 clean_exit(-1);
             case 'd':
                 usedev = optarg;
+                /* Linux: any = DLT_LINUX_SLL, pcap says incompatible with VLAN */
+                if (!strncasecmp(usedev, "any", 3))
+                    include_vlan = 0;
                 break;
 #endif
             case 'c':
@@ -360,6 +364,8 @@ int main(int argc, char **argv) {
         tcpkill_init();
 #endif
 
+    /* Setup PCAP input */
+
     if (read_file) {
 
         if (!(pd = pcap_open_offline(read_file, pc_err))) {
@@ -405,6 +411,73 @@ int main(int argc, char **argv) {
         }
     }
 
+        /* Setup link header offset */
+
+    switch(pcap_datalink(pd)) {
+        case DLT_EN10MB:
+            link_offset = ETHHDR_SIZE;
+            break;
+
+        case DLT_IEEE802:
+            link_offset = TOKENRING_SIZE;
+            break;
+
+        case DLT_FDDI:
+            link_offset = FDDIHDR_SIZE;
+            break;
+
+        case DLT_SLIP:
+            link_offset = SLIPHDR_SIZE;
+            break;
+
+        case DLT_PPP:
+            link_offset = PPPHDR_SIZE;
+            break;
+
+#if HAVE_DLT_LOOP
+        case DLT_LOOP:
+#endif
+        case DLT_NULL:
+            link_offset = LOOPHDR_SIZE;
+            break;
+
+#if HAVE_DLT_RAW
+        case DLT_RAW:
+            link_offset = RAWHDR_SIZE;
+            break;
+#endif
+
+#if HAVE_DLT_LINUX_SLL
+        case DLT_LINUX_SLL:
+            link_offset = ISDNHDR_SIZE;
+            include_vlan = 0;
+            break;
+#endif
+
+#if HAVE_DLT_IEEE802_11_RADIO
+        case DLT_IEEE802_11_RADIO:
+            radiotap_present = 1;
+#endif
+
+#if HAVE_DLT_IEEE802_11
+        case DLT_IEEE802_11:
+            link_offset = IEEE80211HDR_SIZE;
+            break;
+#endif
+
+#if HAVE_DLT_PFLOG
+        case DLT_PFLOG:
+            link_offset = PFLOGHDR_SIZE;
+            break;
+#endif
+
+        default:
+            fprintf(stderr, "fatal: unsupported interface type %u\n", pcap_datalink(pd));
+            clean_exit(-1);
+    }
+
+    /* Setup BPF filter */
+
     if (filter_file) {
         char buf[1024] = {0};
         FILE *f = fopen(filter_file, "r");
@@ -440,7 +513,7 @@ int main(int argc, char **argv) {
         }
 
     } else {
-        filter = strdup(BPF_FILTER_IP);
+        filter = include_vlan ? strdup(BPF_TEMPLATE_IP_VLAN) : strdup(BPF_TEMPLATE_IP);
 
         if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
             pcap_perror(pd, "pcap compile");
@@ -455,6 +528,8 @@ int main(int argc, char **argv) {
         pcap_perror(pd, "pcap set");
         clean_exit(-1);
     }
+
+    /* Setup matcher */
 
     if (match_data) {
         if (bin_match) {
@@ -568,67 +643,6 @@ int main(int argc, char **argv) {
     if (filter) free(filter);
     if (re_match_word) free(match_data);
 
-    switch(pcap_datalink(pd)) {
-        case DLT_EN10MB:
-            link_offset = ETHHDR_SIZE;
-            break;
-
-        case DLT_IEEE802:
-            link_offset = TOKENRING_SIZE;
-            break;
-
-        case DLT_FDDI:
-            link_offset = FDDIHDR_SIZE;
-            break;
-
-        case DLT_SLIP:
-            link_offset = SLIPHDR_SIZE;
-            break;
-
-        case DLT_PPP:
-            link_offset = PPPHDR_SIZE;
-            break;
-
-#if HAVE_DLT_LOOP
-        case DLT_LOOP:
-#endif
-        case DLT_NULL:
-            link_offset = LOOPHDR_SIZE;
-            break;
-
-#if HAVE_DLT_RAW
-        case DLT_RAW:
-            link_offset = RAWHDR_SIZE;
-            break;
-#endif
-
-#if HAVE_DLT_LINUX_SLL
-        case DLT_LINUX_SLL:
-            link_offset = ISDNHDR_SIZE;
-            break;
-#endif
-
-#if HAVE_DLT_IEEE802_11_RADIO
-        case DLT_IEEE802_11_RADIO:
-            radiotap_present = 1;
-#endif
-
-#if HAVE_DLT_IEEE802_11
-        case DLT_IEEE802_11:
-            link_offset = IEEE80211HDR_SIZE;
-            break;
-#endif
-
-#if HAVE_DLT_PFLOG
-        case DLT_PFLOG:
-            link_offset = PFLOGHDR_SIZE;
-            break;
-#endif
-
-        default:
-            fprintf(stderr, "fatal: unsupported interface type %u\n", pcap_datalink(pd));
-            clean_exit(-1);
-    }
 
     if (dump_file) {
         pd_dump = pcap_dump_open(pd, dump_file);
@@ -673,7 +687,7 @@ static inline uint8_t vlan_frame_count(u_char *p, uint16_t limit) {
 }
 
 void process(u_char *d, struct pcap_pkthdr *h, u_char *p) {
-    uint8_t vlan_offset = vlan_frame_count(p, h->caplen) * VLANHDR_SIZE;
+    uint8_t vlan_offset = include_vlan ? vlan_frame_count(p, h->caplen) * VLANHDR_SIZE : 0;
 
     struct ip      *ip4_pkt = (struct ip *)    (p + link_offset + vlan_offset);
 #if USE_IPv6
@@ -1123,6 +1137,7 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 }
 
 char *get_filter_from_string(char *str) {
+    const char *template = include_vlan ? BPF_TEMPLATE_USERSPEC_IP_VLAN : BPF_TEMPLATE_USERSPEC_IP;
     char *mine, *s;
     uint32_t len;
 
@@ -1135,17 +1150,18 @@ char *get_filter_from_string(char *str) {
         if (*s == '\r' || *s == '\n')
             *s = ' ';
 
-    if (!(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
+    if (!(mine = (char*)malloc(len + strlen(template) + 1)))
         return NULL;
 
-    memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
+    memset(mine, 0, len + strlen(template) + 1);
 
-    sprintf(mine, BPF_MAIN_FILTER, str);
+    sprintf(mine, template, str);
 
     return mine;
 }
 
 char *get_filter_from_argv(char **argv) {
+    const char *template = include_vlan ? BPF_TEMPLATE_USERSPEC_IP_VLAN : BPF_TEMPLATE_USERSPEC_IP;
     char **arg = argv, *theirs, *mine;
     char *from, *to;
     uint32_t len = 0;
@@ -1157,11 +1173,11 @@ char *get_filter_from_argv(char **argv) {
         len += (uint32_t)strlen(*arg++) + 1;
 
     if (!(theirs = (char*)malloc(len + 1)) ||
-        !(mine = (char*)malloc(len + sizeof(BPF_MAIN_FILTER))))
+        !(mine = (char*)malloc(len + strlen(template) + 1)))
         return NULL;
 
     memset(theirs, 0, len + 1);
-    memset(mine, 0, len + sizeof(BPF_MAIN_FILTER));
+    memset(mine, 0, len + strlen(template) + 1);
 
     arg = argv;
     to = theirs;
@@ -1171,7 +1187,7 @@ char *get_filter_from_argv(char **argv) {
         *(to-1) = ' ';
     }
 
-    sprintf(mine, BPF_MAIN_FILTER, theirs);
+    sprintf(mine, template, theirs);
 
     free(theirs);
     return mine;
@@ -1560,5 +1576,3 @@ char *win32_choosedevice(void) {
     return dev;
 }
 #endif
-
-
