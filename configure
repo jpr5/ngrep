@@ -666,6 +666,7 @@ enable_ipv6
 enable_pcap_restart
 enable_pcre
 enable_tcpkill
+enable_vlan_hack
 with_pcap_includes
 '
       ac_precious_vars='build_alias
@@ -1305,6 +1306,7 @@ Optional Features:
   --enable-pcap-restart   enable BPF lexer restart bugfix for older versions of PCAP (default off)
   --enable-pcre           use PCRE instead of GNU regex (default GNU)
   --enable-tcpkill        enable connection killing support (default off)
+  --disable-vlan-hack     disable automatic inclusion of VLAN frames (default on)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -3514,6 +3516,21 @@ else
 fi
 
 
+# Check whether --enable-vlan-hack was given.
+if test "${enable_vlan_hack+set}" = set; then :
+  enableval=$enable_vlan_hack; use_vlan_hack="$enableval"
+else
+  use_vlan_hack="yes"
+fi
+
+
+if test $use_vlan_hack = yes; then
+  USE_VLAN_HACK="1"
+else
+  USE_VLAN_HACK="0"
+fi
+
+
 
 # Check whether --with-pcap-includes was given.
 if test "${with_pcap_includes+set}" = set; then :
@@ -4075,6 +4092,11 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+cat >>confdefs.h <<_ACEOF
+#define USE_VLAN_HACK $USE_VLAN_HACK
+_ACEOF
+
+
 
 cat >>confdefs.h <<_ACEOF
 #define USE_DROPPRIVS $USE_DROPPRIVS
@@ -4168,6 +4190,14 @@ $as_echo "CONFIG: tcpkill feature enabled" >&6; }
 else
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: tcpkill feature disabled" >&5
 $as_echo "CONFIG: tcpkill feature disabled" >&6; }
+fi
+
+if test "$USE_VLAN_HACK" = "1"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: automatically including VLAN frames" >&5
+$as_echo "CONFIG: automatically including VLAN frames" >&6; }
+else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: not automatically including VLAN frames" >&5
+$as_echo "CONFIG: not automatically including VLAN frames" >&6; }
 fi
 
 

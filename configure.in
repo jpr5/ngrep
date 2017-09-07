@@ -189,6 +189,18 @@ else
 fi
 
 
+AC_ARG_ENABLE(vlan-hack,
+[  --disable-vlan-hack     disable automatic inclusion of VLAN frames (default on)],
+[use_vlan_hack="$enableval"],
+[use_vlan_hack="yes"])
+
+if test $use_vlan_hack = yes; then
+  USE_VLAN_HACK="1"
+else
+  USE_VLAN_HACK="0"
+fi
+
+
 AC_ARG_WITH(pcap-includes,
 [  --with-pcap-includes=dir       specify the pcap include directory],
 [PCAP_DIR=$withval],
@@ -467,6 +479,7 @@ AC_DEFINE_UNQUOTED(PCAP_RESTART_FUNC,         $PCAP_RESTART_FUNC,         [routi
 AC_DEFINE_UNQUOTED(USE_PCRE,                  $USE_PCRE,                  [whether to use PCRE (default GNU Regex)])
 AC_DEFINE_UNQUOTED(USE_IPv6,                  $USE_IPv6,                  [whether to use IPv6 (default off)])
 AC_DEFINE_UNQUOTED(USE_TCPKILL,               $USE_TCPKILL,               [whether to enable tcpkill functionality (default off)])
+AC_DEFINE_UNQUOTED(USE_VLAN_HACK,             $USE_VLAN_HACK,             [whether to automatically include VLAN frames (default on)])
 
 AC_DEFINE_UNQUOTED(USE_DROPPRIVS,             $USE_DROPPRIVS,             [whether to use privileges dropping (default yes)])
 AC_DEFINE_UNQUOTED(DROPPRIVS_USER,           "$DROPPRIVS_USER",           [pseudo-user for running ngrep (default "nobody")])
@@ -521,6 +534,12 @@ if test "$USE_TCPKILL" = "1"; then
     AC_MSG_RESULT(CONFIG: tcpkill feature enabled)
 else
     AC_MSG_RESULT(CONFIG: tcpkill feature disabled)
+fi
+
+if test "$USE_VLAN_HACK" = "1"; then
+    AC_MSG_RESULT(CONFIG: automatically including VLAN frames)
+else
+    AC_MSG_RESULT(CONFIG: NOT automatically including VLAN frames)
 fi
 
 dnl

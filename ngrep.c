@@ -159,7 +159,7 @@ char *filter = NULL, *filter_file = NULL;
 char pc_err[PCAP_ERRBUF_SIZE];
 uint8_t link_offset;
 uint8_t radiotap_present = 0;
-uint8_t include_vlan = 1;
+uint8_t include_vlan = USE_VLAN_HACK;
 
 pcap_t *pd = NULL, *pd_dumppcap = NULL;
 pcap_dumper_t *pd_dump = NULL;

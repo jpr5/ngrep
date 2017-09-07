@@ -8,6 +8,7 @@
 #define USE_PCRE                     @USE_PCRE@
 #define USE_IPv6                     @USE_IPv6@
 #define USE_TCPKILL                  @USE_TCPKILL@
+#define USE_VLAN_HACK                @USE_VLAN_HACK@
 
 #define HAVE_DLT_RAW                 @HAVE_DLT_RAW@
 #define HAVE_DLT_PFLOG               @HAVE_DLT_PFLOG@
