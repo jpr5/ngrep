@@ -1,6 +1,6 @@
 ## ngrep 1.47 (9.7.2017)
 
-ngrep is like GNU grep applied to the network layer.  It's is a PCAP-based tool
+ngrep is like GNU grep applied to the network layer.  It's a PCAP-based tool
 that allows you to specify an extended regular or hexadecimal expression to
 match against data payloads of packets.  It understands many kinds of protocols,
 including IPv4/6, TCP, UDP, ICMPv4/6, IGMP and Raw, across a wide variety of
