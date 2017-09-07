@@ -108,6 +108,10 @@ typedef enum {
  * Prototypes function signatures.
  */
 
+int setup_pcap_source(void);
+int setup_bpf_filter(char **);
+int setup_matcher(void);
+
 void process(u_char *, struct pcap_pkthdr *, u_char *);
 
 void version(void);

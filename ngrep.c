@@ -367,11 +367,74 @@ int main(int argc, char **argv) {
 
     /* Setup PCAP input */
 
+    if (setup_pcap_source())
+        clean_exit(2);
+
+    /* Setup BPF filter */
+
+    if (setup_bpf_filter(argv)) {
+        include_vlan = 0;
+        if (filter) { free(filter); filter = NULL; }
+
+        if (setup_bpf_filter(argv)) {
+            pcap_perror(pd, "pcap");
+            clean_exit(2);
+        }
+    }
+
+    if (filter) {
+        if (quiet < 2)
+            printf("filter: %s\n", filter);
+        free(filter);
+    }
+
+    /* Setup matcher */
+
+    if (match_data) {
+        if (setup_matcher())
+            clean_exit(2);
+
+        if (quiet < 2 && strlen(match_data))
+            printf("%smatch: %s%s\n", invert_match?"don't ":"",
+                   (bin_data && !strchr(match_data, 'x'))?"0x":"", match_data);
+
+        if (re_match_word) free(match_data);
+    }
+
+    /* Misc */
+
+    if (dump_file) {
+        pd_dump = pcap_dump_open(pd, dump_file);
+        if (!pd_dump) {
+            fprintf(stderr, "fatal: %s\n", pcap_geterr(pd));
+            clean_exit(2);
+        } else printf("output: %s\n", dump_file);
+    }
+
+    update_windowsize(0);
+
+#if defined(_WIN32)
+    win32_initwinsock();
+#endif
+
+#if !defined(_WIN32) && USE_DROPPRIVS
+    drop_privs();
+#endif
+
+    while (pcap_loop(pd, -1, (pcap_handler)process, 0));
+
+    clean_exit(0);
+
+    /* NOT REACHED */
+    return 0;
+}
+
+int setup_pcap_source(void) {
     if (read_file) {
 
         if (!(pd = pcap_open_offline(read_file, pc_err))) {
             perror(pc_err);
-            clean_exit(2);
+            return 1;
         }
 
         live_read = 0;
@@ -388,12 +451,12 @@ int main(int argc, char **argv) {
 
         if (!dev) {
             perror(pc_err);
-            clean_exit(2);
+            return 1;
         }
 
         if ((pd = pcap_open_live(dev, snaplen, promisc, to, pc_err)) == NULL) {
             perror(pc_err);
-            clean_exit(2);
+            return 1;
         }
 
         if (pcap_lookupnet(dev, &net.s_addr, &mask.s_addr, pc_err) == -1) {
@@ -411,8 +474,6 @@ int main(int argc, char **argv) {
             printf("\n");
         }
     }
-
-        /* Setup link header offset */
 
     switch(pcap_datalink(pd)) {
         case DLT_EN10MB:
@@ -481,11 +542,13 @@ int main(int argc, char **argv) {
 
         default:
             fprintf(stderr, "fatal: unsupported interface type %u\n", pcap_datalink(pd));
-            clean_exit(2);
+            return 1;
     }
 
-    /* Setup BPF filter */
+    return 0;
+}
 
+int setup_bpf_filter(char **argv) {
     if (filter_file) {
         char buf[1024] = {0};
         FILE *f = fopen(filter_file, "r");
@@ -499,10 +562,8 @@ int main(int argc, char **argv) {
 
         filter = get_filter_from_string(buf);
 
-        if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
-            pcap_perror(pd, "pcap compile");
-            clean_exit(2);
-        }
+        if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr))
+            return 1;
 
     } else if (argv[optind]) {
         filter = get_filter_from_argv(&argv[optind]);
@@ -514,167 +575,130 @@ int main(int argc, char **argv) {
 #if USE_PCAP_RESTART
             PCAP_RESTART_FUNC();
 #endif
-            if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
-                pcap_perror(pd, "pcap compile");
-                clean_exit(2);
-            } else match_data = NULL;
+
+            if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr))
+                return 1;
+
+            match_data = NULL;
         }
 
     } else {
         filter = include_vlan ? strdup(BPF_TEMPLATE_IP_VLAN) : strdup(BPF_TEMPLATE_IP);
 
-        if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr)) {
-            pcap_perror(pd, "pcap compile");
-            clean_exit(2);
-        }
+        if (pcap_compile(pd, &pcapfilter, filter, 0, mask.s_addr))
+            return 1;
     }
 
-    if (filter && quiet < 2)
-        printf("filter: %s\n", filter);
+    if (pcap_setfilter(pd, &pcapfilter))
+        return 1;
 
-    if (pcap_setfilter(pd, &pcapfilter)) {
-        pcap_perror(pd, "pcap set");
-        clean_exit(2);
-    }
+    return 0;
+}
 
-    /* Setup matcher */
+int setup_matcher(void) {
+    if (bin_match) {
+        uint32_t i = 0, n;
+        uint32_t len;
+        char *s, *d;
 
-    if (match_data) {
-        if (bin_match) {
-            uint32_t i = 0, n;
-            uint32_t len;
-            char *s, *d;
-
-            if (re_match_word || re_ignore_case) {
-                fprintf(stderr, "fatal: regex switches are incompatible with binary matching\n");
-                clean_exit(2);
-            }
-
-            len = (uint32_t)strlen(match_data);
-            if (len % 2 != 0 || !strishex(match_data)) {
-                fprintf(stderr, "fatal: invalid hex string specified\n");
-                clean_exit(2);
-            }
-
-            bin_data = (char*)malloc(len / 2);
-            memset(bin_data, 0, len / 2);
-            d = bin_data;
-
-            if ((s = strchr(match_data, 'x')))
-                len -= (uint32_t)(++s - match_data - 1);
-            else s = match_data;
-
-            while (i <= len) {
-                sscanf(s+i, "%2x", &n);
-                *d++ = n;
-                i += 2;
-            }
-
-            match_len = len / 2;
-            match_func = &bin_match_func;
-
-        } else {
-
-#if USE_PCRE
-            uint32_t pcre_options = PCRE_UNGREEDY;
-
-            if (re_ignore_case)
-                pcre_options |= PCRE_CASELESS;
-
-            if (re_multiline_match)
-                pcre_options |= PCRE_DOTALL;
-#else
-            re_syntax_options = RE_CHAR_CLASSES | RE_NO_BK_PARENS | RE_NO_BK_VBAR |
-                                RE_CONTEXT_INDEP_ANCHORS | RE_CONTEXT_INDEP_OPS;
-
-            if (re_multiline_match)
-                re_syntax_options |= RE_DOT_NEWLINE;
-
-            if (re_ignore_case) {
-                uint32_t i;
-                char *s;
-
-                pattern.translate = (char*)malloc(256);
-                s = pattern.translate;
-
-                for (i = 0; i < 256; i++)
-                    s[i] = i;
-                for (i = 'A'; i <= 'Z'; i++)
-                    s[i] = i + 32;
-
-                s = match_data;
-                while (*s) {
-                    *s = tolower(*s);
-                    s++;
-                }
-
-            } else pattern.translate = NULL;
-#endif
-
-            if (re_match_word) {
-                char *word_regex = (char*)malloc(strlen(match_data) * 3 + strlen(WORD_REGEX));
-                sprintf(word_regex, WORD_REGEX, match_data, match_data, match_data);
-                match_data = word_regex;
-            }
-
-#if USE_PCRE
-            pattern = pcre_compile(match_data, pcre_options, (const char **)&re_err, &err_offset, 0);
-
-            if (!pattern) {
-                fprintf(stderr, "compile failed: %s\n", re_err);
-                clean_exit(2);
-            }
-
-            pattern_extra = pcre_study(pattern, 0, (const char **)&re_err);
-#else
-            re_err = re_compile_pattern(match_data, strlen(match_data), &pattern);
-            if (re_err) {
-                fprintf(stderr, "regex compile: %s\n", re_err);
-                clean_exit(2);
-            }
-
-            pattern.fastmap = (char*)malloc(256);
-            if (re_compile_fastmap(&pattern)) {
-                perror("fastmap compile failed");
-                clean_exit(2);
-            }
-#endif
-
-            match_func = &re_match_func;
+        if (re_match_word || re_ignore_case) {
+            fprintf(stderr, "fatal: regex switches are incompatible with binary matching\n");
+            return 1;
         }
 
-        if (quiet < 2 && match_data && strlen(match_data))
-            printf("%smatch: %s%s\n", invert_match?"don't ":"",
-                   (bin_data && !strchr(match_data, 'x'))?"0x":"", match_data);
-    }
+        len = (uint32_t)strlen(match_data);
+        if (len % 2 != 0 || !strishex(match_data)) {
+            fprintf(stderr, "fatal: invalid hex string specified\n");
+            return 1;
+        }
 
-    if (filter) free(filter);
-    if (re_match_word) free(match_data);
+        bin_data = (char*)malloc(len / 2);
+        memset(bin_data, 0, len / 2);
+        d = bin_data;
 
+        if ((s = strchr(match_data, 'x')))
+            len -= (uint32_t)(++s - match_data - 1);
+        else s = match_data;
 
-    if (dump_file) {
-        pd_dump = pcap_dump_open(pd, dump_file);
-        if (!pd_dump) {
-            fprintf(stderr, "fatal: %s\n", pcap_geterr(pd));
-            clean_exit(2);
-        } else printf("output: %s\n", dump_file);
-    }
+        while (i <= len) {
+            sscanf(s+i, "%2x", &n);
+            *d++ = n;
+            i += 2;
+        }
 
-    update_windowsize(0);
+        match_len = len / 2;
+        match_func = &bin_match_func;
 
-#if defined(_WIN32)
-    win32_initwinsock();
+    } else {
+
+#if USE_PCRE
+        uint32_t pcre_options = PCRE_UNGREEDY;
+
+        if (re_ignore_case)
+            pcre_options |= PCRE_CASELESS;
+
+        if (re_multiline_match)
+            pcre_options |= PCRE_DOTALL;
+#else
+        re_syntax_options = RE_CHAR_CLASSES | RE_NO_BK_PARENS | RE_NO_BK_VBAR |
+            RE_CONTEXT_INDEP_ANCHORS | RE_CONTEXT_INDEP_OPS;
+
+        if (re_multiline_match)
+            re_syntax_options |= RE_DOT_NEWLINE;
+
+        if (re_ignore_case) {
+            uint32_t i;
+            char *s;
+
+            pattern.translate = (char*)malloc(256);
+            s = pattern.translate;
+
+            for (i = 0; i < 256; i++)
+                s[i] = i;
+            for (i = 'A'; i <= 'Z'; i++)
+                s[i] = i + 32;
+
+            s = match_data;
+            while (*s) {
+                *s = tolower(*s);
+                s++;
+            }
+
+        } else pattern.translate = NULL;
 #endif
 
-#if !defined(_WIN32) && USE_DROPPRIVS
-    drop_privs();
+        if (re_match_word) {
+            char *word_regex = (char*)malloc(strlen(match_data) * 3 + strlen(WORD_REGEX));
+            sprintf(word_regex, WORD_REGEX, match_data, match_data, match_data);
+            match_data = word_regex;
+        }
+
+#if USE_PCRE
+        pattern = pcre_compile(match_data, pcre_options, (const char **)&re_err, &err_offset, 0);
+
+        if (!pattern) {
+            fprintf(stderr, "compile failed: %s\n", re_err);
+            return 1;
+        }
+
+        pattern_extra = pcre_study(pattern, 0, (const char **)&re_err);
+#else
+        re_err = re_compile_pattern(match_data, strlen(match_data), &pattern);
+        if (re_err) {
+            fprintf(stderr, "regex compile: %s\n", re_err);
+            return 1;
+        }
+
+        pattern.fastmap = (char*)malloc(256);
+        if (re_compile_fastmap(&pattern)) {
+            perror("fastmap compile failed");
+            return 1;
+        }
 #endif
 
-    while (pcap_loop(pd, -1, (pcap_handler)process, 0));
+        match_func = &re_match_func;
+    }
 
-    clean_exit(0);
-
-    /* NOT REACHED */
     return 0;
 }
 
