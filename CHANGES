@@ -1,14 +1,29 @@
 v1.47
-	o Updates to fix building under MS VS2012 / Win32
 
-	o Updates to use 32bit values where relevant
+        o Fix "no VLAN support for XXX"-related problems
 
-	o Fix to reduce searchable space when VLAN header present
+        o Fix truncated/garbled output (e.g. SIP over SLL/Linux cooked sockets)
 
-	o Import debian patches related to autotools, manpage, and compilation
-  	  on other platforms
+        o Change exit behavior to match BSD & GNU grep (see manpage)
 
-        o Update to latest autotools
+        o Add Solaris IPnet support
+
+        o Update to use 32bit values where relevant
+
+        o Emit frame # in header, useful for reference/analysis
+
+        o Emit total received, matched upon exit (dropped unreliable PCAP stats)
+
+        o Import debian patches related to autotools, manpage, and compilation
+          on other platforms
+
+        o Fix build clean/distclean when not linked against provided GNU regex
+
+        o Fix build --enable/--disable flag processing
+
+        o Fix building under MS VS2012 / Win32
+
+        o Update to latest autotools (2017)
 
 v1.46.1
 
@@ -291,6 +306,3 @@ v1.28
         o no required arguments anymore
         o regex's are not required anymore, can just be bpf logic
         o probably a bugfix or two
-
-
-

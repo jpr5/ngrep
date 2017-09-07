@@ -1,7 +1,8 @@
 
 =================================================================
 NOTE: These instructions are from the 2006 release of ngrep 1.45.
-      They are outdated but will still give you the gist.
+      They are sparse but will still give you the gist. Otherwise
+      try ngrep from your favorite package manager!
 =================================================================
 
 ngrep Installation Guide
@@ -22,10 +23,10 @@ On Windows, the client support library is called ``WinPcap Developer's
 Pack'' and should be unpacked inside the parent directory of the ngrep
 source tree.
 
-The latest versions (as of this writing) are located at:
+The latest versions can be found at:
 
-    UNIX:  http://tcpdump.org/release/libpcap-0.9.5.tar.gz
-    Win32: http://www.winpcap.org/install/bin/wpdpack_3_1.zip
+    UNIX:  http://tcpdump.org/release/
+    Win32: http://www.winpcap.org/
 
 
 2. Unpack the ngrep source
@@ -61,14 +62,11 @@ ngrep is a PCAP-based program and therefore requires the PCAP kernel
 driver to be installed before it will function properly.
 
 The PCAP Driver is already integrated into the vast majority of UNIX
-and Linux kernels released within the last ~10 years.
+and Linux kernels released within the last ~20 years.
 
 The Windows Platform, however, does not come with an integrated PCAP
 kernel driver by default, so it is necessary to install one before
-ngrep will work.  The latest version (as of this writing) is located
-at:
-
-    http://www.winpcap.org/install/bin/WinPcap_3_1.exe
+ngrep will work.  
 
 
 Getting Help
@@ -78,8 +76,8 @@ On UNIX, if you still have problems compiling or are compiling on an
 unsupported OS, try playing with other build types -- i.e. if you have
 a BSD derived system, try the BSD build type.
 
-Please email me for help if you if you still have problems, however
-please try to help yourself first and search Google for possible
-answers before contacting me.
+If you still have problems, please submit an issue on GitHub or feel 
+free to email me, however please try to help yourself first and search 
+Google for possible answers before reaching out.
 
 Jordan Ritter <jpr5@darkridge.com>
