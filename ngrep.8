@@ -12,13 +12,15 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hNXViwqpevxlDtTRM> <-IO
+.B ngrep <-hNXViwqpevxlDtTRMQ> <-IO
 .I pcap_dump
 .B > < -n
 .I num
 .B > < -d
 .I dev
 .B > < -A
+.I num
+.B > < -J
 .I num
 .B > < -s
 .I snaplen
@@ -184,6 +186,14 @@ this option to force ngrep to listen on interface \fIdev\fP.
 .IP "-A num"
 Dump \fInum\fP packets of trailing context after matching a packet.
 
+.IP "-J num"
+Like -A, but print only those packets in the same TCP stream as the
+matched packet.
+
+.IP -Q
+When a new matching packet comes in but the number of packets given to
+-J hasn't been reached yet, start with this new match and follow it instead.
+ 
 .IP "\fI match expression\fP"
 A match expression is either an extended regular expression, or if the
 \fI-X\fP option is specified, a string signifying a hexadecimal value.
