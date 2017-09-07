@@ -1302,9 +1302,9 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-dropprivs     disable privilege dropping logic
   --enable-ipv6           enable IPv6 (and ICMPv6) support
-  --enable-pcap-restart    enable BPF lexer restart bugfix for older versions of PCAP
-  --enable-pcre           use PCRE instead of GNU regex
-  --enable-tcpkill        enable connection killing support
+  --enable-pcap-restart   enable BPF lexer restart bugfix for older versions of PCAP (default off)
+  --enable-pcre           use PCRE instead of GNU regex (default GNU)
+  --enable-tcpkill        enable connection killing support (default off)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -3394,14 +3394,20 @@ fi
 # Check whether --enable-pcap-restart was given.
 if test "${enable_pcap_restart+set}" = set; then :
   enableval=$enable_pcap_restart;
-  USE_PCAP_RESTART="1"
+  use_pcap_restart="$enableval"
 
 else
 
-  USE_PCAP_RESTART="0"
+  use_pcap_restart="no"
 
 fi
 
+
+if test $use_pcap_restart = yes; then
+    USE_PCAP_RESTART="1"
+else
+    USE_PCAP_RESTART="0"
+fi
 
 
 
@@ -3410,12 +3416,16 @@ REGEX_OBJS=''
 
 # Check whether --enable-pcre was given.
 if test "${enable_pcre+set}" = set; then :
-  enableval=$enable_pcre;
+  enableval=$enable_pcre;  use_pcre="$enableval"
+else
+   use_pcre="no"
+fi
+
+
+if test use_pcre = yes; then
   USE_PCRE="1"
   EXTRA_LIBS="$EXTRA_LIBS -lpcre"
-
 else
-
   USE_PCRE="0"
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
@@ -3431,9 +3441,7 @@ $as_echo "" >&6; }
   ( cd $REGEX_DIR && ./configure )
 
   EXTRA_INCLUDES="$EXTRA_INCLUDES -I$REGEX_DIR"
-
 fi
-
 
 
 
@@ -3489,17 +3497,21 @@ else
   echo !!! error: tcpkill feature enabled but no libnet found; exit
 fi
 
+  use_tcpkill="$enableval"
+
+else
+   use_tcpkill="no"
+fi
+
+
+if test $use_tcpkill = yes; then
   USE_TCPKILL="1"
   EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
   EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
   EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
-
 else
-
   USE_TCPKILL="0"
-
 fi
-
 
 
 
@@ -4127,11 +4139,11 @@ $as_echo "CONFIG: BPF filter lexer restart enabled (using $PCAP_RESTART_FUNC)" >
 fi
 
 if test "$USE_IPv6" = "1"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: IPV6 support enabled" >&5
-$as_echo "CONFIG: IPV6 support enabled" >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: IPv6 support enabled" >&5
+$as_echo "CONFIG: IPv6 support enabled" >&6; }
 else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: IPV6 support disabled" >&5
-$as_echo "CONFIG: IPV6 support disabled" >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: CONFIG: IPv6 support disabled" >&5
+$as_echo "CONFIG: IPv6 support disabled" >&6; }
 fi
 
 if test "$USE_DROPPRIVS" = "1"; then

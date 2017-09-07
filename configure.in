@@ -119,13 +119,19 @@ dnl [1] https://github.com/jpr5/ngrep/issues/2
 dnl
 
 AC_ARG_ENABLE(pcap-restart,
-[  --enable-pcap-restart    enable BPF lexer restart bugfix for older versions of PCAP],
+[  --enable-pcap-restart   enable BPF lexer restart bugfix for older versions of PCAP (default off)],
 [
-  USE_PCAP_RESTART="1"
+  use_pcap_restart="$enableval"
 ],
 [
-  USE_PCAP_RESTART="0"
+  use_pcap_restart="no"
 ])
+
+if test $use_pcap_restart = yes; then
+    USE_PCAP_RESTART="1"
+else
+    USE_PCAP_RESTART="0"
+fi
 
 
 dnl
@@ -136,12 +142,14 @@ REGEX_DIR=''
 REGEX_OBJS=''
 
 AC_ARG_ENABLE(pcre,
-[  --enable-pcre           use PCRE instead of GNU regex],
-[
+[  --enable-pcre           use PCRE instead of GNU regex (default GNU)],
+[ use_pcre="$enableval" ],
+[ use_pcre="no" ])
+
+if test use_pcre = yes; then
   USE_PCRE="1"
   EXTRA_LIBS="$EXTRA_LIBS -lpcre"
-],
-[
+else
   USE_PCRE="0"
 
   AC_MSG_RESULT
@@ -154,7 +162,7 @@ AC_ARG_ENABLE(pcre,
   ( cd $REGEX_DIR && ./configure )
 
   EXTRA_INCLUDES="$EXTRA_INCLUDES -I$REGEX_DIR"
-])
+fi
 
 AC_SUBST(REGEX_DIR)
 AC_SUBST(REGEX_OBJS)
@@ -164,17 +172,21 @@ dnl tcpkill/libnet support (from Debian patch)
 dnl
 
 AC_ARG_ENABLE(tcpkill,
-[  --enable-tcpkill        enable connection killing support],
+[  --enable-tcpkill        enable connection killing support (default off)],
 [
   AC_CHECK_LIB(net, libnet_init_packet,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
+  use_tcpkill="$enableval"
+],
+[ use_tcpkill="no" ])
+
+if test $use_tcpkill = yes; then
   USE_TCPKILL="1"
   EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
   EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
   EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
-],
-[
+else
   USE_TCPKILL="0"
-])
+fi
 
 
 AC_ARG_WITH(pcap-includes,
@@ -488,9 +500,9 @@ if test "$USE_PCAP_RESTART" = "1"; then
 fi
 
 if test "$USE_IPv6" = "1"; then
-    AC_MSG_RESULT(CONFIG: IPV6 support enabled)
+    AC_MSG_RESULT(CONFIG: IPv6 support enabled)
 else
-    AC_MSG_RESULT(CONFIG: IPV6 support disabled)
+    AC_MSG_RESULT(CONFIG: IPv6 support disabled)
 fi
 
 if test "$USE_DROPPRIVS" = "1"; then
