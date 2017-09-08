@@ -17,8 +17,7 @@ common packet sniffing tools, such as tcpdump and snoop.
  * Update to use 32bit values where relevant
  * Emit frame # in header, useful for reference/analysis
  * Emit total received, matched upon exit (dropped unreliable PCAP stats)
- * Import debian patches related to autotools, manpage, and compilation
- * on other platforms
+ * Import debian patches related to autotools, manpage, and compilation on other platforms
  * Fix build clean/distclean when not linked against provided GNU regex
  * Fix build --enable/--disable flag processing
  * Fix building under MS VS2012 / Win32
