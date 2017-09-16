@@ -106,7 +106,7 @@
 
 uint32_t snaplen = 65535, limitlen = 65535, promisc = 1, to = 100;
 uint32_t match_after = 0, keep_matching = 0, matches = 0, max_matches = 0;
-uint32_t seen_frames = 0, follow_stream = 0, reset_count = 0;
+uint32_t seen_frames = 0, follow_stream = 0, reset_follow = 0;
 
 #if USE_TCPKILL
 uint32_t tcpkill_active = 0;
@@ -189,9 +189,8 @@ uint32_t ws_row, ws_col = 80, ws_col_forced = 0;
 /*
  * Stream following functionality
  */
-const char *follow_ip_src = NULL, *follow_ip_dst = NULL;
+char follow_sip[INET6_ADDRSTRLEN + 1], follow_dip[INET6_ADDRSTRLEN + 1];
 uint16_t follow_sport, follow_dport;
-
 
 int main(int argc, char **argv) {
     int32_t c;
@@ -256,13 +255,10 @@ int main(int argc, char **argv) {
                     match_after++;
                 break;
             case 'J':
-                match_after = _atoui32(optarg);
-                if (match_after < UINT32_MAX)
-                    match_after++;
                 follow_stream = 1;
                 break;
-    	    case 'Q':
-                reset_count = 1;
+            case 'Q':
+                reset_follow = 1;
                 break;
 #if defined(_WIN32)
             case 'L':
@@ -931,31 +927,34 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
     if (notmatched && !keep_matching)
         return;
 
-    if (!notmatched && reset_count)
-        follow_ip_src = NULL;
-    
-    if (keep_matching && follow_stream) {
-        if (follow_ip_src == NULL) {
-            follow_ip_src = ip_src;
-            follow_ip_dst = ip_dst;
-            follow_sport = sport;
-            follow_dport = dport;
-        }
-        if (!(
-              (strcmp(ip_src, follow_ip_src) == 0 && // Forward stream
-               strcmp(ip_dst, follow_ip_dst) == 0 &&
-               sport == follow_sport &&
-               dport == follow_dport) ||
-              (!strcmp(ip_src, follow_ip_dst) == 0 && // Reverse stream
-               !strcmp(ip_dst, follow_ip_src) == 0 &&
-               sport == follow_dport &&
-               dport == follow_sport)
-              )) {
-            keep_matching++;
-            return;
+    if (follow_stream) {
+        if (!notmatched && reset_follow)
+            *follow_sip = '\0';
+
+        if (keep_matching) {
+            if (*follow_sip == '\0') {
+                strncpy(follow_sip, ip_src, sizeof(follow_sip));
+                strncpy(follow_dip, ip_dst, sizeof(follow_dip));
+                follow_sport = sport;
+                follow_dport = dport;
+            }
+
+            if (!(
+                  (strncmp(follow_sip, ip_src, sizeof(follow_sip)) == 0 && // Forward stream
+                   strncmp(follow_dip, ip_dst, sizeof(follow_dip)) == 0 &&
+                   sport == follow_sport &&
+                   dport == follow_dport) ||
+                  (strncmp(follow_dip, ip_src, sizeof(follow_dip)) == 0 && // Reverse stream
+                   strncmp(follow_sip, ip_dst, sizeof(follow_sip)) == 0 &&
+                   sport == follow_dport &&
+                   dport == follow_sport)
+                  )) {
+                keep_matching++;
+                return;
+            }
         }
     }
-    
+
     if (!live_read && want_delay)
         dump_delay(h);
 
@@ -1448,7 +1447,7 @@ void usage(void) {
 #if defined(_WIN32)
            "L"
 #endif
-           "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num> <-J num>\n"
+           "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num -JQ>\n"
            "             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>\n"
            "             <-P char> <-F file>"
 #if USE_TCPKILL
@@ -1477,8 +1476,7 @@ void usage(void) {
            "   -O  is dump matched packets in pcap format to pcap_dump\n"
            "   -n  is look at only num packets\n"
            "   -A  is dump num packets after a match\n"
-           "   -J  is dump num packets in TCP stream after a match\n"
-           "   -Q  is reset -J follow count after another match\n"
+           "   -J  is dump packets after match  belong to the same stream\n"
            "   -s  is set the bpf caplen\n"
            "   -S  is set the limitlen on matched packets\n"
            "   -W  is set the dump format (normal, byline, single, none)\n"
