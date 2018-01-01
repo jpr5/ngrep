@@ -146,7 +146,7 @@ AC_ARG_ENABLE(pcre,
 [ use_pcre="$enableval" ],
 [ use_pcre="no" ])
 
-if test use_pcre = yes; then
+if test $use_pcre = yes; then
   USE_PCRE="1"
   EXTRA_LIBS="$EXTRA_LIBS -lpcre"
 else
