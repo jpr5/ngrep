@@ -10,7 +10,7 @@ ngrep Installation Guide
 
 1. Install the latest Packet Capture Library
 
-In orer to compile ngrep on any platform, the relevant packet capture
+In order to compile ngrep on any platform, the relevant packet capture
 (PCAP) client support library must be installed.
 
 On UNIX, this is called ``libpcap'' and can be installed either from
@@ -45,9 +45,9 @@ On UNIX, type the following from the root of the ngrep source tree:
     % ./configure && make
 
 On Windows, open the ``ngrep.sln'' file located in the ``win32''
-subdirectory of the ngrep source tree using Visual Studio.NET.  From
+subdirectory of the ngrep source tree using Visual Studio.NET. From
 there you should be able to Build the solution in either Debug or
-Release mode.  Once this is done, copy the resulting ``ngrep.exe''
+Release mode. Once this is done, copy the resulting ``ngrep.exe''
 (located in either the ``Debug'' or ``Release'' subdirectory depending
 on compile configuration) into any directory in your path for easy
 usage (``c:\windows'', for instance).
