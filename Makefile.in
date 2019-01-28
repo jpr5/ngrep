@@ -19,11 +19,11 @@ MANPAGE=ngrep.8
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
 
-bindir      = $(prefix)/bin
-datadir     = $(prefix)/share
-mandir      = $(datadir)/man
+bindir      = @bindir@
+datadir     = @datadir@
+mandir      = @mandir@
 
-BINDIR_INSTALL = $(prefix)/bin
+BINDIR_INSTALL = $(bindir)
 MANDIR_INSTALL = $(mandir)/man8
 
 INSTALL = ./install-sh
