@@ -98,6 +98,7 @@
 #endif
 
 #include "ngrep.h"
+#include "tcpkill.h"
 
 
 /*
