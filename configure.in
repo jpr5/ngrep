@@ -373,13 +373,7 @@ if test "$USE_PCAP_RESTART" = "1"; then
 fi
 
 
-dnl
-dnl Next figure out which bpf header file to look at.
-dnl
-
-AC_MSG_CHECKING(for BPF include path)
-BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap.h`
-AC_MSG_RESULT($BPF)
+PCAP_H=$pcap_base/pcap.h
 
 dnl
 dnl Check for DLT_* types that might not have existed in older
@@ -387,10 +381,10 @@ dnl libpcap's
 dnl
 
 present=""
-AC_MSG_CHECKING(for DLT_LINUX_SLL in $BPF)
+AC_MSG_CHECKING(for DLT_LINUX_SLL in $PCAP_H)
 AC_EGREP_CPP(yes,
 [
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_LINUX_SLL
 yes
 #endif
@@ -398,10 +392,10 @@ yes
 [HAVE_DLT_LINUX_SLL="1" && AC_MSG_RESULT(yes)], [HAVE_DLT_LINUX_SLL="0" && AC_MSG_RESULT(no)])
 
 present=""
-AC_MSG_CHECKING(for DLT_LOOP in $BPF)
+AC_MSG_CHECKING(for DLT_LOOP in $PCAP_H)
 AC_EGREP_CPP(yes,
 [
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_LOOP
 yes
 #endif
@@ -409,10 +403,10 @@ yes
 [HAVE_DLT_LOOP="1" && AC_MSG_RESULT(yes)], [HAVE_DLT_LOOP="0" && AC_MSG_RESULT(no)])
 
 present=""
-AC_MSG_CHECKING(for DLT_IEEE802_11 in $BPF)
+AC_MSG_CHECKING(for DLT_IEEE802_11 in $PCAP_H)
 AC_EGREP_CPP(yes,
 [
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_IEEE802_11
 yes
 #endif
@@ -421,10 +415,10 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_IEEE802_11_RADIO in $BPF)
+AC_MSG_CHECKING(for DLT_IEEE802_11_RADIO in $PCAP_H)
 AC_EGREP_CPP(yes,
 [
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_IEEE802_11_RADIO
 yes
 #endif
@@ -433,10 +427,10 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_RAW in $BPF)
+AC_MSG_CHECKING(for DLT_RAW in $PCAP_H)
 AC_EGREP_CPP(yes,
 [
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_RAW
 yes
 #endif
@@ -445,10 +439,10 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_PFLOG in $BPF)
+AC_MSG_CHECKING(for DLT_PFLOG in $PCAP_H)
 AC_EGREP_CPP(yes,
 [
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_PFLOG
 yes
 #endif
@@ -457,10 +451,10 @@ yes
 
 
 present=""
-AC_MSG_CHECKING(for DLT_IPNET in $BPF)
+AC_MSG_CHECKING(for DLT_IPNET in $PCAP_H)
 AC_EGREP_CPP(yes,
 [
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_IPNET
 yes
 #endif
