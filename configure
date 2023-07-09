@@ -3890,21 +3890,16 @@ fi
 fi
 
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for BPF include path" >&5
-$as_echo_n "checking for BPF include path... " >&6; }
-BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap.h`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $BPF" >&5
-$as_echo "$BPF" >&6; }
+PCAP_H=$pcap_base/pcap.h
 
 
 present=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_LINUX_SLL in $BPF" >&5
-$as_echo_n "checking for DLT_LINUX_SLL in $BPF... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_LINUX_SLL in $PCAP_H" >&5
+$as_echo_n "checking for DLT_LINUX_SLL in $PCAP_H... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_LINUX_SLL
 yes
 #endif
@@ -3922,12 +3917,12 @@ rm -f conftest*
 
 
 present=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_LOOP in $BPF" >&5
-$as_echo_n "checking for DLT_LOOP in $BPF... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_LOOP in $PCAP_H" >&5
+$as_echo_n "checking for DLT_LOOP in $PCAP_H... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_LOOP
 yes
 #endif
@@ -3945,12 +3940,12 @@ rm -f conftest*
 
 
 present=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_IEEE802_11 in $BPF" >&5
-$as_echo_n "checking for DLT_IEEE802_11 in $BPF... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_IEEE802_11 in $PCAP_H" >&5
+$as_echo_n "checking for DLT_IEEE802_11 in $PCAP_H... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_IEEE802_11
 yes
 #endif
@@ -3969,12 +3964,12 @@ rm -f conftest*
 
 
 present=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_IEEE802_11_RADIO in $BPF" >&5
-$as_echo_n "checking for DLT_IEEE802_11_RADIO in $BPF... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_IEEE802_11_RADIO in $PCAP_H" >&5
+$as_echo_n "checking for DLT_IEEE802_11_RADIO in $PCAP_H... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_IEEE802_11_RADIO
 yes
 #endif
@@ -3993,12 +3988,12 @@ rm -f conftest*
 
 
 present=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_RAW in $BPF" >&5
-$as_echo_n "checking for DLT_RAW in $BPF... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_RAW in $PCAP_H" >&5
+$as_echo_n "checking for DLT_RAW in $PCAP_H... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_RAW
 yes
 #endif
@@ -4017,12 +4012,12 @@ rm -f conftest*
 
 
 present=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_PFLOG in $BPF" >&5
-$as_echo_n "checking for DLT_PFLOG in $BPF... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_PFLOG in $PCAP_H" >&5
+$as_echo_n "checking for DLT_PFLOG in $PCAP_H... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_PFLOG
 yes
 #endif
@@ -4041,12 +4036,12 @@ rm -f conftest*
 
 
 present=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_IPNET in $BPF" >&5
-$as_echo_n "checking for DLT_IPNET in $BPF... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DLT_IPNET in $PCAP_H" >&5
+$as_echo_n "checking for DLT_IPNET in $PCAP_H... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <$BPF>
+#include <$PCAP_H>
 #ifdef DLT_IPNET
 yes
 #endif
