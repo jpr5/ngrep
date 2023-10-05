@@ -73,7 +73,7 @@ sub go {
         sigprocmask(SIG_UNBLOCK, $old_sig_set);
 
 	system("zcat $rule{'file'} | " .
-               "ngrep -qtI - $rule{'regex'} $rule{'filter'} 2&>1 > " .
+               "ngrep -qtI - $rule{'regex'} $rule{'filter'} 2>&1 > " .
                "ngrepped.$rule_name");
 
 	exit;
