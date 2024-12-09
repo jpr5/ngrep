@@ -146,7 +146,7 @@ struct re_pattern_buffer pattern;
 
 char *match_data = NULL, *bin_data = NULL;
 uint16_t match_len = 0;
-int8_t (*match_func)() = &blank_match_func;
+int8_t (*match_func)(unsigned char *, uint32_t, uint16_t *, uint16_t *) = &blank_match_func;
 
 int8_t dump_single = 0;
 void (*dump_func)(unsigned char *, uint32_t, uint16_t, uint16_t) = &dump_formatted;
@@ -177,7 +177,7 @@ FD_SET delay_fds;
 SOCKET delay_socket = 0;
 #endif
 
-void (*print_time)() = NULL, (*dump_delay)() = dump_delay_proc_init;
+void (*print_time)(struct pcap_pkthdr *) = NULL, (*dump_delay)(struct pcap_pkthdr *) = dump_delay_proc_init;
 
 
 /*
