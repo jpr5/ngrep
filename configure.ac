@@ -34,8 +34,8 @@ dnl
 dnl Allow user to specify alternate ``nobody'' user.
 dnl
 
-AC_ARG_WITH(dropprivs-user,
-[  --with-dropprivs-user[=user]     use different user for dropprivs],
+AC_ARG_WITH([dropprivs-user], [
+AS_HELP_STRING([--with-dropprivs-user[=user]], [use different user for dropprivs])],
 [
   DROPPRIVS_USER="$withval"
 ],
@@ -47,8 +47,8 @@ dnl
 dnl Enable or disable the drop privileges logic.
 dnl
 
-AC_ARG_ENABLE(dropprivs,
-[  --disable-dropprivs     disable privilege dropping logic],
+AC_ARG_ENABLE([dropprivs], [
+AS_HELP_STRING([--disable-dropprivs], [disable privilege dropping logic])],
 [
   use_dropprivs="$enableval"
 ],
@@ -66,8 +66,8 @@ dnl
 dnl IPv6 (and ICMPv6) support
 dnl
 
-AC_ARG_ENABLE(ipv6,
-[  --enable-ipv6           enable IPv6 (and ICMPv6) support],
+AC_ARG_ENABLE([ipv6], [
+AS_HELP_STRING([--enable-ipv6], [enable IPv6 (and ICMPv6) support])],
 [
   use_ipv6="$enableval"
 ],
@@ -118,8 +118,8 @@ dnl
 dnl [1] https://github.com/jpr5/ngrep/issues/2
 dnl
 
-AC_ARG_ENABLE(pcap-restart,
-[  --enable-pcap-restart   enable BPF lexer restart bugfix for older versions of PCAP (default off)],
+AC_ARG_ENABLE([pcap-restart], [
+AS_HELP_STRING([--enable-pcap-restart], [enable BPF lexer restart bugfix for older versions of PCAP (default off)])],
 [
   use_pcap_restart="$enableval"
 ],
@@ -141,8 +141,8 @@ dnl
 REGEX_DIR=''
 REGEX_OBJS=''
 
-AC_ARG_ENABLE(pcre,
-[  --enable-pcre           use PCRE instead of GNU regex (default GNU)],
+AC_ARG_ENABLE([pcre], [
+AS_HELP_STRING([--enable-pcre], [use PCRE instead of GNU regex (default GNU)])],
 [ use_pcre="$enableval" ],
 [ use_pcre="no" ])
 
@@ -171,8 +171,8 @@ dnl
 dnl tcpkill/libnet support (from Debian patch)
 dnl
 
-AC_ARG_ENABLE(tcpkill,
-[  --enable-tcpkill        enable connection killing support (default off)],
+AC_ARG_ENABLE([tcpkill], [
+AS_HELP_STRING([--enable-tcpkill], [enable connection killing support (default off)])],
 [
   AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
   use_tcpkill="$enableval"
@@ -189,8 +189,8 @@ AS_IF([test $use_tcpkill = yes], [
 ])
 
 
-AC_ARG_ENABLE(vlan-hack,
-[  --disable-vlan-hack     disable automatic inclusion of VLAN frames (default on)],
+AC_ARG_ENABLE([vlan-hack], [
+AS_HELP_STRING([--disable-vlan-hack], [disable automatic inclusion of VLAN frames (default on)])],
 [use_vlan_hack="$enableval"],
 [use_vlan_hack="yes"])
 
@@ -201,8 +201,8 @@ AS_IF([test $use_vlan_hack = yes], [
 ])
 
 
-AC_ARG_WITH(pcap-includes,
-[  --with-pcap-includes=dir       specify the pcap include directory],
+AC_ARG_WITH([pcap-includes], [
+AS_HELP_STRING([--with-pcap-includes=dir], [specify the pcap include directory])],
 [PCAP_DIR=$withval],
 [
   PCAP_DIR="`eval echo -n ${includedir}` \
