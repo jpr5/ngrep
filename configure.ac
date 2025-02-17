@@ -5,15 +5,15 @@ dnl Please refer to the LICENSE file for more information.
 dnl
 dnl NOTE: configure.in requires autoconf 2.57 or more recent.
 
-AC_INIT(ngrep.c)
+AC_INIT
+AC_CONFIG_SRCDIR([ngrep.c])
 
 AC_MSG_RESULT
 AC_MSG_RESULT(Configuring System ...)
 AC_MSG_RESULT
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 AC_PROG_CC
-AC_HEADER_STDC
 
 AC_PREFIX_DEFAULT(/usr/local)
 AS_IF([test -n "`which tcpdump 2> /dev/null`"], [
