@@ -17,7 +17,7 @@ AC_CANONICAL_TARGET
 AC_PROG_CC
 
 AC_PREFIX_DEFAULT(/usr/local)
-AS_IF([test -n "`which tcpdump 2> /dev/null`"], [
+AS_IF([test -n "$(command -v tcpdump 2> /dev/null)"], [
    AC_PREFIX_PROGRAM(tcpdump)
 ])
 
