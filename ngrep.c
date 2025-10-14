@@ -171,11 +171,6 @@ struct in_addr net, mask;
  */
 
 struct timeval prev_ts = {0, 0}, prev_delay_ts = {0,0};
-#if defined(_WIN32)
-struct timeval delay_tv;
-FD_SET delay_fds;
-SOCKET delay_socket = 0;
-#endif
 
 void (*print_time)(struct pcap_pkthdr *) = NULL, (*dump_delay)(struct pcap_pkthdr *) = dump_delay_proc_init;
 
@@ -1324,27 +1319,7 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
     }
 
 #ifdef _WIN32
-    {
-        // grevious hack, yes, but windows sucks.  sorry. :(   --jordan
-        if ((delay_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-            perror("delay socket creation failed, disabling -D");
-            Sleep(3000); // give them time to read the message
-            want_delay = 0;
-            return;
-        }
-
-        FD_ZERO(&delay_fds);
-        FD_SET(delay_socket, &delay_fds);
-
-        delay_tv.tv_sec  = secs;
-        delay_tv.tv_usec = usecs;
-
-        if (select(0, &delay_fds, 0, 0, &delay_tv) == -1)
-            fprintf(stderr, "WSAGetLastError = %u\n", WSAGetLastError());
-
-        closesocket(delay_socket);
-        delay_socket = 0; // in case someone ^C's out of me
-    }
+    Sleep(1000*secs + usecs/1000);
 #else
     sleep(secs);
     usleep(usecs);
@@ -1516,7 +1491,6 @@ void clean_exit(int32_t sig) {
     if (pd_dump)      pcap_dump_close(pd_dump);
 
 #if defined(_WIN32)
-    if (delay_socket) closesocket(delay_socket);
     if (want_delay)   WSACleanup();
     if (usedev)       free(usedev);
 #endif
