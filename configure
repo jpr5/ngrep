@@ -1351,7 +1351,7 @@ Optional Packages:
   --with-pcap-includes=dir
                           specify the pcap include directory
 
-  --with-pcre2-includes=dir
+      --with-pcre2-includes=dir
                           specify the pcre2 include directory
 
 Some influential environment variables:
@@ -3895,25 +3895,26 @@ fi
 # Check whether --with-pcre2-includes was given.
 if test ${with_pcre2_includes+y}
 then :
-  withval=$with_pcre2_includes; PCRE2_DIR=$withval
+  withval=$with_pcre2_includes;
+        PCRE2_DIR=$withval
+
 else case e in #(
   e)
-  PCRE2_DIR="`eval echo -n ${includedir}`"
+        PCRE2_DIR="${includedir}"
+
  ;;
 esac
 fi
 
 
 EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
-DIR="`dirname $PCRE2_DIR`/lib"
+DIR="$PCRE2_DIR/lib"
 if test -d $DIR
 then :
 
-    EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+  EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
 
 fi
-
-
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: " >&5
 printf "%s\n" "" >&6; }

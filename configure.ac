@@ -204,19 +204,20 @@ AS_HELP_STRING([--with-pcap-includes=dir], [specify the pcap include directory])
 ])
 
 AC_ARG_WITH([pcre2-includes], [
-AS_HELP_STRING([--with-pcre2-includes=dir], [specify the pcre2 include directory])],
-[PCRE2_DIR=$withval],
-[
-  PCRE2_DIR="`eval echo -n ${includedir}`"
-])
+    AS_HELP_STRING([--with-pcre2-includes=dir], [specify the pcre2 include directory])],
+    [
+        PCRE2_DIR=$withval
+    ],
+    [
+        PCRE2_DIR="${includedir}"
+    ]
+)
 
 EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
-DIR="`dirname $PCRE2_DIR`/lib"
+DIR="$PCRE2_DIR/lib"
 AS_IF([test -d $DIR], [
-    EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+  EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
 ])
-
-
 
 AC_MSG_RESULT
 AC_MSG_RESULT(Configuring Network Grep ...)
