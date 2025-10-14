@@ -175,20 +175,9 @@ dnl
 AC_ARG_ENABLE([tcpkill], [
 AS_HELP_STRING([--enable-tcpkill], [enable connection killing support (default off)])],
 [
-  AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
   use_tcpkill="$enableval"
 ],
 [ use_tcpkill="no" ])
-
-AS_IF([test $use_tcpkill = yes], [
-  USE_TCPKILL="1"
-  EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
-  EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
-  EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
-], [
-  USE_TCPKILL="0"
-])
-
 
 AC_ARG_ENABLE([vlan-hack], [
 AS_HELP_STRING([--disable-vlan-hack], [disable automatic inclusion of VLAN frames (default on)])],
@@ -326,6 +315,25 @@ AS_IF([test -z "$pcap_base"], [
    ])
 ])
 
+dnl
+dnl If tcpkill is enabled, check for libnet.
+dnl
+
+AS_IF([test $use_tcpkill = yes], [
+  USE_TCPKILL="1"
+
+  EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
+  EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
+  EXTRA_INCLUDES="$EXTRA_INCLUDES $(libnet-config --cflags)"
+  EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
+
+  SAVE_LIBS="$LIBS"
+  LIBS="$LIBS $EXTRA_LIBS"
+  AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
+  LIBS="$SAVE_LIBS"
+], [
+  USE_TCPKILL="0"
+])
 
 dnl
 dnl Check for a working PCAP library we can link against..
