@@ -17,6 +17,7 @@
 #include <libnet.h>
 #include <pcap.h>
 
+#include "ngrep.h" // for net_choosedevice()
 #include "tcpkill.h"
 
 libnet_t *l;
@@ -73,11 +74,11 @@ tcpkill_kill(const struct pcap_pkthdr *pcap, const u_char *pkt,
 void
 tcpkill_init(void)
 {
-  char *intf, ebuf[PCAP_ERRBUF_SIZE];
+  char *intf;
   char libnet_ebuf[LIBNET_ERRBUF_SIZE];
 
-  if ((intf = pcap_lookupdev(ebuf)) == NULL)
-      fprintf(stderr, "%s\n", ebuf);
+  if ((intf = net_choosedevice()) == NULL)
+      fprintf(stderr, "coudln't locate device to use\n");
 
   if ((l = libnet_init(LIBNET_RAW4, intf, libnet_ebuf)) == NULL)
       fprintf(stderr, "libnet_init failed\n");

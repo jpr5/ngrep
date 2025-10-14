@@ -381,12 +381,7 @@ int main(int argc, char **argv) {
 
     /* Setup PCAP input */
 
-    char *dev = usedev ? usedev :
-#if defined(_WIN32)
-        win32_choosedevice();
-#else
-        pcap_lookupdev(pc_err);
-#endif
+    char *dev = usedev ? usedev : net_choosedevice();
 
     if (setup_pcap_source(dev))
         clean_exit(2);
@@ -1636,25 +1631,28 @@ char *win32_usedevice(const char *index_or_name) {
     return dev;
 }
 
-char *win32_choosedevice(void) {
-    pcap_if_t *alldevs, *d;
-    char errbuf[PCAP_ERRBUF_SIZE];
-    char *dev = NULL;
+#endif
 
-    if (pcap_findalldevs(&alldevs, errbuf) == -1) {
+char *net_choosedevice(void) {
+    // static so we don't have to free, should be enough even for win32..
+    static char dev[128] = {0};
+
+#if HAVE_PCAP_FINDALLDEVS
+    pcap_if_t *alldevs;
+
+    if (pcap_findalldevs(&alldevs, pc_err) == -1) {
         perror("unable to enumerate devices");
         clean_exit(2);
     }
 
-    for (d = alldevs; d != NULL; d = d->next)
+    for (pcap_if_t *d = alldevs; d != NULL; d = d->next)
         if ((d->addresses) && (d->addresses->addr))
-            dev = _strdup(d->name);
+            strncpy(dev, d->name, sizeof(dev));
 
     pcap_freealldevs(alldevs);
-
-    if (!dev)
-        dev = pcap_lookupdev(errbuf);
+#else
+    strncpy(dev, pcap_lookupdev(pc_err), sizeof(dev));
+#endif
 
     return dev;
 }
-#endif

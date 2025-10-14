@@ -151,8 +151,9 @@ void drop_privs(void);
 int8_t win32_initwinsock(void);
 void win32_listdevices(void);
 char *win32_usedevice(const char *);
-char *win32_choosedevice(void);
 #endif
+
+extern char *net_choosedevice(void); // extern for tcp_kill reuse
 
 
 struct NGREP_rtaphdr_t {
