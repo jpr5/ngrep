@@ -7,7 +7,6 @@ dnl NOTE: configure.in requires autoconf 2.57 or more recent.
 
 AC_INIT([ngrep],[1.48],[jpr5@darkridge.com])
 AC_CONFIG_SRCDIR([ngrep.c])
-AM_INIT_AUTOMAKE([foreign])
 
 AC_MSG_RESULT
 AC_MSG_RESULT(Configuring System ...)
