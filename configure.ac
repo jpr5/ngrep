@@ -225,8 +225,6 @@ dnl
 dnl OS-specific options
 dnl
 
-STRIPFLAG="-s"
-
 AS_CASE(["$target_os"],
 [*linux*], [
     AC_SUBST(OS, LINUX)
@@ -266,8 +264,6 @@ AS_CASE(["$target_os"],
 ],
 [*darwin*], [
     AC_SUBST(OS, MACOSX)
-
-    STRIPFLAG=""
 ], [
     AC_SUBST(OS, UNKNOWN_OS)
     AC_MSG_WARN(
@@ -276,8 +272,6 @@ Try playing with the build host and target options.
 )
     sleep 3
 ])
-
-AC_SUBST(STRIPFLAG)
 
 EXTRA_DEFINES="$EXTRA_DEFINES -D__FAVOR_BSD=1"
 
