@@ -12,7 +12,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hNXViwqpevxlDtTRM> <-IO
+.B ngrep <-hNXViwqpevxlDtTRMC> <-IO
 .I pcap_dump
 .B > < -n
 .I num
@@ -93,6 +93,9 @@ Dump packet contents as hexadecimal as well as ASCII.
 
 .IP -l
 Make stdout line buffered.
+
+.IP -C
+Colorize matches in ASCII output.
 
 .IP -D
 When reading pcap_dump files, replay them at their recorded time
