@@ -529,7 +529,7 @@ AS_IF([test "$USE_DROPPRIVS" = "1"], [
 
 AS_IF([test "$USE_PCRE" = "1"], [
     AC_MSG_RESULT(CONFIG: using PCRE regex library)
-]. [
+], [
     AC_MSG_RESULT(CONFIG: using GNU regex library)
 ])
 
