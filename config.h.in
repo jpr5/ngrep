@@ -1,0 +1,83 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* pseudo-user for running ngrep (default "nobody") */
+#undef DROPPRIVS_USER
+
+/* presence of DLT_IEEE802_11 in bpf.h */
+#undef HAVE_DLT_IEEE802_11
+
+/* presence of DLT_IEEE802_11_RADIO in bpf.h */
+#undef HAVE_DLT_IEEE802_11_RADIO
+
+/* presence of DLT_IPNET in bpf.h */
+#undef HAVE_DLT_IPNET
+
+/* presence of DLT_LINUX_SLL in bpf.h */
+#undef HAVE_DLT_LINUX_SLL
+
+/* presence of DLT_LOOP in bpf.h */
+#undef HAVE_DLT_LOOP
+
+/* presence of DLT_PFLOG in $BPF */
+#undef HAVE_DLT_PFLOG
+
+/* presence of DLT_RAW in bpf.h */
+#undef HAVE_DLT_RAW
+
+/* Define to 1 if you have the 'net' library (-lnet). */
+#undef HAVE_LIBNET
+
+/* Define to 1 if you have the 'nsl' library (-lnsl). */
+#undef HAVE_LIBNSL
+
+/* Define to 1 if you have the 'pcap' library (-lpcap). */
+#undef HAVE_LIBPCAP
+
+/* Define to 1 if you have the 'socket' library (-lsocket). */
+#undef HAVE_LIBSOCKET
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* routine used for restarting the BPF lexer */
+#undef PCAP_RESTART_FUNC
+
+/* whether to use privileges dropping (default yes) */
+#undef USE_DROPPRIVS
+
+/* whether to use IPv6 (default off) */
+#undef USE_IPv6
+
+/* whether to call the BPF lexer restart function between multiple BPF filter
+   compilation attempts (default no) */
+#undef USE_PCAP_RESTART
+
+/* whether to use PCRE2 (default GNU Regex) */
+#undef USE_PCRE2
+
+/* whether to enable tcpkill functionality (default off) */
+#undef USE_TCPKILL
+
+/* whether to automatically include VLAN frames (default on) */
+#undef USE_VLAN_HACK
+
+/* Version number of package */
+#undef VERSION
