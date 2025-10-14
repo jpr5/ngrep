@@ -1441,7 +1441,7 @@ void usage(void) {
            "             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>\n"
            "             <-P char> <-F file>"
 #if USE_TCPKILL
-           "             <-K count>"
+           "\n             <-K count>"
 #endif
            "\n"
            "             <match expression> <bpf filter>\n"
