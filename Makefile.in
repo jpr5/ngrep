@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017  Jordan Ritter <jpr5@darkridge.com>
+# Copyright (c) 2025  Jordan Ritter <jpr5@darkridge.com>
 #
 # Please refer to the LICENSE file for more information.
 
