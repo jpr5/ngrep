@@ -1081,7 +1081,7 @@ int8_t blank_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uin
 }
 
 void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
-    if (len > 0 && quiet < 4) {
+    if (len > 0) {
         const unsigned char *s      = data;
         uint8_t should_hilite       = (msize && enable_hilite);
         unsigned char *hilite_start = data + mindex;
@@ -1103,7 +1103,7 @@ void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t ms
 }
 
 void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
-    if (len > 0 && quiet < 4) {
+    if (len > 0) {
         const unsigned char *s      = data;
         uint8_t should_hilite       = (msize && enable_hilite);
         unsigned char *hilite_start = data + mindex;
@@ -1125,7 +1125,7 @@ void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
 }
 
 void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
-    if (len > 0 && quiet < 4) {
+    if (len > 0) {
         uint8_t should_hilite = (msize && enable_hilite);
            unsigned char *str = data;
              uint8_t hiliting = 0;
