@@ -1647,7 +1647,7 @@ char *net_choosedevice(void) {
 
     for (pcap_if_t *d = alldevs; d != NULL; d = d->next)
         if ((d->addresses) && (d->addresses->addr))
-            strncpy(dev, d->name, sizeof(dev));
+            strncpy(dev, d->name, sizeof(dev)-1);
 
     pcap_freealldevs(alldevs);
 #else
