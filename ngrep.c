@@ -1461,7 +1461,7 @@ void usage(void) {
            "   -F  is read the bpf filter from the specified file\n"
            "   -N  is show sub protocol number\n"
 #if defined(_WIN32)
-           "   -d  is use specified device (index) instead of the pcap default\n"
+           "   -d  is use specified device (index or name) instead of the pcap default\n"
            "   -L  is show the winpcap device list index\n"
 #else
            "   -d  is use specified device instead of the pcap default\n"
@@ -1568,15 +1568,22 @@ void win32_listdevices(void) {
     pcap_freealldevs(alldevs);
 }
 
-char *win32_usedevice(const char *index) {
-    int32_t idx = atoi(index), i = 0;
+char *win32_usedevice(const char *index_or_name) {
+    int32_t idx, i = 0;
+    int     is_name = 0;
+    int     found_it = 0;
     pcap_if_t *alldevs, *d;
     char errbuf[PCAP_ERRBUF_SIZE];
     char *dev = NULL;
 
-    if (idx <= 0) {
-        perror("invalid device index");
-        clean_exit(2);
+    if (!strncmp(index_or_name, "\\Device", 7))
+       is_name = 1;
+    else {
+       idx = atoi(index_or_name);
+       if (idx <= 0) {
+           perror("invalid device index");
+           clean_exit(2);
+       }
     }
 
     if (pcap_findalldevs(&alldevs, errbuf) == -1) {
@@ -1584,16 +1591,23 @@ char *win32_usedevice(const char *index) {
         clean_exit(2);
     }
 
-    for (d = alldevs; d != NULL && i != idx; d = d->next)
-        if (++i == idx)
+    for (d = alldevs; d != NULL && !found_it; d = d->next, i++) {
+        if (is_name && !stricmp(index_or_name, d->name)) {
             dev = _strdup(d->name);
+            found_it = 1;
+        }
+        else if (i + 1 == idx) {
+            dev = _strdup(d->name);
+            found_it = 1;
+        }
+    }
 
-    if (i <= 0) {
+    if (i == 0) {
         perror("no known devices");
         clean_exit(2);
     }
 
-    if (i != idx) {
+    if (!found_it) {
         perror("unknown device specified");
         clean_exit(2);
     }
