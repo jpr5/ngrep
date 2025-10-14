@@ -27,7 +27,7 @@ tcpkill_kill(const struct pcap_pkthdr *pcap, const u_char *pkt,
 {
   struct libnet_ipv4_hdr *ip;
   struct libnet_tcp_hdr *tcp;
-  u_char ctext[64];
+  char ctext[64];
   uint32_t seq, win, i, len;
 
   pkt += pcap_off;
@@ -67,7 +67,7 @@ tcpkill_kill(const struct pcap_pkthdr *pcap, const u_char *pkt,
       if (libnet_write(l) < 0)
           fprintf(stderr, "libnet_write failed\n");
 
-      fprintf(stderr, "%s R %lu:%lu(0) win 0\n", ctext, seq, seq);
+      fprintf(stderr, "%s R %u:%u(0) win 0\n", ctext, seq, seq);
   }
 }
 
