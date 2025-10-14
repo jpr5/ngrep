@@ -1348,7 +1348,7 @@ void update_windowsize(int32_t e) {
     else if (!ws_col_forced) {
 
 #if !defined(_WIN32)
-        const struct winsize ws;
+        struct winsize ws;
 
         if (!ioctl(0, TIOCGWINSZ, &ws)) {
             ws_row = ws.ws_row;
