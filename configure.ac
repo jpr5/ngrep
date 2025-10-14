@@ -202,6 +202,20 @@ AS_HELP_STRING([--with-pcap-includes=dir], [specify the pcap include directory])
             /usr/share/include /usr/share/include/pcap"
 ])
 
+AC_ARG_WITH([pcre-includes], [
+AS_HELP_STRING([--with-pcre-includes=dir], [specify the pcre include directory])],
+[PCRE_DIR=$withval],
+[
+  PCRE_DIR="`eval echo -n ${includedir}`"
+])
+
+EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE_DIR"
+DIR="`dirname $PCRE_DIR`/lib"
+AS_IF([test -d $DIR], [
+    EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+])
+
+
 
 AC_MSG_RESULT
 AC_MSG_RESULT(Configuring Network Grep ...)
