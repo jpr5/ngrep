@@ -98,6 +98,10 @@
 #include <regex.h>
 #endif
 
+#if USE_TCPKILL
+#include "tcpkill.h"
+#endif
+
 #include "ngrep.h"
 
 
