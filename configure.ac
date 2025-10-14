@@ -199,7 +199,8 @@ AS_HELP_STRING([--with-pcap-includes=dir], [specify the pcap include directory])
             /usr/include /usr/include/pcap \
             /usr/local/include /usr/local/include/pcap \
             /opt/local/include /opt/local/include/pcap \
-            /usr/share/include /usr/share/include/pcap"
+            /usr/share/include /usr/share/include/pcap \
+            /opt/homebrew/Cellar/libpcap/*/include"
 ])
 
 AC_ARG_WITH([pcre2-includes], [
@@ -298,22 +299,27 @@ AC_MSG_CHECKING(for a complete set of pcap headers)
 
 pcap_base=""
 for dir in $PCAP_DIR ; do
-    AS_IF([test -d $dir -a -r "$dir/pcap.h"], [
+    AC_MSG_RESULT(testing $dir)
+    AS_IF([test -d $dir -a -r "$dir/pcap/pcap.h"], [
+        AC_EGREP_CPP([yes], [
+            #include "$dir/pcap/pcap.h"
+            #ifdef PCAP_VERSION_MAJOR
+            yes
+            #endif
+        ], [found=$dir], [found=""])
 
-       AC_EGREP_HEADER([PCAP_VERSION_MAJOR], [$dir/pcap.h], [found=$dir], [found=""])
-
-       AS_IF([test -n "$found" -a "$found" != "$pcap_base"], [
-          AC_MSG_RESULT
-          AC_MSG_RESULT
-          AC_MSG_RESULT(more than one set found in:)
-          AC_MSG_RESULT(  $pcap_base)
-          AC_MSG_RESULT(  $found)
-          AC_MSG_RESULT
-          AC_MSG_ERROR(please wipe out all unused pcap installations)
-       ], [
-          pcap_base="$dir"
-       ])
-
+        AS_IF([test -n "$found" -a -n "$pcap_base" -a "$found" != "$pcap_base"], [
+            AC_MSG_RESULT
+            AC_MSG_RESULT
+            AC_MSG_RESULT(more than one set found in:)
+            AC_MSG_RESULT(  $pcap_base)
+            AC_MSG_RESULT(  $found)
+            AC_MSG_RESULT
+            AC_MSG_ERROR(please wipe out all unused pcap installations)
+        ], [
+            AC_MSG_RESULT(found $found)
+            pcap_base="$found"
+        ])
     ])
 done
 
