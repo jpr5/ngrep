@@ -28,10 +28,9 @@ tcpkill_kill(const struct pcap_pkthdr *pcap, const u_char *pkt,
   struct libnet_ipv4_hdr *ip;
   struct libnet_tcp_hdr *tcp;
   char ctext[64];
-  uint32_t seq, win, i, len;
+  uint32_t seq, win, i;
 
   pkt += pcap_off;
-  len = pcap->caplen - pcap_off;
 
   ip = (struct libnet_ipv4_hdr *)pkt;
   if (ip->ip_p != IPPROTO_TCP)
