@@ -36,6 +36,9 @@
 /* Define to 1 if you have the 'socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
+/* whether libpcap has `pcap_findalldevs' function */
+#undef HAVE_PCAP_FINDALLDEVS
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 

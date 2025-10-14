@@ -355,6 +355,15 @@ dnl
 
 AC_CHECK_LIB(pcap, pcap_open_live,,[AC_MSG_ERROR(a viable pcap lib is required)])
 
+AC_CHECK_LIB(pcap, pcap_findalldevs,
+[
+    HAVE_PCAP_FINDALLDEVS="1"
+],
+[
+    HAVE_PCAP_FINDALLDEVS="0"
+]
+)
+
 dnl
 dnl And the PCAP restart function.
 dnl
@@ -478,6 +487,7 @@ dnl
 
 AC_DEFINE_UNQUOTED(USE_PCAP_RESTART,          $USE_PCAP_RESTART,          [whether to call the BPF lexer restart function between multiple BPF filter compilation attempts (default no)])
 AC_DEFINE_UNQUOTED(PCAP_RESTART_FUNC,         $PCAP_RESTART_FUNC,         [routine used for restarting the BPF lexer])
+AC_DEFINE_UNQUOTED(HAVE_PCAP_FINDALLDEVS,     $HAVE_PCAP_FINDALLDEVS,     [whether libpcap has `pcap_findalldevs' function])
 
 AC_DEFINE_UNQUOTED(USE_PCRE2,                 $USE_PCRE2,                 [whether to use PCRE2 (default GNU Regex)])
 AC_DEFINE_UNQUOTED(USE_IPv6,                  $USE_IPv6,                  [whether to use IPv6 (default off)])
