@@ -230,9 +230,13 @@ STRIPFLAG="-s"
 AS_CASE(["$target_os"],
 [*linux*], [
     AC_SUBST(OS, LINUX)
+
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_DEFAULT_SOURCE=1"
 ],
 [*bsd*], [
     AC_SUBST(OS, BSD)
+
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
 ],
 [*solaris*], [
     AC_SUBST(OS, SOLARIS)
@@ -242,18 +246,23 @@ AS_CASE(["$target_os"],
     AC_CHECK_LIB(nsl, gethostbyname,,
                  [AC_MSG_ERROR(no gethostbyname in -lnsl)])
 
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
     EXTRA_LIBS="$EXTRA_LIBS -lnsl -lsocket"
 ],
 [*osf*], [
     AC_SUBST(OS, OSF1)
 
-    EXTRA_DEFINES="$EXTRA_DEFINES -D__STDC__=2"
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__STDC__=2"
 ],
 [*hpux11*], [
     AC_SUBST(OS, BSD)
+
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
 ],
 [*aix*], [
     AC_SUBST(OS, AIX)
+
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
 ],
 [*darwin*], [
     AC_SUBST(OS, MACOSX)
@@ -270,7 +279,7 @@ Try playing with the build host and target options.
 
 AC_SUBST(STRIPFLAG)
 
-EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
+EXTRA_DEFINES="$EXTRA_DEFINES -D__FAVOR_BSD=1"
 
 dnl
 dnl Quick Background:

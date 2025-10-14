@@ -3931,11 +3931,15 @@ case "$target_os" in #(
 
     OS=LINUX
 
+
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_DEFAULT_SOURCE=1"
  ;; #(
   *bsd*) :
 
     OS=BSD
 
+
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
  ;; #(
   *solaris*) :
 
@@ -4051,6 +4055,7 @@ esac
 fi
 
 
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
     EXTRA_LIBS="$EXTRA_LIBS -lnsl -lsocket"
  ;; #(
   *osf*) :
@@ -4058,17 +4063,21 @@ fi
     OS=OSF1
 
 
-    EXTRA_DEFINES="$EXTRA_DEFINES -D__STDC__=2"
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__STDC__=2"
  ;; #(
   *hpux11*) :
 
     OS=BSD
 
+
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
  ;; #(
   *aix*) :
 
     OS=AIX
 
+
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
  ;; #(
   *darwin*) :
 
@@ -4093,7 +4102,7 @@ esac
 
 
 
-EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1 -D__FAVOR_BSD=1"
+EXTRA_DEFINES="$EXTRA_DEFINES -D__FAVOR_BSD=1"
 
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a complete set of pcap headers" >&5
@@ -4910,7 +4919,7 @@ printf "%s\n" "#define PCAP_RESTART_FUNC $PCAP_RESTART_FUNC" >>confdefs.h
 
 printf "%s\n" "#define HAVE_PCAP_FINDALLDEVS $HAVE_PCAP_FINDALLDEVS" >>confdefs.h
 
-],
+
 
 printf "%s\n" "#define USE_PCRE2 $USE_PCRE2" >>confdefs.h
 
