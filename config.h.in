@@ -70,8 +70,8 @@
    compilation attempts (default no) */
 #undef USE_PCAP_RESTART
 
-/* whether to use PCRE2 (default GNU Regex) */
-#undef USE_PCRE2
+/* whether to use PCRE (default GNU Regex) */
+#undef USE_PCRE
 
 /* whether to enable tcpkill functionality (default off) */
 #undef USE_TCPKILL
