@@ -7,22 +7,19 @@ including IPv4/6, TCP, UDP, ICMPv4/6, IGMP and Raw, across a wide variety of
 interface types, and understands BPF filter logic in the same fashion as more
 common packet sniffing tools, such as tcpdump and snoop.
 
-
 ## What's New
 
- * Fix "no VLAN support for XXX"-related problems
- * Fix truncated/garbled output (e.g. SIP over SLL/Linux cooked sockets)
- * Change exit behavior to match BSD & GNU grep (see manpage)
- * Add Solaris IPnet support
- * Update to use 32bit values where relevant
- * Emit frame # in header, useful for reference/analysis
- * Emit total received, matched upon exit (dropped unreliable PCAP stats)
- * Import debian patches related to autotools, manpage, and compilation on other platforms
- * Fix build clean/distclean when not linked against provided GNU regex
- * Fix build --enable/--disable flag processing
- * Fix building under MS VS2012 / Win32
- * Update to latest autotools (2017)
-
+ * Upgrade to PCRE2
+ * Add additional level of quiet for certain filtering scenarios
+ * Update to latest autotools (2.72, 2023)
+ * Update manpage for missing options and typos
+ * Fix BPF `DLT_` type detections within libpcap (e.g. `DLT_LINUX_SLL`)
+ * Allow for specifying specific location of PCRE2 includes
+ * Eliminate various non-fatal build warnings (e.g. `pcap_lookupdev` deprecation)
+ * Fix `./configure --disable-tcpkill`
+ * Source cleanup (nuke old files, unused vars, missing refs, etc)
+ * Win32: -d allows device-name now (e.g. `\\Device\...`)
+ * Win32: Removed `delay_socket` hack in favor of `Sleep()`
 
 ## How to use
 
