@@ -300,7 +300,6 @@ AC_MSG_CHECKING(for a complete set of pcap headers)
 
 pcap_base=""
 for dir in $PCAP_DIR ; do
-    AC_MSG_RESULT(testing $dir)
     AS_IF([test -d $dir -a -r "$dir/pcap/pcap.h"], [
         AC_EGREP_CPP([yes], [
             #include "$dir/pcap/pcap.h"
