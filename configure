@@ -1351,8 +1351,9 @@ Optional Packages:
   --with-pcap-includes=dir
                           specify the pcap include directory
 
-      --with-pcre2-includes=dir
+          --with-pcre2-includes=dir
                           specify the pcre2 include directory
+
 
 Some influential environment variables:
   CC          C compiler command
@@ -3897,24 +3898,17 @@ if test ${with_pcre2_includes+y}
 then :
   withval=$with_pcre2_includes;
         PCRE2_DIR=$withval
-
-else case e in #(
-  e)
-        PCRE2_DIR="${includedir}"
-
- ;;
-esac
-fi
-
-
-EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
-DIR="$PCRE2_DIR/lib"
-if test -d $DIR
+        EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
+        DIR="$PCRE2_DIR/lib"
+        if test -d $DIR
 then :
 
-  EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
 
 fi
+
+fi
+
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: " >&5
 printf "%s\n" "" >&6; }
@@ -4433,22 +4427,28 @@ done
 if test -z "$pcap_base"
 then :
 
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-   as_fn_error $? "could not find a complete set of pcap headers" "$LINENO" 5
+    as_fn_error $? "could not find a complete set of pcap headers" "$LINENO" 5
 
 else case e in #(
   e)
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found $pcap_base" >&5
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found $pcap_base" >&5
 printf "%s\n" "found $pcap_base" >&6; }
 
-   EXTRA_INCLUDES="$EXTRA_INCLUDES -I$pcap_base"
 
-      DIR="`dirname $pcap_base`/lib"
-   if test -d $DIR
+    if test "$pcap_base" != "/usr/include"
 then :
 
-       EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+        EXTRA_INCLUDES="$EXTRA_INCLUDES -I$pcap_base"
+
+                DIR="`dirname $pcap_base`/lib"
+        if test -d $DIR
+then :
+
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+
+fi
 
 fi
  ;;

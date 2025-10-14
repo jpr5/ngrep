@@ -203,21 +203,20 @@ AS_HELP_STRING([--with-pcap-includes=dir], [specify the pcap include directory])
             /opt/homebrew/Cellar/libpcap/*/include"
 ])
 
-AC_ARG_WITH([pcre2-includes], [
-    AS_HELP_STRING([--with-pcre2-includes=dir], [specify the pcre2 include directory])],
+AC_ARG_WITH([pcre2-includes],
     [
-        PCRE2_DIR=$withval
+        AS_HELP_STRING([--with-pcre2-includes=dir], [specify the pcre2 include directory])
     ],
     [
-        PCRE2_DIR="${includedir}"
-    ]
+        PCRE2_DIR=$withval
+        EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
+        DIR="$PCRE2_DIR/lib"
+        AS_IF([test -d $DIR], [
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+        ])
+    ],
+    []
 )
-
-EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
-DIR="$PCRE2_DIR/lib"
-AS_IF([test -d $DIR], [
-  EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
-])
 
 AC_MSG_RESULT
 AC_MSG_RESULT(Configuring Network Grep ...)
@@ -324,18 +323,22 @@ for dir in $PCAP_DIR ; do
 done
 
 AS_IF([test -z "$pcap_base"], [
-   AC_MSG_RESULT(no)
-   AC_MSG_ERROR(could not find a complete set of pcap headers)
+    AC_MSG_RESULT(no)
+    AC_MSG_ERROR(could not find a complete set of pcap headers)
 ], [
-   AC_MSG_RESULT(found $pcap_base)
+    AC_MSG_RESULT(found $pcap_base)
 
-   EXTRA_INCLUDES="$EXTRA_INCLUDES -I$pcap_base"
+    dnl Cannot allow /usr/include, screws up cross-compiling
 
-   dnl Best-effort; newer ld warns on missing dirs.
-   DIR="`dirname $pcap_base`/lib"
-   AS_IF([test -d $DIR], [
-       EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
-   ])
+    AS_IF([test "$pcap_base" != "/usr/include"],[
+        EXTRA_INCLUDES="$EXTRA_INCLUDES -I$pcap_base"
+
+        dnl Best-effort; newer ld warns on missing dirs.
+        DIR="`dirname $pcap_base`/lib"
+        AS_IF([test -d $DIR], [
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+        ])
+    ])
 ])
 
 dnl
