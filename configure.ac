@@ -292,6 +292,11 @@ dnl the old header presence check, so I've updated it to search for the version,
 dnl PCAP_VERSION_MAJOR.  Maybe I'll delete it in another 5 years.  ;-)
 dnl
 
+dnl Ensure CPP and EGREP are set before the loop to avoid repeated checks
+AC_PROG_CPP
+AC_PROG_EGREP
+AC_EGREP_CPP
+
 AC_MSG_CHECKING(for a complete set of pcap headers)
 
 pcap_base=""
@@ -313,7 +318,6 @@ for dir in $PCAP_DIR ; do
             AC_MSG_RESULT
             AC_MSG_ERROR(please wipe out all unused pcap installations)
         ], [
-            AC_MSG_RESULT(found $found)
             pcap_base="$found"
         ])
     ])
