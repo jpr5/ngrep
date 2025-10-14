@@ -1651,7 +1651,7 @@ char *net_choosedevice(void) {
 
     pcap_freealldevs(alldevs);
 #else
-    strncpy(dev, pcap_lookupdev(pc_err), sizeof(dev));
+    strncpy(dev, pcap_lookupdev(pc_err), sizeof(dev)-1);
 #endif
 
     return dev;
