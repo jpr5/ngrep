@@ -1351,7 +1351,7 @@ Optional Packages:
   --with-pcap-includes=dir
                           specify the pcap include directory
 
-          --with-pcre2-includes=dir
+  --with-pcre2-includes=dir
                           specify the pcre2 include directory
 
 
@@ -3897,13 +3897,13 @@ fi
 if test ${with_pcre2_includes+y}
 then :
   withval=$with_pcre2_includes;
-        PCRE2_DIR=$withval
-        EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
-        DIR="$PCRE2_DIR/lib"
-        if test -d $DIR
+    PCRE2_DIR=$withval
+    EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
+    DIR="$PCRE2_DIR/lib"
+    if test -d $DIR
 then :
 
-            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
 
 fi
 
