@@ -1204,8 +1204,10 @@ char *get_filter_from_argv(char **argv) {
         len += (uint32_t)strlen(*arg++) + 1;
 
     if (!(theirs = (char*)malloc(len + 1)) ||
-        !(mine = (char*)malloc(len + strlen(template) + 1)))
+        !(mine = (char*)malloc(len + strlen(template) + 1))) {
+        if (theirs) free(theirs);
         return NULL;
+    }
 
     memset(theirs, 0, len + 1);
     memset(mine, 0, len + strlen(template) + 1);
