@@ -91,8 +91,9 @@
 #include <netinet/icmp6.h>
 #endif
 
-#if USE_PCRE
-#include <pcre.h>
+#if USE_PCRE2
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #else
 #include <regex.h>
 #endif
@@ -128,12 +129,14 @@ char nonprint_char = '.';
  * GNU Regex/PCRE
  */
 
-#if USE_PCRE
-int32_t err_offset;
-char *re_err = NULL;
+#if USE_PCRE2
+PCRE2_SIZE err_offset;
+int re_err;
 
-pcre *pattern = NULL;
-pcre_extra *pattern_extra = NULL;
+pcre2_code *re;
+pcre2_match_data *pcre2_md;
+PCRE2_SPTR pattern;
+uint32_t pcre2_jit_on = 0;
 #else
 const char *re_err = NULL;
 
@@ -184,6 +187,7 @@ uint32_t ws_row, ws_col = 80, ws_col_forced = 0;
 
 int main(int argc, char **argv) {
     int32_t c;
+    const char *extra = "";
 
     signal(SIGINT,   clean_exit);
     signal(SIGABRT,  clean_exit);
@@ -423,8 +427,12 @@ int main(int argc, char **argv) {
         if (setup_matcher())
             clean_exit(2);
 
+#if USE_PCRE2
+        if (pcre2_jit_on)
+            extra = " (JIT)";
+#endif
         if (quiet < 2 && strlen(match_data))
-            printf("%smatch: %s%s\n", invert_match?"don't ":"",
+            printf("%smatch%s: %s%s\n", invert_match?"don't ":"", extra,
                    (bin_data && !strchr(match_data, 'x'))?"0x":"", match_data);
 
         if (re_match_word) free(match_data);
@@ -637,14 +645,14 @@ int setup_matcher(void) {
 
     } else {
 
-#if USE_PCRE
-        uint32_t pcre_options = PCRE_UNGREEDY;
+#if USE_PCRE2
+        uint32_t pcre_options = PCRE2_UNGREEDY;
 
         if (re_ignore_case)
-            pcre_options |= PCRE_CASELESS;
+            pcre_options |= PCRE2_CASELESS;
 
         if (re_multiline_match)
-            pcre_options |= PCRE_DOTALL;
+            pcre_options |= PCRE2_DOTALL;
 #else
         re_syntax_options = RE_CHAR_CLASSES | RE_NO_BK_PARENS | RE_NO_BK_VBAR |
             RE_CONTEXT_INDEP_ANCHORS | RE_CONTEXT_INDEP_OPS;
@@ -679,15 +687,36 @@ int setup_matcher(void) {
             match_data = word_regex;
         }
 
-#if USE_PCRE
-        pattern = pcre_compile(match_data, pcre_options, (const char **)&re_err, &err_offset, 0);
-
-        if (!pattern) {
-            fprintf(stderr, "compile failed: %s\n", re_err);
+#if USE_PCRE2
+        re = pcre2_compile((PCRE2_SPTR8)match_data, PCRE2_ZERO_TERMINATED,
+            pcre_options, &re_err, &err_offset, NULL);
+        if (!re) {
+            PCRE2_UCHAR buffer[256];
+            pcre2_get_error_message(re_err, buffer, sizeof(buffer));
+            fprintf(stderr, "regex compile failed: %s (offset: %zd)\n", buffer,
+                err_offset);
             return 1;
         }
 
-        pattern_extra = pcre_study(pattern, 0, (const char **)&re_err);
+        pcre2_md = pcre2_match_data_create_from_pattern(re, NULL);
+        if (!pcre2_md) {
+            fprintf(stderr, "unable to alloc pcre2 match data\n");
+            return 1;
+        }
+
+        pcre2_config(PCRE2_CONFIG_JIT, &pcre2_jit_on);
+        if (pcre2_jit_on) {
+            int rc;
+            size_t jitsz;
+
+            if (pcre2_jit_compile(re, PCRE2_JIT_COMPLETE) != 0) {
+                fprintf(stderr, "unable to JIT-compile pcre2 regular expression\n");
+                return 1;
+            }
+            rc = pcre2_pattern_info(re, PCRE2_INFO_JITSIZE, &jitsz);
+            if (rc || jitsz == 0)
+                pcre2_jit_on = 0;
+        }
 #else
         re_err = re_compile_pattern(match_data, strlen(match_data), &pattern);
         if (re_err) {
@@ -999,24 +1028,29 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
 }
 
 int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
-#if USE_PCRE
+#if USE_PCRE2
+    int rc;
+    PCRE2_SIZE *ovector;
+    PCRE2_UCHAR errbuf[256];
 
-    static int sub[3] = {0, 0, 0};
-    switch(pcre_exec(pattern, 0, (char const *)data, (int32_t)len, 0, 0, sub, sizeof(sub))) {
-        case PCRE_ERROR_NULL:
-        case PCRE_ERROR_BADOPTION:
-        case PCRE_ERROR_BADMAGIC:
-        case PCRE_ERROR_UNKNOWN_NODE:
-        case PCRE_ERROR_NOMEMORY:
-            perror("she's dead, jim\n");
-            clean_exit(2);
+    if (pcre2_jit_on)
+        rc = pcre2_jit_match(re, data, len, 0, 0, pcre2_md, NULL);
+    else
+        rc = pcre2_match(re, data, len, 0, 0, pcre2_md, NULL);
 
-        case PCRE_ERROR_NOMATCH:
-            return 0;
-
-        default:
-            *mindex = sub[0];
-            *msize  = sub[1] - sub[0];
+    if (rc < 0) {
+        switch (rc) {
+            case PCRE2_ERROR_NOMATCH:
+                return 0;
+            default:
+                pcre2_get_error_message(rc, errbuf, sizeof(errbuf));
+                fprintf(stderr, "she's dead, jim: %s (error %d)\n", errbuf, rc);
+                clean_exit(2);
+        }
+    } else {
+        ovector = pcre2_get_ovector_pointer(pcre2_md);
+        *mindex = ovector[0];
+        *msize = ovector[1] - ovector[0];
     }
 #else
 
@@ -1470,9 +1504,9 @@ void clean_exit(int32_t sig) {
     if (quiet < 1 && sig >= 0)
         printf("exit\n");
 
-#if USE_PCRE
-    if (pattern)       pcre_free(pattern);
-    if (pattern_extra) pcre_free(pattern_extra);
+#if USE_PCRE2
+    if (re)       pcre2_code_free(re);
+    if (pcre2_md) pcre2_match_data_free(pcre2_md);
 #else
     if (pattern.translate) free(pattern.translate);
     if (pattern.fastmap)   free(pattern.fastmap);
