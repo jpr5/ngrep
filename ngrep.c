@@ -367,7 +367,14 @@ int main(int argc, char **argv) {
 
     /* Setup PCAP input */
 
-    if (setup_pcap_source())
+    char *dev = usedev ? usedev :
+#if defined(_WIN32)
+        win32_choosedevice();
+#else
+        pcap_lookupdev(pc_err);
+#endif
+
+    if (setup_pcap_source(dev))
         clean_exit(2);
 
     /* Setup BPF filter */
@@ -379,6 +386,33 @@ int main(int argc, char **argv) {
         if (setup_bpf_filter(argv)) {
             pcap_perror(pd, "pcap");
             clean_exit(2);
+        }
+    }
+
+    /* Setup PCAP output */
+
+    if (dump_file) {
+        pd_dump = pcap_dump_open(pd, dump_file);
+        if (!pd_dump) {
+            fprintf(stderr, "fatal: %s\n", pcap_geterr(pd));
+            clean_exit(2);
+        } else if (stdout == pcap_dump_file(pd_dump)) {
+            /* Don't output to stdout, when using it as output file */
+            quiet = 5;
+        }
+    }
+
+    if (quiet < 2) {
+        if (read_file)
+            printf("input: %s\n", read_file);
+        else {
+            printf("interface: %s", dev);
+
+            if (net.s_addr && mask.s_addr) {
+                printf(" (%s/", inet_ntoa(net));
+                printf("%s)", inet_ntoa(mask));
+            }
+            printf("\n");
         }
     }
 
@@ -402,14 +436,8 @@ int main(int argc, char **argv) {
     }
 
     /* Misc */
-
-    if (dump_file) {
-        pd_dump = pcap_dump_open(pd, dump_file);
-        if (!pd_dump) {
-            fprintf(stderr, "fatal: %s\n", pcap_geterr(pd));
-            clean_exit(2);
-        } else printf("output: %s\n", dump_file);
-    }
+    if (dump_file && quiet < 2)
+        printf("output: %s\n", dump_file);
 
     update_windowsize(0);
 
@@ -429,7 +457,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-int setup_pcap_source(void) {
+int setup_pcap_source(char *dev) {
     if (read_file) {
 
         if (!(pd = pcap_open_offline(read_file, pc_err))) {
@@ -438,16 +466,8 @@ int setup_pcap_source(void) {
         }
 
         live_read = 0;
-        printf("input: %s\n", read_file);
 
     } else {
-
-        char *dev = usedev ? usedev :
-#if defined(_WIN32)
-            win32_choosedevice();
-#else
-            pcap_lookupdev(pc_err);
-#endif
 
         if (!dev) {
             perror(pc_err);
@@ -463,15 +483,6 @@ int setup_pcap_source(void) {
             perror(pc_err);
             memset(&net, 0, sizeof(net));
             memset(&mask, 0, sizeof(mask));
-        }
-
-        if (quiet < 2) {
-            printf("interface: %s", dev);
-            if (net.s_addr && mask.s_addr) {
-                printf(" (%s/", inet_ntoa(net));
-                printf("%s)", inet_ntoa(mask));
-            }
-            printf("\n");
         }
     }
 
@@ -916,6 +927,12 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
     if ((len > 0 && match_func(data, len, &match_index, &match_size) == invert_match) && !keep_matching)
         return;
 
+    if (pd_dump)
+        pcap_dump((u_char*)pd_dump, h, p);
+
+    if (quiet > 3)
+        return;
+
     if (!live_read && want_delay)
         dump_delay(h);
 
@@ -979,9 +996,6 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
 
     if (quiet < 3)
         dump_func(data, len, match_index, match_size);
-
-    if (pd_dump)
-        pcap_dump((u_char*)pd_dump, h, p);
 
 #if USE_TCPKILL
     if (tcpkill_active)
