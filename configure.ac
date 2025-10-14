@@ -203,15 +203,15 @@ AS_HELP_STRING([--with-pcap-includes=dir], [specify the pcap include directory])
             /usr/share/include /usr/share/include/pcap"
 ])
 
-AC_ARG_WITH([pcre-includes], [
-AS_HELP_STRING([--with-pcre-includes=dir], [specify the pcre include directory])],
-[PCRE_DIR=$withval],
+AC_ARG_WITH([pcre2-includes], [
+AS_HELP_STRING([--with-pcre2-includes=dir], [specify the pcre2 include directory])],
+[PCRE2_DIR=$withval],
 [
-  PCRE_DIR="`eval echo -n ${includedir}`"
+  PCRE2_DIR="`eval echo -n ${includedir}`"
 ])
 
-EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE_DIR"
-DIR="`dirname $PCRE_DIR`/lib"
+EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE2_DIR"
+DIR="`dirname $PCRE2_DIR`/lib"
 AS_IF([test -d $DIR], [
     EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
 ])
