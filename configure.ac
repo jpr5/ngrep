@@ -1,5 +1,5 @@
 dnl
-dnl Copyright (c) 2017  Jordan Ritter <jpr5@darkridge.com>
+dnl Copyright (c) 2025  Jordan Ritter <jpr5@darkridge.com>
 dnl
 dnl Please refer to the LICENSE file for more information.
 dnl
