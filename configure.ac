@@ -5,20 +5,21 @@ dnl Please refer to the LICENSE file for more information.
 dnl
 dnl NOTE: configure.in requires autoconf 2.57 or more recent.
 
-AC_INIT(ngrep.c)
+AC_INIT([ngrep],[1.48],[jpr5@darkridge.com])
+AC_CONFIG_SRCDIR([ngrep.c])
+AM_INIT_AUTOMAKE([foreign])
 
 AC_MSG_RESULT
 AC_MSG_RESULT(Configuring System ...)
 AC_MSG_RESULT
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 AC_PROG_CC
-AC_HEADER_STDC
 
 AC_PREFIX_DEFAULT(/usr/local)
-if test -n "`which tcpdump 2> /dev/null`"; then
+AS_IF([test -n "$(command -v tcpdump 2> /dev/null)"], [
    AC_PREFIX_PROGRAM(tcpdump)
-fi
+])
 
 EXTRA_DEFINES=""
 EXTRA_INCLUDES=""
@@ -34,8 +35,8 @@ dnl
 dnl Allow user to specify alternate ``nobody'' user.
 dnl
 
-AC_ARG_WITH(dropprivs-user,
-[  --with-dropprivs-user[=user]     use different user for dropprivs],
+AC_ARG_WITH([dropprivs-user], [
+AS_HELP_STRING([--with-dropprivs-user[=user]], [use different user for dropprivs])],
 [
   DROPPRIVS_USER="$withval"
 ],
@@ -47,8 +48,8 @@ dnl
 dnl Enable or disable the drop privileges logic.
 dnl
 
-AC_ARG_ENABLE(dropprivs,
-[  --disable-dropprivs     disable privilege dropping logic],
+AC_ARG_ENABLE([dropprivs], [
+AS_HELP_STRING([--disable-dropprivs], [disable privilege dropping logic])],
 [
   use_dropprivs="$enableval"
 ],
@@ -56,18 +57,18 @@ AC_ARG_ENABLE(dropprivs,
   use_dropprivs="yes"
 ])
 
-if test $use_dropprivs = yes; then
+AS_IF([test $use_dropprivs = yes], [
    USE_DROPPRIVS="1"
-else
+], [
    USE_DROPPRIVS="0"
-fi
+])
 
 dnl
 dnl IPv6 (and ICMPv6) support
 dnl
 
-AC_ARG_ENABLE(ipv6,
-[  --enable-ipv6           enable IPv6 (and ICMPv6) support],
+AC_ARG_ENABLE([ipv6], [
+AS_HELP_STRING([--enable-ipv6], [enable IPv6 (and ICMPv6) support])],
 [
   use_ipv6="$enableval"
 ],
@@ -75,11 +76,11 @@ AC_ARG_ENABLE(ipv6,
   use_ipv6="no"
 ])
 
-if test $use_ipv6 = yes; then
+AS_IF([test $use_ipv6 = yes], [
    USE_IPv6="1"
-else
+], [
    USE_IPv6="0"
-fi
+])
 
 dnl
 dnl PCAP BPF filter expression lexer bugfix
@@ -118,8 +119,8 @@ dnl
 dnl [1] https://github.com/jpr5/ngrep/issues/2
 dnl
 
-AC_ARG_ENABLE(pcap-restart,
-[  --enable-pcap-restart   enable BPF lexer restart bugfix for older versions of PCAP (default off)],
+AC_ARG_ENABLE([pcap-restart], [
+AS_HELP_STRING([--enable-pcap-restart], [enable BPF lexer restart bugfix for older versions of PCAP (default off)])],
 [
   use_pcap_restart="$enableval"
 ],
@@ -127,11 +128,11 @@ AC_ARG_ENABLE(pcap-restart,
   use_pcap_restart="no"
 ])
 
-if test $use_pcap_restart = yes; then
+AS_IF([test $use_pcap_restart = yes], [
     USE_PCAP_RESTART="1"
-else
+], [
     USE_PCAP_RESTART="0"
-fi
+])
 
 
 dnl
@@ -141,15 +142,15 @@ dnl
 REGEX_DIR=''
 REGEX_OBJS=''
 
-AC_ARG_ENABLE(pcre2,
-[  --enable-pcre2           use PCRE2 instead of GNU regex (default GNU)],
+AC_ARG_ENABLE([pcre2], [
+AS_HELP_STRING([--enable-pcre2], [use PCRE2 instead of GNU regex (default GNU)])],
 [ use_pcre2="$enableval" ],
 [ use_pcre2="no" ])
 
-if test $use_pcre2 = yes; then
+AS_IF([test $use_pcre2 = yes], [
   USE_PCRE2="1"
   EXTRA_LIBS="$EXTRA_LIBS -lpcre2-8"
-else
+], [
   USE_PCRE2="0"
 
   AC_MSG_RESULT
@@ -162,7 +163,7 @@ else
   ( cd $REGEX_DIR && ./configure )
 
   EXTRA_INCLUDES="$EXTRA_INCLUDES -I$REGEX_DIR"
-fi
+])
 
 AC_SUBST(REGEX_DIR)
 AC_SUBST(REGEX_OBJS)
@@ -171,36 +172,27 @@ dnl
 dnl tcpkill/libnet support (from Debian patch)
 dnl
 
-AC_ARG_ENABLE(tcpkill,
-[  --enable-tcpkill        enable connection killing support (default off)],
-[ use_tcpkill="$enableval" ],
+AC_ARG_ENABLE([tcpkill], [
+AS_HELP_STRING([--enable-tcpkill], [enable connection killing support (default off)])],
+[
+  use_tcpkill="$enableval"
+],
 [ use_tcpkill="no" ])
 
-if test $use_tcpkill = yes; then
-  AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
-  USE_TCPKILL="1"
-  EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
-  EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
-  EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
-else
-  USE_TCPKILL="0"
-fi
-
-
-AC_ARG_ENABLE(vlan-hack,
-[  --disable-vlan-hack     disable automatic inclusion of VLAN frames (default on)],
+AC_ARG_ENABLE([vlan-hack], [
+AS_HELP_STRING([--disable-vlan-hack], [disable automatic inclusion of VLAN frames (default on)])],
 [use_vlan_hack="$enableval"],
 [use_vlan_hack="yes"])
 
-if test $use_vlan_hack = yes; then
+AS_IF([test $use_vlan_hack = yes], [
   USE_VLAN_HACK="1"
-else
+], [
   USE_VLAN_HACK="0"
-fi
+])
 
 
-AC_ARG_WITH(pcap-includes,
-[  --with-pcap-includes=dir       specify the pcap include directory],
+AC_ARG_WITH([pcap-includes], [
+AS_HELP_STRING([--with-pcap-includes=dir], [specify the pcap include directory])],
 [PCAP_DIR=$withval],
 [
   PCAP_DIR="`eval echo -n ${includedir}` \
@@ -209,6 +201,20 @@ AC_ARG_WITH(pcap-includes,
             /opt/local/include /opt/local/include/pcap \
             /usr/share/include /usr/share/include/pcap"
 ])
+
+AC_ARG_WITH([pcre-includes], [
+AS_HELP_STRING([--with-pcre-includes=dir], [specify the pcre include directory])],
+[PCRE_DIR=$withval],
+[
+  PCRE_DIR="`eval echo -n ${includedir}`"
+])
+
+EXTRA_INCLUDES="$EXTRA_INCLUDES -I$PCRE_DIR"
+DIR="`dirname $PCRE_DIR`/lib"
+AS_IF([test -d $DIR], [
+    EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
+])
+
 
 
 AC_MSG_RESULT
@@ -221,19 +227,14 @@ dnl
 
 STRIPFLAG="-s"
 
-case "$target_os" in
-
-*linux*)
+AS_CASE(["$target_os"],
+[*linux*], [
     AC_SUBST(OS, LINUX)
-
-    ;;
-
-*bsd*)
+],
+[*bsd*], [
     AC_SUBST(OS, BSD)
-
-    ;;
-
-*solaris*)
+],
+[*solaris*], [
     AC_SUBST(OS, SOLARIS)
 
     AC_CHECK_LIB(socket, socket,,
@@ -242,44 +243,30 @@ case "$target_os" in
                  [AC_MSG_ERROR(no gethostbyname in -lnsl)])
 
     EXTRA_LIBS="$EXTRA_LIBS -lnsl -lsocket"
-
-    ;;
-
-*osf*)
+],
+[*osf*], [
     AC_SUBST(OS, OSF1)
 
     EXTRA_DEFINES="$EXTRA_DEFINES -D__STDC__=2"
-
-    ;;
-
-*hpux11*)
+],
+[*hpux11*], [
     AC_SUBST(OS, BSD)
-
-    ;;
-
-*aix*)
+],
+[*aix*], [
     AC_SUBST(OS, AIX)
-
-    ;;
-
-*darwin*)
+],
+[*darwin*], [
     AC_SUBST(OS, MACOSX)
 
     STRIPFLAG=""
-
-    ;;
-
-*)
+], [
     AC_SUBST(OS, UNKNOWN_OS)
     AC_MSG_WARN(
 Your OS ($target_os) is not supported yet.
 Try playing with the build host and target options.
 )
     sleep 3
-
-    ;;
-
-esac
+])
 
 AC_SUBST(STRIPFLAG)
 
@@ -308,11 +295,11 @@ AC_MSG_CHECKING(for a complete set of pcap headers)
 
 pcap_base=""
 for dir in $PCAP_DIR ; do
-    if test -d $dir -a -r "$dir/pcap.h"; then
+    AS_IF([test -d $dir -a -r "$dir/pcap.h"], [
 
        AC_EGREP_HEADER([PCAP_VERSION_MAJOR], [$dir/pcap.h], [found=$dir], [found=""])
 
-       if test -n "$found" -a "$found" != "$pcap_base"; then
+       AS_IF([test -n "$found" -a "$found" != "$pcap_base"], [
           AC_MSG_RESULT
           AC_MSG_RESULT
           AC_MSG_RESULT(more than one set found in:)
@@ -320,28 +307,47 @@ for dir in $PCAP_DIR ; do
           AC_MSG_RESULT(  $found)
           AC_MSG_RESULT
           AC_MSG_ERROR(please wipe out all unused pcap installations)
-       else
+       ], [
           pcap_base="$dir"
-       fi
+       ])
 
-    fi
+    ])
 done
 
-if test -z "$pcap_base" ; then
+AS_IF([test -z "$pcap_base"], [
    AC_MSG_RESULT(no)
    AC_MSG_ERROR(could not find a complete set of pcap headers)
-else
+], [
    AC_MSG_RESULT(found $pcap_base)
 
    EXTRA_INCLUDES="$EXTRA_INCLUDES -I$pcap_base"
 
    dnl Best-effort; newer ld warns on missing dirs.
    DIR="`dirname $pcap_base`/lib"
-   if test -d $DIR; then
+   AS_IF([test -d $DIR], [
        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$DIR"
-   fi
-fi
+   ])
+])
 
+dnl
+dnl If tcpkill is enabled, check for libnet.
+dnl
+
+AS_IF([test $use_tcpkill = yes], [
+  USE_TCPKILL="1"
+
+  EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
+  EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
+  EXTRA_INCLUDES="$EXTRA_INCLUDES $(libnet-config --cflags)"
+  EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
+
+  SAVE_LIBS="$LIBS"
+  LIBS="$LIBS $EXTRA_LIBS"
+  AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
+  LIBS="$SAVE_LIBS"
+], [
+  USE_TCPKILL="0"
+])
 
 dnl
 dnl Check for a working PCAP library we can link against..
@@ -353,30 +359,29 @@ dnl
 dnl And the PCAP restart function.
 dnl
 
-if test "$USE_PCAP_RESTART" = "1"; then
+AS_IF([test "$USE_PCAP_RESTART" = "1"], [
     PCAP_RESTART_FUNC="unused"
 
     for func in pcap_restart pcap_yyrestart yyrestart; do
         AC_CHECK_LIB(pcap, $func, found="$func")
-        if test -n "$found"; then
+        AS_IF([test -n "$found"], [
             USE_PCAP_RESTART="1"
             PCAP_RESTART_FUNC="$found"
             break
-        fi
+        ])
     done
 
-    if test "$PCAP_RESTART_FUNC" = "unused"; then
+    AS_IF([test "$PCAP_RESTART_FUNC" = "unused"], [
         AC_MSG_ERROR(BPF lexer restart fix requested, but no restart function found)
-    fi
-fi
-
+    ])
+])
 
 dnl
 dnl Next figure out which bpf header file to look at.
 dnl
 
 AC_MSG_CHECKING(for BPF include path)
-BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap.h`
+BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap/pcap.h`
 AC_MSG_RESULT($BPF)
 
 dnl
@@ -506,39 +511,39 @@ dnl
 
 AC_MSG_RESULT
 
-if test "$USE_PCAP_RESTART" = "1"; then
+AS_IF([test "$USE_PCAP_RESTART" = "1"], [
     AC_MSG_RESULT([CONFIG: BPF filter lexer restart enabled (using $PCAP_RESTART_FUNC)])
-fi
+])
 
-if test "$USE_IPv6" = "1"; then
+AS_IF([test "$USE_IPv6" = "1"], [
     AC_MSG_RESULT(CONFIG: IPv6 support enabled)
-else
+], [
     AC_MSG_RESULT(CONFIG: IPv6 support disabled)
-fi
+])
 
-if test "$USE_DROPPRIVS" = "1"; then
+AS_IF([test "$USE_DROPPRIVS" = "1"], [
     AC_MSG_RESULT([CONFIG: privilege dropping enabled (using $DROPPRIVS_USER)])
-else
+], [
     AC_MSG_RESULT(CONFIG: privilege dropping DISABLED)
-fi
+])
 
-if test "$USE_PCRE2" = "1"; then
+AS_IF([test "$USE_PCRE2" = "1"], [
     AC_MSG_RESULT(CONFIG: using PCRE2 regex library)
-else
+], [
     AC_MSG_RESULT(CONFIG: using GNU regex library)
-fi
+])
 
-if test "$USE_TCPKILL" = "1"; then
+AS_IF([test "$USE_TCPKILL" = "1"], [
     AC_MSG_RESULT(CONFIG: tcpkill feature enabled)
-else
+], [
     AC_MSG_RESULT(CONFIG: tcpkill feature disabled)
-fi
+])
 
-if test "$USE_VLAN_HACK" = "1"; then
+AS_IF([test "$USE_VLAN_HACK" = "1"], [
     AC_MSG_RESULT(CONFIG: automatically including VLAN frames)
-else
+], [
     AC_MSG_RESULT(CONFIG: NOT automatically including VLAN frames)
-fi
+])
 
 dnl
 dnl And we're done.  ALL YOUR BASE.  Don't forget.
