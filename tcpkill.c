@@ -65,7 +65,7 @@ tcpkill_kill(const struct pcap_pkthdr *pcap, const u_char *pkt,
                 ip->ip_src.s_addr, NULL, 0, l, 0);
 
       if (libnet_write(l) < 0)
-          warn("write");
+          fprintf(stderr, "libnet_write failed\n");
 
       fprintf(stderr, "%s R %lu:%lu(0) win 0\n", ctext, seq, seq);
   }
@@ -78,10 +78,10 @@ tcpkill_init(void)
   char libnet_ebuf[LIBNET_ERRBUF_SIZE];
 
   if ((intf = pcap_lookupdev(ebuf)) == NULL)
-      errx(1, "%s", ebuf);
+      fprintf(stderr, "%s\n", ebuf);
 
   if ((l = libnet_init(LIBNET_RAW4, intf, libnet_ebuf)) == NULL)
-      errx(1, "couldn't initialize sending");
+      fprintf(stderr, "libnet_init failed\n");
 
   libnet_seed_prand(l);
 }
