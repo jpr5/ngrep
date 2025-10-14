@@ -992,8 +992,8 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
 int8_t re_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uint16_t *msize) {
 #if USE_PCRE
 
-    static int sub[2];
-    switch(pcre_exec(pattern, 0, (char const *)data, (int32_t)len, 0, 0, 0, 0)) {
+    static int sub[3] = {0, 0, 0};
+    switch(pcre_exec(pattern, 0, (char const *)data, (int32_t)len, 0, 0, sub, sizeof(sub))) {
         case PCRE_ERROR_NULL:
         case PCRE_ERROR_BADOPTION:
         case PCRE_ERROR_BADMAGIC:
