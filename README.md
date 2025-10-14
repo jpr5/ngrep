@@ -11,7 +11,7 @@ common packet sniffing tools, such as tcpdump and snoop.
 
  * Upgrade to PCRE2
  * Add additional level of quiet for certain filtering scenarios
- * Update to latest autotools (2.72, 2023)
+ * Update to latest autotools for ngrep and regex-0.12 (2.72, 2023)
  * Update manpage for missing options and typos
  * Fix BPF `DLT_` type detections within libpcap (e.g. `DLT_LINUX_SLL`)
  * Allow for specifying specific location of PCRE2 includes
