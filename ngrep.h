@@ -161,14 +161,3 @@ struct NGREP_rtaphdr_t {
     uint16_t it_len;
     uint32_t it_present;
 };
-
-
-/*
- * ANSI color/hilite stuff.
- */
-
-const char ANSI_red[]  = "\33[01;31m";
-const char ANSI_bold[] = "\33[01m";
-
-const char *ANSI_hilite = ANSI_red;
-const char  ANSI_off[]  = "\33[00m";
