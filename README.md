@@ -1,4 +1,4 @@
-## ngrep 1.47 (9.7.2017)
+## ngrep 1.48 (10.13.2025)
 
 ngrep is like GNU grep applied to the network layer.  It's a PCAP-based tool
 that allows you to specify an extended regular or hexadecimal expression to
