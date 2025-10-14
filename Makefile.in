@@ -26,6 +26,7 @@ BINDIR_INSTALL = $(bindir)
 MANDIR_INSTALL = $(mandir)/man8
 
 INSTALL = ./install-sh
+STRIP ?= strip
 
 REGEX_OBJS=@REGEX_OBJS@
 REGEX_DIR=@REGEX_DIR@
@@ -34,7 +35,7 @@ REGEX_DIR=@REGEX_DIR@
 all: $(TARGET)
 
 $(TARGET): debug
-	strip $(TARGET)
+	$(STRIP) $(TARGET)
 
 debug: $(REGEX_OBJS) $(OBJS)
 	$(CC) -g -o $(TARGET) $(OBJS) $(REGEX_OBJS) $(LDFLAGS) $(LIBS)
