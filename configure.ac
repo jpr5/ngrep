@@ -149,7 +149,8 @@ AS_HELP_STRING([--enable-pcre2], [use PCRE2 instead of GNU regex (default GNU)])
 
 AS_IF([test $use_pcre2 = yes], [
   USE_PCRE2="1"
-  EXTRA_LIBS="$EXTRA_LIBS -lpcre2-8"
+  EXTRA_INCLUDES="$EXTRA_INCLUDES $(pcre2-config --cflags-posix)"
+  EXTRA_LIBS="$EXTRA_LIBS $(pcre2-config --libs-posix)"
 ], [
   USE_PCRE2="0"
 

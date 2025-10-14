@@ -735,7 +735,7 @@ with_dropprivs_user
 enable_dropprivs
 enable_ipv6
 enable_pcap_restart
-enable_pcre
+enable_pcre2
 enable_tcpkill
 enable_vlan_hack
 with_pcap_includes
@@ -1392,7 +1392,7 @@ Optional Features:
   --enable-pcap-restart   enable BPF lexer restart bugfix for older versions
                           of PCAP (default off)
 
-  --enable-pcre           use PCRE instead of GNU regex (default GNU)
+  --enable-pcre2          use PCRE2 instead of GNU regex (default GNU)
 
   --enable-tcpkill        enable connection killing support (default off)
 
@@ -4936,25 +4936,26 @@ fi
 REGEX_DIR=''
 REGEX_OBJS=''
 
-# Check whether --enable-pcre was given.
-if test ${enable_pcre+y}
+# Check whether --enable-pcre2 was given.
+if test ${enable_pcre2+y}
 then :
-  enableval=$enable_pcre;  use_pcre="$enableval"
+  enableval=$enable_pcre2;  use_pcre2="$enableval"
 else case e in #(
-  e)  use_pcre="no"  ;;
+  e)  use_pcre2="no"  ;;
 esac
 fi
 
 
-if test $use_pcre = yes
+if test $use_pcre2 = yes
 then :
 
-  USE_PCRE="1"
-  EXTRA_LIBS="$EXTRA_LIBS -lpcre"
+  USE_PCRE2="1"
+  EXTRA_INCLUDES="$EXTRA_INCLUDES $(pcre2-config --cflags-posix)"
+  EXTRA_LIBS="$EXTRA_LIBS $(pcre2-config --libs-posix)"
 
 else case e in #(
   e)
-  USE_PCRE="0"
+  USE_PCRE2="0"
 
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: " >&5
 printf "%s\n" "" >&6; }
@@ -5990,7 +5991,7 @@ printf "%s\n" "#define PCAP_RESTART_FUNC $PCAP_RESTART_FUNC" >>confdefs.h
 
 
 
-printf "%s\n" "#define USE_PCRE $USE_PCRE" >>confdefs.h
+printf "%s\n" "#define USE_PCRE2 $USE_PCRE2" >>confdefs.h
 
 
 printf "%s\n" "#define USE_IPv6 $USE_IPv6" >>confdefs.h
@@ -6078,11 +6079,11 @@ printf "%s\n" "CONFIG: privilege dropping DISABLED" >&6; }
 esac
 fi
 
-if test "$USE_PCRE" = "1"
+if test "$USE_PCRE2" = "1"
 then :
 
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CONFIG: using PCRE regex library" >&5
-printf "%s\n" "CONFIG: using PCRE regex library" >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CONFIG: using PCRE2 regex library" >&5
+printf "%s\n" "CONFIG: using PCRE2 regex library" >&6; }
 
 else case e in #(
   e)
