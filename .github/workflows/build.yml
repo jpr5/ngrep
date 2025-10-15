@@ -30,40 +30,40 @@ jobs:
       matrix:
         name: [ ubuntu-latest-gcc, ubuntu-latest-gcc-arm64, ubuntu-latest-clang, macos-15-clang, macos-26-clang, freebsd-15-clang, freebsd-15-gcc, openbsd-7-gcc, openbsd-7-clang, netbsd-10-gcc, netbsd-10-clang ]
         include:
-#          - name: ubuntu-latest-gcc
-#            os: ubuntu-latest
-#            cc: gcc
-#          - name: ubuntu-latest-gcc-arm64
-#            os: ubuntu-latest
-#            cc: gcc
-#            arch: arm64
-#          - name: ubuntu-latest-clang
-#            os: ubuntu-latest
-#            cc: clang
-#          - name: macos-15-clang
-#            os: macos-15
-#            cc: clang
-#          - name: macos-26-clang
-#            os: macos-26
-#            cc: clang
-#          - name: freebsd-15-clang
-#            os: ubuntu-latest
-#            cc: clang
-#          - name: freebsd-15-gcc
-#            os: ubuntu-latest
-#            cc: gcc
-#          - name: openbsd-7-gcc
-#            os: ubuntu-latest
-#            cc: gcc
+          - name: ubuntu-latest-gcc
+            os: ubuntu-latest
+            cc: gcc
+          - name: ubuntu-latest-gcc-arm64
+            os: ubuntu-latest
+            cc: gcc
+            arch: arm64
+          - name: ubuntu-latest-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: macos-15-clang
+            os: macos-15
+            cc: clang
+          - name: macos-26-clang
+            os: macos-26
+            cc: clang
+          - name: freebsd-15-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: freebsd-15-gcc
+            os: ubuntu-latest
+            cc: gcc
+          - name: openbsd-7-gcc
+            os: ubuntu-latest
+            cc: egcc
           - name: openbsd-7-clang
             os: ubuntu-latest
             cc: clang
-#          - name: netbsd-10-gcc
-#            os: ubuntu-latest
-#            cc: gcc
-#          - name: netbsd-10-clang
-#            os: ubuntu-latest
-#            cc: clang
+          - name: netbsd-10-gcc
+            os: ubuntu-latest
+            cc: gcc
+          - name: netbsd-10-clang
+            os: ubuntu-latest
+            cc: clang
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -101,7 +101,7 @@ jobs:
         if: startsWith(matrix.name,'macos')
         run: |
           brew update
-          brew install autoconf automake libtool tree libpcap libnet pcre2
+          brew install autoconf automake libtool tree libpcap libnet #pcre2
           ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
           make
           make install DESTDIR=/tmp
@@ -133,11 +133,6 @@ jobs:
             export PKG_PATH=https://cdn.openbsd.org/pub/OpenBSD/$(uname -r)/packages/$(uname -m)/
             pkg_add -I autoconf%2.72 automake%1.17 gcc%11 llvm%19 doxygen tree pkgconf libnet%1.1 pcre2
           run: |
-            echo "=== Searching for pcap.h ==="
-            find /usr -name "pcap.h" 2>/dev/null || echo "Not found in /usr"
-            find /usr/local -name "pcap.h" 2>/dev/null || echo "Not found in /usr/local"
-            echo "=== Searching for libpcap ==="
-            find /usr -name "libpcap.*" 2>/dev/null || echo "Not found in /usr"
             ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
             make
             make install DESTDIR=/tmp
