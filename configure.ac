@@ -223,11 +223,22 @@ dnl
 dnl OS-specific options
 dnl
 
+BASE_PCAP_H="pcap/pcap.h"
+
 AS_CASE(["$target_os"],
 [*linux*], [
     AC_SUBST(OS, LINUX)
 
     EXTRA_DEFINES="$EXTRA_DEFINES -D_DEFAULT_SOURCE=1"
+],
+[*openbsd*], [
+    AC_SUBST(OS, BSD)
+
+dnl OpenBSD doesn't have an indirect pcap.h, pointing to pcap/pcap.h.
+dnl I guess it's just considered a core/built-in, as there isn't even a libpcap
+dnl package to install (unlike *any* other OS or distribution).
+    BASE_PCAP_H="pcap.h"
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
 ],
 [*bsd*], [
     AC_SUBST(OS, BSD)
@@ -301,9 +312,12 @@ AC_MSG_CHECKING(for a complete set of pcap headers)
 
 pcap_base=""
 for dir in $PCAP_DIR ; do
-    AS_IF([test -d $dir -a -r "$dir/pcap/pcap.h"], [
+dnl In every case *BUT* OpenBSD, there's a indirect $include/pcap.h that
+dnl points to $include/pcap/pcap.h.  For OpenBSD, there's no indirect; it's
+dnl just $include/pcap.h.
+    AS_IF([test -d $dir -a -r "$dir/$BASE_PCAP_H"], [
         AC_EGREP_CPP([yes], [
-            #include "$dir/pcap/pcap.h"
+            #include "$dir/$BASE_PCAP_H"
             #ifdef PCAP_VERSION_MAJOR
             yes
             #endif
@@ -402,11 +416,16 @@ dnl
 dnl Next figure out which bpf header file to look at.
 dnl
 
-PCAP_H="$pcap_base/pcap/pcap.h"
+PCAP_H="$pcap_base/$BASE_PCAP_H"
 AC_MSG_CHECKING(for BPF include path in $PCAP_H)
 dnl All the @'s escape m4-sensitive characters
 BPF=`grep -o '<@<:@^>@:>@*bpf\.h>' $PCAP_H | sed 's/@<:@<>@:>@//g' | head -1 | tr -d '\n'`
-AC_MSG_RESULT($BPF)
+AS_IF([test -z "$BPF"], [
+    AC_MSG_RESULT(not found)
+    AC_MSG_ERROR(could not find where the BPF types are located)
+], [
+    AC_MSG_RESULT($BPF)
+])
 
 dnl
 dnl Check for DLT_* types that might not have existed in older

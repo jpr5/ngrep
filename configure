@@ -3920,6 +3920,8 @@ printf "%s\n" "Configuring Network Grep ..." >&6; }
 printf "%s\n" "" >&6; }
 
 
+BASE_PCAP_H="pcap/pcap.h"
+
 
 case "$target_os" in #(
   *linux*) :
@@ -3928,6 +3930,14 @@ case "$target_os" in #(
 
 
     EXTRA_DEFINES="$EXTRA_DEFINES -D_DEFAULT_SOURCE=1"
+ ;; #(
+  *openbsd*) :
+
+    OS=BSD
+
+
+    BASE_PCAP_H="pcap.h"
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
  ;; #(
   *bsd*) :
 
@@ -4534,13 +4544,13 @@ printf %s "checking for a complete set of pcap headers... " >&6; }
 
 pcap_base=""
 for dir in $PCAP_DIR ; do
-    if test -d $dir -a -r "$dir/pcap/pcap.h"
+    if test -d $dir -a -r "$dir/$BASE_PCAP_H"
 then :
 
         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-            #include "$dir/pcap/pcap.h"
+            #include "$dir/$BASE_PCAP_H"
             #ifdef PCAP_VERSION_MAJOR
             yes
             #endif
@@ -4881,12 +4891,24 @@ fi
 fi
 
 
-PCAP_H="$pcap_base/pcap/pcap.h"
+PCAP_H="$pcap_base/$BASE_PCAP_H"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BPF include path in $PCAP_H" >&5
 printf %s "checking for BPF include path in $PCAP_H... " >&6; }
 BPF=`grep -o '<[^>]*bpf\.h>' $PCAP_H | sed 's/[<>]//g' | head -1 | tr -d '\n'`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $BPF" >&5
+if test -z "$BPF"
+then :
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+printf "%s\n" "not found" >&6; }
+    as_fn_error $? "could not find where the BPF types are located" "$LINENO" 5
+
+else case e in #(
+  e)
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $BPF" >&5
 printf "%s\n" "$BPF" >&6; }
+ ;;
+esac
+fi
 
 
 present=""
