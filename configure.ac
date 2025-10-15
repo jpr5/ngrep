@@ -361,19 +361,25 @@ dnl If tcpkill is enabled, check for libnet.
 dnl
 
 AS_IF([test $use_tcpkill = yes], [
-  USE_TCPKILL="1"
+    USE_TCPKILL="1"
 
-  EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
-  EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
-  EXTRA_INCLUDES="$EXTRA_INCLUDES $(libnet-config --cflags)"
-  EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
+dnl Find libnet-config with any suffix (e.g., libnet-config-1.1 on OpenBSD)
+    AC_PATH_PROGS(LIBNET_CONFIG_BIN, [libnet-config libnet-config-1.1 libnet-config-1.0], [no])
+    AS_IF([test $LIBNET_CONFIG_BIN = no], [
+        AC_MSG_ERROR(tcpkill feature enabled but libnet-config not found)
+    ])
 
-  SAVE_LIBS="$LIBS"
-  LIBS="$LIBS $EXTRA_LIBS"
-  AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
-  LIBS="$SAVE_LIBS"
+    EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
+    EXTRA_DEFINES="$EXTRA_DEFINES $($LIBNET_CONFIG_BIN --defines)"
+    EXTRA_INCLUDES="$EXTRA_INCLUDES $($LIBNET_CONFIG_BIN --cflags)"
+    EXTRA_LIBS="$EXTRA_LIBS $($LIBNET_CONFIG_BIN --libs)"
+
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $EXTRA_LIBS"
+    AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
+    LIBS="$SAVE_LIBS"
 ], [
-  USE_TCPKILL="0"
+    USE_TCPKILL="0"
 ])
 
 dnl
