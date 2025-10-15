@@ -4881,9 +4881,10 @@ fi
 fi
 
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BPF include path" >&5
-printf %s "checking for BPF include path... " >&6; }
-BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap/pcap.h`
+PCAP_H="$pcap_base/pcap/pcap.h"
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BPF include path in $PCAP_H" >&5
+printf %s "checking for BPF include path in $PCAP_H... " >&6; }
+BPF=`grep -o '<[^>]*bpf\.h>' $PCAP_H | sed 's/[<>]//g' | head -1 | tr -d '\n'`
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $BPF" >&5
 printf "%s\n" "$BPF" >&6; }
 

@@ -402,8 +402,10 @@ dnl
 dnl Next figure out which bpf header file to look at.
 dnl
 
-AC_MSG_CHECKING(for BPF include path)
-BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap/pcap.h`
+PCAP_H="$pcap_base/pcap/pcap.h"
+AC_MSG_CHECKING(for BPF include path in $PCAP_H)
+dnl All the @'s escape m4-sensitive characters
+BPF=`grep -o '<@<:@^>@:>@*bpf\.h>' $PCAP_H | sed 's/@<:@<>@:>@//g' | head -1 | tr -d '\n'`
 AC_MSG_RESULT($BPF)
 
 dnl
