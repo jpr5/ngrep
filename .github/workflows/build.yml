@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [ ubuntu-latest-gcc, ubuntu-latest-gcc-arm64, ubuntu-latest-clang, macos-15-clang, macos-26-clang, freebsd-15-clang, freebsd-15-gcc, openbsd-7-gcc, openbsd-7-clang, netbsd-10-gcc, netbsd-10-clang, windows-latest-msvc ]
+        name: [ ubuntu-latest-gcc, ubuntu-latest-gcc-arm64, ubuntu-latest-clang, macos-15-clang, macos-26-clang, freebsd-15-clang, freebsd-15-gcc, openbsd-7-gcc, openbsd-7-clang, netbsd-10-gcc, netbsd-10-clang, solaris-11-gcc, solaris-11-clang, windows-latest-msvc ]
         include:
           - name: ubuntu-latest-gcc
             os: ubuntu-latest
@@ -68,6 +68,12 @@ jobs:
             os: ubuntu-latest
             cc: gcc
           - name: netbsd-10-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: solaris-11-gcc
+            os: ubuntu-latest
+            cc: gcc
+          - name: solaris-11-clang
             os: ubuntu-latest
             cc: clang
           - name: windows-latest-msvc
@@ -156,6 +162,19 @@ jobs:
             export PATH=/usr/sbin:/usr/pkg/sbin:/usr/pkg/bin:$PATH
             export PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/$(uname -r | cut -d_ -f1)/All"
             pkg_add autoconf automake libtool gcc13 clang pkgconf libpcap libnet
+          run: |
+            ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
+            make
+            make install DESTDIR=/tmp
+            tree /tmp/usr
+
+      - name: Build Solaris
+        if: startsWith(matrix.name,'solaris')
+        uses: vmactions/solaris-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install autoconf automake gcc-c clang pcre2 libpcap libnet
           run: |
             ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
             make
