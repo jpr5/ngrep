@@ -18,8 +18,8 @@ common packet sniffing tools, such as tcpdump and snoop.
  * Eliminate various non-fatal build warnings (e.g. `pcap_lookupdev` deprecation)
  * Fix `./configure --disable-tcpkill`
  * Source cleanup (nuke old files, unused vars, missing refs, etc)
- * Win32: -d allows device-name now (e.g. `\\Device\...`)
- * Win32: Removed `delay_socket` hack in favor of `Sleep()`
+ * Win64: -d allows device-name now (e.g. `\\Device\...`)
+ * Win64: Removed `delay_socket` hack in favor of `Sleep()`
 
 ## How to use
 
