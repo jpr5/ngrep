@@ -30,43 +30,42 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-#        name: [ ubuntu-latest-gcc, ubuntu-latest-gcc-arm64, ubuntu-latest-clang, macos-15-clang, macos-26-clang, freebsd-15-clang, freebsd-15-gcc, openbsd-7-gcc, openbsd-7-clang, netbsd-10-gcc, netbsd-10-clang, windows-latest-msvc ]
-        name: [ windows-latest-msvc ]
+        name: [ ubuntu-latest-gcc, ubuntu-latest-gcc-arm64, ubuntu-latest-clang, macos-15-clang, macos-26-clang, freebsd-15-clang, freebsd-15-gcc, openbsd-7-gcc, openbsd-7-clang, netbsd-10-gcc, netbsd-10-clang, windows-latest-msvc ]
         include:
-#          - name: ubuntu-latest-gcc
-#            os: ubuntu-latest
-#            cc: gcc
-#          - name: ubuntu-latest-gcc-arm64
-#            os: ubuntu-latest
-#            cc: gcc
-#            arch: arm64
-#          - name: ubuntu-latest-clang
-#            os: ubuntu-latest
-#            cc: clang
-#          - name: macos-15-clang
-#            os: macos-15
-#            cc: clang
-#          - name: macos-26-clang
-#            os: macos-26
-#            cc: clang
-#          - name: freebsd-15-clang
-#            os: ubuntu-latest
-#            cc: clang
-#          - name: freebsd-15-gcc
-#            os: ubuntu-latest
-#            cc: gcc
-#          - name: openbsd-7-gcc
-#            os: ubuntu-latest
-#            cc: egcc
-#          - name: openbsd-7-clang
-#            os: ubuntu-latest
-#            cc: clang
-#          - name: netbsd-10-gcc
-#            os: ubuntu-latest
-#            cc: gcc
-#          - name: netbsd-10-clang
-#            os: ubuntu-latest
-#            cc: clang
+          - name: ubuntu-latest-gcc
+            os: ubuntu-latest
+            cc: gcc
+          - name: ubuntu-latest-gcc-arm64
+            os: ubuntu-latest
+            cc: gcc
+            arch: arm64
+          - name: ubuntu-latest-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: macos-15-clang
+            os: macos-15
+            cc: clang
+          - name: macos-26-clang
+            os: macos-26
+            cc: clang
+          - name: freebsd-15-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: freebsd-15-gcc
+            os: ubuntu-latest
+            cc: gcc
+          - name: openbsd-7-gcc
+            os: ubuntu-latest
+            cc: egcc
+          - name: openbsd-7-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: netbsd-10-gcc
+            os: ubuntu-latest
+            cc: gcc
+          - name: netbsd-10-clang
+            os: ubuntu-latest
+            cc: clang
           - name: windows-latest-msvc
             os: windows-latest
             cc: msvc
@@ -180,7 +179,7 @@ jobs:
             exit 1
           }
           Write-Host "Npcap SDK installed successfully"
-          
+
           # Install PCRE2 via vcpkg (pre-installed on GitHub Actions)
           Write-Host "Installing PCRE2..."
           vcpkg install pcre2:x64-windows
