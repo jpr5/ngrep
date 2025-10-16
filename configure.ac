@@ -15,6 +15,9 @@ AC_MSG_RESULT
 AC_CANONICAL_TARGET
 AC_PROG_CC
 
+dnl Find strip or use a no-op for systems without it
+AC_CHECK_TOOL(STRIP, strip, :)
+
 AC_PREFIX_DEFAULT(/usr/local)
 AS_IF([test -n "$(command -v tcpdump 2> /dev/null)"], [
    AC_PREFIX_PROGRAM(tcpdump)
@@ -366,7 +369,7 @@ AS_IF([test $use_tcpkill = yes], [
 dnl Find libnet-config with any suffix (e.g., libnet-config-1.1 on OpenBSD)
     AC_PATH_PROGS(LIBNET_CONFIG_BIN, [libnet-config libnet-config-1.1 libnet-config-1.0], [no])
     AS_IF([test $LIBNET_CONFIG_BIN = no], [
-        AC_MSG_ERROR(tcpkill feature enabled but libnet-config not found)
+        AC_MSG_ERROR(!!! error: tcpkill feature enabled but libnet-config not found)
     ])
 
     EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
@@ -424,8 +427,9 @@ dnl
 
 PCAP_H="$pcap_base/$BASE_PCAP_H"
 AC_MSG_CHECKING(for BPF include path in $PCAP_H)
+dnl Use sed instead of grep -o for Solaris compatibility
 dnl All the @'s escape m4-sensitive characters
-BPF=`grep -o '<@<:@^>@:>@*bpf\.h>' $PCAP_H | sed 's/@<:@<>@:>@//g' | head -1 | tr -d '\n'`
+BPF=`sed -n 's/.*<\(@<:@^>@:>@*bpf\.h\)>.*/\1/p' $PCAP_H | head -1 | tr -d '\n'`
 AS_IF([test -z "$BPF"], [
     AC_MSG_RESULT(not found)
     AC_MSG_ERROR(could not find where the BPF types are located)
