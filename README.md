@@ -21,6 +21,7 @@ common packet sniffing tools, such as tcpdump and snoop.
  * Source cleanup (nuke old files, unused vars, missing refs, etc)
  * Win64: -d allows device-name now (e.g. `\\Device\...`)
  * Win64: Removed `delay_socket` hack in favor of `Sleep()`
+ * Win64: Build with PCRE2 by default
 
 ## How to use
 
