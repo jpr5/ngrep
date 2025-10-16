@@ -163,25 +163,39 @@ jobs:
         if: startsWith(matrix.name,'windows')
         shell: powershell
         run: |
-          # Install Npcap SDK
-          choco install -y npcap-sdk
-
+          # Download and install Npcap SDK
+          $sdkUrl = "https://npcap.com/dist/npcap-sdk-1.13.zip"
+          $sdkZip = "$env:TEMP\npcap-sdk.zip"
+          $sdkDir = "C:\npcap-sdk"
+          
+          Write-Host "Downloading Npcap SDK..."
+          Invoke-WebRequest -Uri $sdkUrl -OutFile $sdkZip
+          
+          Write-Host "Extracting Npcap SDK..."
+          Expand-Archive -Path $sdkZip -DestinationPath $sdkDir -Force
+          
           # Verify installation
-          if (-Not (Test-Path "C:\Program Files\Npcap SDK\Include\pcap.h")) {
-            Write-Error "Npcap SDK not found at expected location"
+          if (-Not (Test-Path "$sdkDir\Include\pcap.h")) {
+            Write-Error "Npcap SDK not found at $sdkDir"
             exit 1
           }
+          Write-Host "Npcap SDK installed successfully"
 
           # Build with CMake
+          Write-Host "Configuring with CMake..."
           mkdir build
           cd build
-          cmake ../win32 -G "Visual Studio 2022" -A x64
+          cmake ../win32 -G "Visual Studio 17 2022" -A x64 -DNPCAP_SDK_DIR="$sdkDir"
+          
+          Write-Host "Building..."
           cmake --build . --config Release
 
           # Show output
+          Write-Host "Build artifacts:"
           dir bin/Release
 
           # Test that it runs
+          Write-Host "Testing ngrep.exe..."
           ./bin/Release/ngrep.exe -V
 
 #      - name: Upload artifact
