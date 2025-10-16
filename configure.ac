@@ -223,11 +223,22 @@ dnl
 dnl OS-specific options
 dnl
 
+BASE_PCAP_H="pcap/pcap.h"
+
 AS_CASE(["$target_os"],
 [*linux*], [
     AC_SUBST(OS, LINUX)
 
     EXTRA_DEFINES="$EXTRA_DEFINES -D_DEFAULT_SOURCE=1"
+],
+[*openbsd*], [
+    AC_SUBST(OS, BSD)
+
+dnl OpenBSD doesn't have an indirect pcap.h, pointing to pcap/pcap.h.
+dnl I guess it's just considered a core/built-in, as there isn't even a libpcap
+dnl package to install (unlike *any* other OS or distribution).
+    BASE_PCAP_H="pcap.h"
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
 ],
 [*bsd*], [
     AC_SUBST(OS, BSD)
@@ -301,9 +312,12 @@ AC_MSG_CHECKING(for a complete set of pcap headers)
 
 pcap_base=""
 for dir in $PCAP_DIR ; do
-    AS_IF([test -d $dir -a -r "$dir/pcap/pcap.h"], [
+dnl In every case *BUT* OpenBSD, there's a indirect $include/pcap.h that
+dnl points to $include/pcap/pcap.h.  For OpenBSD, there's no indirect; it's
+dnl just $include/pcap.h.
+    AS_IF([test -d $dir -a -r "$dir/$BASE_PCAP_H"], [
         AC_EGREP_CPP([yes], [
-            #include "$dir/pcap/pcap.h"
+            #include "$dir/$BASE_PCAP_H"
             #ifdef PCAP_VERSION_MAJOR
             yes
             #endif
@@ -347,19 +361,25 @@ dnl If tcpkill is enabled, check for libnet.
 dnl
 
 AS_IF([test $use_tcpkill = yes], [
-  USE_TCPKILL="1"
+    USE_TCPKILL="1"
 
-  EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
-  EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
-  EXTRA_INCLUDES="$EXTRA_INCLUDES $(libnet-config --cflags)"
-  EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
+dnl Find libnet-config with any suffix (e.g., libnet-config-1.1 on OpenBSD)
+    AC_PATH_PROGS(LIBNET_CONFIG_BIN, [libnet-config libnet-config-1.1 libnet-config-1.0], [no])
+    AS_IF([test $LIBNET_CONFIG_BIN = no], [
+        AC_MSG_ERROR(tcpkill feature enabled but libnet-config not found)
+    ])
 
-  SAVE_LIBS="$LIBS"
-  LIBS="$LIBS $EXTRA_LIBS"
-  AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
-  LIBS="$SAVE_LIBS"
+    EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
+    EXTRA_DEFINES="$EXTRA_DEFINES $($LIBNET_CONFIG_BIN --defines)"
+    EXTRA_INCLUDES="$EXTRA_INCLUDES $($LIBNET_CONFIG_BIN --cflags)"
+    EXTRA_LIBS="$EXTRA_LIBS $($LIBNET_CONFIG_BIN --libs)"
+
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $EXTRA_LIBS"
+    AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
+    LIBS="$SAVE_LIBS"
 ], [
-  USE_TCPKILL="0"
+    USE_TCPKILL="0"
 ])
 
 dnl
@@ -402,9 +422,16 @@ dnl
 dnl Next figure out which bpf header file to look at.
 dnl
 
-AC_MSG_CHECKING(for BPF include path)
-BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap/pcap.h`
-AC_MSG_RESULT($BPF)
+PCAP_H="$pcap_base/$BASE_PCAP_H"
+AC_MSG_CHECKING(for BPF include path in $PCAP_H)
+dnl All the @'s escape m4-sensitive characters
+BPF=`grep -o '<@<:@^>@:>@*bpf\.h>' $PCAP_H | sed 's/@<:@<>@:>@//g' | head -1 | tr -d '\n'`
+AS_IF([test -z "$BPF"], [
+    AC_MSG_RESULT(not found)
+    AC_MSG_ERROR(could not find where the BPF types are located)
+], [
+    AC_MSG_RESULT($BPF)
+])
 
 dnl
 dnl Check for DLT_* types that might not have existed in older
