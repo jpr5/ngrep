@@ -1,5 +1,4 @@
-## ngrep 1.48 (10.13.2025) [![Build](https://github.com/jpr5/ngrep/actions/workflows/build.yml/badge.svg)](https://github.com/jpr5/ngrep/actions/workflows/build.yml)
-
+## ngrep 1.48 (10.13.2025) [![Build](https://github.com/jpr5/ngrep/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/jpr5/ngrep/actions/workflows/build.yml)
 
 ngrep is like GNU grep applied to the network layer.  It's a PCAP-based tool
 that allows you to specify an extended regular or hexadecimal expression to
