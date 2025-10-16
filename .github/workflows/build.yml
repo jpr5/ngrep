@@ -19,7 +19,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   MAKEFLAGS: -j3
@@ -27,6 +27,7 @@ env:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         name: [ ubuntu-latest-gcc, ubuntu-latest-gcc-arm64, ubuntu-latest-clang, macos-15-clang, macos-26-clang, freebsd-15-clang, freebsd-15-gcc, openbsd-7-gcc, openbsd-7-clang, netbsd-10-gcc, netbsd-10-clang ]
         include:
