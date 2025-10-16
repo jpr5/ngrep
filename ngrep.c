@@ -1298,7 +1298,8 @@ uint8_t strishex(char *str) {
 
 
 void print_time_absolute(struct pcap_pkthdr *h) {
-    struct tm *t = localtime((const time_t *)&h->ts.tv_sec);
+    time_t ts = (time_t)h->ts.tv_sec;
+    struct tm *t = localtime(&ts);
 
     printf("%02u/%02u/%02u %02u:%02u:%02u.%06u ",
            t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour,
