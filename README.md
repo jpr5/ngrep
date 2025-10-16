@@ -19,7 +19,7 @@ common packet sniffing tools, such as tcpdump and snoop.
  * Eliminate various non-fatal build warnings (e.g. `pcap_lookupdev` deprecation)
  * Fix `./configure --disable-tcpkill`
  * Source cleanup (nuke old files, unused vars, missing refs, etc)
- * Win64: -d allows device-name now (e.g. `\\Device\...`)
+ * Win64: `-d` allows device-name now (e.g. `\\Device\...`)
  * Win64: Removed `delay_socket` hack in favor of `Sleep()`
  * Win64: Build with PCRE2 by default
 
@@ -47,7 +47,7 @@ them diminished.  The list below is the original list; for a current list of
 confirmed working platforms, see our [autobuilds](https://github.com/jpr5/ngrep/actions/workflows/build.yml),
 which includes the most popular OSes, compiler toolchains and cpu architectures.
 
-* Linux 2.0+ (RH6+, SuSE, TurboLinux, Debian, Gentoo, Ubuntu, Mandrake, Slackware)/x86, RedHat/alpha Cobalt, (Qube2) Linux/MIPS
+* Linux 2.0+ (RH6+, SuSE, TurboLinux, Debian, Gentoo, Ubuntu, Mandrake, Slackware)/x86, RedHat/alpha, Cobalt (Qube2), Linux/MIPS
 * Solaris 2.5.1, 2.6/SPARC, Solaris 7, Solaris 8/SPARC, Solaris 9/SPARC
 * FreeBSD 2.2.5, 3.1, 3.2, 3.4-RC, 3.4-RELEASE, 4.0, 5.0
 * OpenBSD 2.4 (after upgrading pcap from 0.2), 2.9, 3.0, 3.1+
