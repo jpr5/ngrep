@@ -8,6 +8,7 @@
 #endif
 
 #define USE_IPv6                     1
+#define USE_VLAN_HACK                1
 
 #define HAVE_DLT_RAW                 1
 #define HAVE_DLT_LOOP                1
@@ -16,8 +17,10 @@
 #define HAVE_DLT_IEEE802_11_RADIO    1
 #define HAVE_DLT_PFLOG               1
 #define HAVE_DLT_PFSYNC              1
+#define HAVE_DLT_IPNET               0
 
 #define HAVE_DUMB_UDPHDR             0
+#define HAVE_PCAP_FINDALLDEVS        1
 
 #define USE_PCAP_RESTART             0
 #define PCAP_RESTART_FUNC            0
