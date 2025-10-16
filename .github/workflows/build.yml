@@ -6,6 +6,7 @@ on:
       - ".github/workflows/build.yml"
       - "*.c"
       - "*.h"
+      - "config.h.in"
       - "configure"
       - "configure.ac"
       - "Makefile"
