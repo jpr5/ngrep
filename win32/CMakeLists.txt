@@ -8,23 +8,34 @@ if(NOT DEFINED NPCAP_SDK_DIR)
     set(NPCAP_SDK_DIR "C:/Program Files/Npcap SDK" CACHE PATH "Npcap SDK directory")
 endif()
 
-# Find PCRE2
-find_package(PCRE2 QUIET)
-if(NOT PCRE2_FOUND)
-    # Try to find via vcpkg or manual path
-    if(DEFINED ENV{VCPKG_ROOT})
-        set(PCRE2_INCLUDE_DIR "$ENV{VCPKG_ROOT}/installed/x64-windows/include")
-        set(PCRE2_LIBRARY "$ENV{VCPKG_ROOT}/installed/x64-windows/lib/pcre2-8.lib")
-    endif()
+# Use PCRE2 on Windows to avoid 64-bit issues with ancient regex-0.12
+set(USE_PCRE2 ON CACHE BOOL "Use PCRE2 instead of regex-0.12" FORCE)
+
+# Find PCRE2 via vcpkg (note: lowercase 'pcre2' not 'unofficial-pcre2')
+find_package(pcre2 CONFIG QUIET)
+if(pcre2_FOUND)
+    set(PCRE2_LIBRARY PCRE2::8BIT)
+    message(STATUS "Found PCRE2 via vcpkg")
+else()
+    message(WARNING "PCRE2 not found - install via: vcpkg install pcre2:x64-windows")
+    set(USE_PCRE2 OFF)
 endif()
 
-# Source files
-set(NGREP_SOURCES
-    ../ngrep.c
-    ../regex-0.12/regex.c
-    support/getopt.c
-    support/inet_ntop.c
-)
+# Source files - conditionally include regex
+if(USE_PCRE2)
+    set(NGREP_SOURCES
+        ../ngrep.c
+        support/getopt.c
+        support/inet_ntop.c
+    )
+else()
+    set(NGREP_SOURCES
+        ../ngrep.c
+        ../regex-0.12/regex.c
+        support/getopt.c
+        support/inet_ntop.c
+    )
+endif()
 
 # Headers
 set(NGREP_HEADERS
@@ -62,14 +73,17 @@ target_link_libraries(ngrep PRIVATE
     ${NPCAP_SDK_DIR}/Lib/x64/Packet.lib
 )
 
-# Optional PCRE2 support
-if(PCRE2_FOUND OR PCRE2_INCLUDE_DIR)
+# PCRE2 support (enabled by default on Windows)
+if(USE_PCRE2)
     target_compile_definitions(ngrep PRIVATE USE_PCRE2=1 PCRE2_CODE_UNIT_WIDTH=8)
-    target_include_directories(ngrep PRIVATE ${PCRE2_INCLUDE_DIR})
+    if(DEFINED PCRE2_INCLUDE_DIR)
+        target_include_directories(ngrep PRIVATE ${PCRE2_INCLUDE_DIR})
+    endif()
     target_link_libraries(ngrep PRIVATE ${PCRE2_LIBRARY})
-    message(STATUS "Building with PCRE2 support")
+    message(STATUS "Building with PCRE2 support (avoids 64-bit issues in regex-0.12)")
 else()
-    message(STATUS "Building without PCRE2 support (using regex)")
+    target_include_directories(ngrep PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../regex-0.12)
+    message(STATUS "Building with regex-0.12 (may have 64-bit warnings)")
 endif()
 
 # Set output directory
