@@ -10,7 +10,7 @@ on:
       - "configure.ac"
       - "Makefile"
       - "Makefile.in"
-      - "win32/**"
+      - "winXX/**"
     branches:
       - master
   pull_request:
@@ -192,7 +192,7 @@ jobs:
           Write-Host "Configuring with CMake..."
           mkdir build
           cd build
-          cmake ../win32 -G "Visual Studio 17 2022" -A x64 `
+          cmake ../winXX -G "Visual Studio 17 2022" -A x64 `
             -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
             -DNPCAP_SDK_DIR="$sdkDir"
 

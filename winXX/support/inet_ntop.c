@@ -1,8 +1,8 @@
 /*
  * $Id: inet_ntop.c,v 1.2 2005/05/04 18:09:46 jpr5 Exp $
  *
- * This is Win32-specific support functionality for inet_ntop(),
- * which is missing from Win32.  The code was used from FreeBSD:
+ * This is WinXX-specific support functionality for inet_ntop(),
+ * which is missing from WinXX.  The code was used from FreeBSD:
  *
  * $FreeBSD: /repoman/r/ncvs/src/lib/libc/net/inet_ntop.c,v 1.6.2.2 2002/12/16 15:19:35 robert Exp $"
  */

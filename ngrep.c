@@ -49,7 +49,7 @@
 #include <pwd.h>
 #endif
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
 #include <io.h>
 #include <time.h>
 #include <getopt.h>
@@ -76,7 +76,7 @@
 #include <signal.h>
 #include <locale.h>
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <errno.h>
 #include <sys/ioctl.h>
 #endif
@@ -87,7 +87,7 @@
 #include "config.h"
 #endif
 
-#if USE_IPv6 && !defined(_WIN32)
+#if USE_IPv6 && !defined(_WIN32) && !defined(_WIN64)
 #include <netinet/ip6.h>
 #include <netinet/icmp6.h>
 #endif
@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
     signal(SIGINT,   clean_exit);
     signal(SIGABRT,  clean_exit);
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
     signal(SIGQUIT,  clean_exit);
     signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
 
     setlocale(LC_ALL, "");
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
     {
         char const *locale = getenv("LANG");
         if (locale == NULL)
@@ -265,16 +265,16 @@ int main(int argc, char **argv) {
                 if (match_after < UINT32_MAX)
                     match_after++;
                 break;
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
             case 'L':
-                win32_listdevices();
+                winXX_listdevices();
                 clean_exit(2);
             case 'd':
-                usedev = win32_usedevice(optarg);
+                usedev = winXX_usedevice(optarg);
                 break;
 #else
             case 'L':
-                perror("-L is a Win32-only option");
+                perror("-L is a WinXX-only option");
                 clean_exit(2);
             case 'd':
                 usedev = optarg;
@@ -309,7 +309,7 @@ int main(int argc, char **argv) {
                     memset(&prev_ts, 0, sizeof(prev_ts));
                 } else {
                     print_time = &print_time_diff;
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
                     prev_ts.tv_sec  = (uint32_t)time(NULL);
                     prev_ts.tv_usec = 0;
 #else
@@ -455,11 +455,11 @@ int main(int argc, char **argv) {
 
     update_windowsize(0);
 
-#if defined(_WIN32)
-    win32_initwinsock();
+#if defined(_WIN32) || defined(_WIN64)
+    winXX_initwinsock();
 #endif
 
-#if !defined(_WIN32) && USE_DROPPRIVS
+#if !defined(_WIN32) && !defined(_WIN64) && USE_DROPPRIVS
     drop_privs();
 #endif
 
@@ -1364,7 +1364,7 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
         usecs = 1000000 - (prev_delay_ts.tv_usec - h->ts.tv_usec);
     }
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     Sleep(1000*secs + usecs/1000);
 #else
     sleep(secs);
@@ -1382,7 +1382,7 @@ void update_windowsize(int32_t e) {
 
     else if (!ws_col_forced) {
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
         struct winsize ws;
 
         if (!ioctl(0, TIOCGWINSZ, &ws)) {
@@ -1404,7 +1404,7 @@ void update_windowsize(int32_t e) {
     }
 }
 
-#if !defined(_WIN32) && USE_DROPPRIVS
+#if !defined(_WIN32) && !defined(_WIN64) && USE_DROPPRIVS
 void drop_privs(void) {
     struct passwd *pw;
     uid_t newuid;
@@ -1442,7 +1442,7 @@ void drop_privs(void) {
 
 void usage(void) {
     printf("usage: ngrep <-"
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
            "L"
 #endif
            "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
@@ -1481,7 +1481,7 @@ void usage(void) {
            "   -P  is set the non-printable display char to what is specified\n"
            "   -F  is read the bpf filter from the specified file\n"
            "   -N  is show sub protocol number\n"
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
            "   -d  is use specified device (index or name) instead of the pcap default\n"
            "   -L  is show the winpcap device list index\n"
 #else
@@ -1505,7 +1505,7 @@ void version(void) {
 void clean_exit(int32_t sig) {
     signal(SIGINT,   SIG_IGN);
     signal(SIGABRT,  SIG_IGN);
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
     signal(SIGQUIT,  SIG_IGN);
     signal(SIGPIPE,  SIG_IGN);
     signal(SIGWINCH, SIG_IGN);
@@ -1532,7 +1532,7 @@ void clean_exit(int32_t sig) {
     if (pd_dumppcap)  pcap_close(pd_dumppcap);
     if (pd_dump)      pcap_dump_close(pd_dump);
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
     if (want_delay)   WSACleanup();
     if (usedev)       free(usedev);
 #endif
@@ -1540,8 +1540,8 @@ void clean_exit(int32_t sig) {
     exit(matches ? 0 : 1);
 }
 
-#if defined(_WIN32)
-int8_t win32_initwinsock(void) {
+#if defined(_WIN32) || defined(_WIN64)
+int8_t winXX_initwinsock(void) {
     WORD wVersionRequested = MAKEWORD(2, 0);
     WSADATA wsaData;
 
@@ -1561,7 +1561,7 @@ int8_t win32_initwinsock(void) {
     return 1;
 }
 
-void win32_listdevices(void) {
+void winXX_listdevices(void) {
     uint32_t i = 0;
     pcap_if_t *alldevs, *d;
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -1584,7 +1584,7 @@ void win32_listdevices(void) {
     pcap_freealldevs(alldevs);
 }
 
-char *win32_usedevice(const char *index_or_name) {
+char *winXX_usedevice(const char *index_or_name) {
     int32_t idx, i = 0;
     int     is_name = 0;
     int     found_it = 0;
@@ -1636,7 +1636,7 @@ char *win32_usedevice(const char *index_or_name) {
 #endif
 
 char *net_choosedevice(void) {
-    // static so we don't have to free, should be enough even for win32..
+    // static so we don't have to free, should be enough even for winXX..
     static char dev[128] = {0};
 
 #if HAVE_PCAP_FINDALLDEVS

@@ -104,7 +104,7 @@ struct igmp {
 };
 
 /*
- * Taken from arpa/namser.h, used by inet_?to?() (Win32 support).
+ * Taken from arpa/namser.h, used by inet_?to?() (WinXX support).
  */
 
 #define NS_INADDRSZ      4

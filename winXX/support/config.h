@@ -1,5 +1,5 @@
 /*
- * Win32-specific version for manual manipulation.
+ * WinXX-specific version for manual manipulation.
  */
 
 /* PCRE2 support - will be defined by CMake if available */
@@ -32,4 +32,3 @@
 
 /* Windows doesn't have these */
 #define STDC_HEADERS                 1
-
