@@ -15,6 +15,9 @@ AC_MSG_RESULT
 AC_CANONICAL_TARGET
 AC_PROG_CC
 
+dnl Find strip or use a no-op for systems without it
+AC_CHECK_TOOL(STRIP, strip, :)
+
 AC_PREFIX_DEFAULT(/usr/local)
 AS_IF([test -n "$(command -v tcpdump 2> /dev/null)"], [
    AC_PREFIX_PROGRAM(tcpdump)
