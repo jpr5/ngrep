@@ -4,10 +4,13 @@ on:
   push:
     paths:
       - ".github/workflows/build.yml"
-      - "{ngrep,tcpkill}.[ch]"
-      - "configure{,.ac}"
-      - "Makefile{,.in}"
-      - "win32/support/*"
+      - "*.c"
+      - "*.h"
+      - "configure"
+      - "configure.ac"
+      - "Makefile"
+      - "Makefile.in"
+      - "win32/**"
     branches:
       - master
   pull_request:
