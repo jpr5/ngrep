@@ -239,10 +239,23 @@ if ($arch -eq "ARM64") {
     Write-Host "==> Building for x64 architecture" -ForegroundColor Green
 }
 
-cmake -B $buildDir -S $scriptDir `
-    -G "Visual Studio 17 2022" -A $cmakeArch `
-    -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-    -DNPCAP_SDK_DIR="$NpcapSdkDir"
+# Build CMake command with optional parameters
+$cmakeArgs = @(
+    "-B", $buildDir,
+    "-S", $scriptDir,
+    "-G", "Visual Studio 17 2022",
+    "-A", $cmakeArch,
+    "-DNPCAP_SDK_DIR=$NpcapSdkDir"
+)
+
+# Only use vcpkg toolchain if not skipping PCRE2
+if (-Not $SkipPCRE2) {
+    $cmakeArgs += "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+} else {
+    Write-Host "==> Skipping PCRE2 - will use bundled regex-0.12" -ForegroundColor Yellow
+}
+
+cmake @cmakeArgs
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "CMake configuration failed"
