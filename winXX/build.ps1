@@ -175,6 +175,12 @@ if (-Not $SkipPCRE2) {
 
     # Set default triplet
     $env:VCPKG_DEFAULT_TRIPLET = $vcpkgTriplet
+    
+    # Ensure VCPKG_FORCE_SYSTEM_BINARIES is not set (can cause download failures)
+    if ($env:VCPKG_FORCE_SYSTEM_BINARIES) {
+        Remove-Item Env:\VCPKG_FORCE_SYSTEM_BINARIES
+        Write-Host "==> Removed VCPKG_FORCE_SYSTEM_BINARIES environment variable" -ForegroundColor Yellow
+    }
 
     # Run vcpkg integrate first to set up MSBuild integration
     vcpkg integrate install
