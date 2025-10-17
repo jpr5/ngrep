@@ -164,26 +164,28 @@ if (-Not $SkipVcpkg) {
 
     Write-Host "==> Installing PCRE2 via vcpkg..." -ForegroundColor Yellow
 
-    # Set default triplet to x64-windows (works on both x64 and ARM64 via emulation)
-    $env:VCPKG_DEFAULT_TRIPLET = "x64-windows"
-
-    # On ARM64 Windows, vcpkg may have issues. Try to install, but don't fail if it doesn't work
+    # Detect architecture and set appropriate vcpkg triplet
     $arch = $env:PROCESSOR_ARCHITECTURE
     if ($arch -eq "ARM64") {
-        Write-Host "==> Detected ARM64 Windows. Attempting vcpkg install..." -ForegroundColor Yellow
-        Write-Host "==> If this fails, you may need to manually install PCRE2 or use a different approach" -ForegroundColor Yellow
+        $vcpkgTriplet = "arm64-windows"
+        Write-Host "==> Detected ARM64 Windows - using arm64-windows triplet" -ForegroundColor Yellow
+    } else {
+        $vcpkgTriplet = "x64-windows"
     }
+
+    # Set default triplet
+    $env:VCPKG_DEFAULT_TRIPLET = $vcpkgTriplet
 
     # Run vcpkg integrate first to set up MSBuild integration
     vcpkg integrate install
 
-    vcpkg install pcre2:x64-windows --allow-unsupported
+    vcpkg install "pcre2:$vcpkgTriplet"
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "==> vcpkg install failed. This is expected on ARM64 Windows." -ForegroundColor Yellow
-        Write-Host "==> The build will continue and attempt to use system PCRE2 if available" -ForegroundColor Yellow
-        Write-Host "==> You may need to manually install PCRE2 or build without vcpkg using -SkipVcpkg" -ForegroundColor Yellow
+        Write-Host "==> vcpkg install failed." -ForegroundColor Yellow
+        Write-Host "==> The build will continue with bundled regex-0.12 library" -ForegroundColor Yellow
+        Write-Host "==> To skip vcpkg entirely, use: .\build.ps1 -SkipVcpkg" -ForegroundColor Yellow
     } else {
-        Write-Host "==> PCRE2 installed" -ForegroundColor Green
+        Write-Host "==> PCRE2 installed for $vcpkgTriplet" -ForegroundColor Green
     }
 }
 
