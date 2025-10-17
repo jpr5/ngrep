@@ -22,6 +22,7 @@ common packet sniffing tools, such as tcpdump and snoop.
  * WinXX: Removed `delay_socket` hack in favor of `Sleep()`
  * WinXX: Build with PCRE2 by default
  * WinXX: Add new dedicated build script (`build.ps1`)
+ * WinXX: Builds on both x86_64 and ARM64 cpu architectures
 
 ## How to use
 
