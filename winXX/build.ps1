@@ -7,12 +7,36 @@
 param(
     [string]$NpcapSdkDir = "C:\npcap-sdk",
     [string]$BuildType = "Release",
-    [switch]$SkipNpcapDownload,
+    [switch]$SkipNpcapSdkDownload,
     [switch]$SkipPCRE2,
-    [switch]$Clean
+    [switch]$Clean,
+    [switch]$Help
 )
 
 $ErrorActionPreference = "Stop"
+
+# Handle help option
+if ($Help) {
+    Write-Host "ngrep Windows Build Script" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Usage: .\build.ps1 [options]" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Options:" -ForegroundColor Yellow
+    Write-Host "  -NpcapSdkDir <path>       Specify Npcap SDK directory (default: C:\npcap-sdk)"
+    Write-Host "  -BuildType <type>         Build type: Release or Debug (default: Release)"
+    Write-Host "  -SkipNpcapSdkDownload     Skip downloading Npcap SDK if already installed"
+    Write-Host "  -SkipPCRE2                Skip PCRE2 installation and use bundled regex-0.12"
+    Write-Host "  -Clean                    Remove build directory and exit"
+    Write-Host "  -Help                     Show this help message"
+    Write-Host ""
+    Write-Host "Examples:" -ForegroundColor Yellow
+    Write-Host "  .\build.ps1                           # Full build with auto-detection"
+    Write-Host "  .\build.ps1 -Clean                    # Clean build artifacts"
+    Write-Host "  .\build.ps1 -SkipPCRE2                # Build without PCRE2"
+    Write-Host "  .\build.ps1 -BuildType Debug          # Build debug version"
+    Write-Host ""
+    exit 0
+}
 
 # Handle clean operation
 if ($Clean) {
@@ -90,7 +114,7 @@ if (-Not $vsInstalled) {
 }
 
 # Download and install Npcap SDK if needed
-if (-Not $SkipNpcapDownload) {
+if (-Not $SkipNpcapSdkDownload) {
     if (-Not (Test-Path "$NpcapSdkDir\Include\pcap.h")) {
         Write-Host "==> Downloading Npcap SDK..." -ForegroundColor Yellow
         $sdkUrl = "https://npcap.com/dist/npcap-sdk-1.13.zip"
