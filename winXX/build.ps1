@@ -5,7 +5,8 @@
 #
 
 param(
-    [string]$NpcapSdkDir = "C:\npcap-sdk",
+    [string]$NpcapSdkDir = "",
+    [string]$PCRE2Dir = "",
     [string]$BuildType = "Release",
     [switch]$SkipNpcapSdkInstall,
     [switch]$SkipPCRE2,
@@ -23,8 +24,9 @@ if ($Help) {
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "  -BuildType <type>         Build type: Release or Debug (default: Release)"
-    Write-Host "  -NpcapSdkDir <path>       Specify Npcap SDK directory (default: C:\npcap-sdk)"
-    Write-Host "  -SkipNpcapSdkInstall      Skip downloading Npcap SDK if already installed"
+    Write-Host "  -NpcapSdkDir <path>       Use existing Npcap SDK at path (skips download)"
+    Write-Host "  -PCRE2Dir <path>          Use existing PCRE2 at path (skips vcpkg)"
+    Write-Host "  -SkipNpcapSdkInstall      Skip downloading Npcap SDK (uses default location)"
     Write-Host "  -SkipPCRE2                Skip PCRE2 installation and use bundled regex-0.12"
     Write-Host "  -Clean                    Remove build directory and exit"
     Write-Host "  -Help                     Show this help message"
@@ -55,6 +57,19 @@ if ($Clean) {
 }
 
 Write-Host "==> Building ngrep for Windows" -ForegroundColor Cyan
+
+# Handle directory parameters - if specified, auto-skip installation
+if ($NpcapSdkDir -ne "") {
+    $SkipNpcapSdkInstall = $true
+    Write-Host "==> Using Npcap SDK from: $NpcapSdkDir" -ForegroundColor Cyan
+} else {
+    $NpcapSdkDir = "C:\npcap-sdk"
+}
+
+if ($PCRE2Dir -ne "") {
+    $SkipPCRE2 = $true
+    Write-Host "==> Using PCRE2 from: $PCRE2Dir" -ForegroundColor Cyan
+}
 
 # Check for Visual Studio 2022 FIRST (needed for vcpkg to compile packages)
 Write-Host "==> Checking for Visual Studio 2022..." -ForegroundColor Yellow
@@ -272,10 +287,16 @@ $cmakeArgs = @(
     "-DNPCAP_SDK_DIR=$NpcapSdkDir"
 )
 
-# Only use vcpkg toolchain if not skipping PCRE2
-if (-Not $SkipPCRE2) {
+# Handle PCRE2 configuration
+if ($PCRE2Dir -ne "") {
+    # User specified PCRE2Dir - use it directly
+    $cmakeArgs += "-DPCRE2_INCLUDE_DIR=$PCRE2Dir\include"
+    $cmakeArgs += "-DPCRE2_LIBRARY=$PCRE2Dir\lib\pcre2-8.lib"
+} elseif (-Not $SkipPCRE2) {
+    # Use vcpkg toolchain to find PCRE2
     $cmakeArgs += "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
 } else {
+    # Skip PCRE2 entirely - use bundled regex
     Write-Host "==> Skipping PCRE2 - will use bundled regex-0.12" -ForegroundColor Yellow
 }
 
