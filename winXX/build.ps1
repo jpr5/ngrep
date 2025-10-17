@@ -269,11 +269,35 @@ Write-Host "==> Build successful!" -ForegroundColor Green
 Write-Host "==> Executable: $exePath" -ForegroundColor Cyan
 Write-Host "==> Architecture: $cmakeArch" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "IMPORTANT: To run ngrep.exe, you need:" -ForegroundColor Yellow
-Write-Host "  1. Install Npcap runtime from: https://npcap.com/#download" -ForegroundColor Yellow
-Write-Host ""
-if ($cmakeArch -eq "ARM64") {
-    Write-Host "Built native ARM64 binary - will run natively on ARM64 Windows" -ForegroundColor Green
-} elseif ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
-    Write-Host "Built x64 binary on ARM64 Windows - will run via x64 emulation" -ForegroundColor Yellow
+
+# Check if Npcap runtime is installed
+$npcapInstalled = $false
+$npcapService = Get-Service -Name "npcap" -ErrorAction SilentlyContinue
+if ($npcapService) {
+    $npcapInstalled = $true
+    Write-Host "Npcap runtime is installed and ready" -ForegroundColor Green
+} else {
+    # Also check for wpcap.dll in System32
+    $wpcapDll = Join-Path $env:SystemRoot "System32\wpcap.dll"
+    if (Test-Path $wpcapDll) {
+        $npcapInstalled = $true
+        Write-Host "Npcap runtime is installed and ready" -ForegroundColor Green
+    }
+}
+
+if (-Not $npcapInstalled) {
+    Write-Host "IMPORTANT: To run ngrep.exe, you need to install Npcap runtime:" -ForegroundColor Yellow
+    Write-Host "           https://npcap.com/#download" -ForegroundColor Yellow
+    Write-Host ""
+}
+
+# Show architecture info
+$hostArch = $env:PROCESSOR_ARCHITECTURE
+if ($cmakeArch -eq $hostArch) {
+    Write-Host "Built native $cmakeArch binary for this system" -ForegroundColor Green
+} else {
+    Write-Host "Built $cmakeArch binary (cross-compiled on $hostArch)" -ForegroundColor Cyan
+    if ($hostArch -eq "ARM64" -and $cmakeArch -eq "x64") {
+        Write-Host "Note: x64 binary will run via emulation on ARM64 Windows" -ForegroundColor Yellow
+    }
 }
