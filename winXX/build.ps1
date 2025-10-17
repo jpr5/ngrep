@@ -71,16 +71,16 @@ if ($PCRE2Dir -ne "") {
     Write-Host "==> Using PCRE2 from: $PCRE2Dir" -ForegroundColor Cyan
 }
 
-# Check for Visual Studio 2022 FIRST (needed for vcpkg to compile packages)
-Write-Host "==> Checking for Visual Studio 2022..." -ForegroundColor Yellow
+# Check for Visual Studio 2022+ FIRST (needed for vcpkg to compile packages)
+Write-Host "==> Checking for Visual Studio 2022 or later..." -ForegroundColor Yellow
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $vsInstalled = $false
 
 # Check using vswhere if available
 if (Test-Path $vswhere) {
-    $vsPath = & $vswhere -version "[17.0,18.0)" -property installationPath 2>$null
+    $vsPath = & $vswhere -all -prerelease -version "[17.0,)" -property installationPath -latest 2>$null
     if ($vsPath) {
-        Write-Host "==> Visual Studio 2022 found at $vsPath" -ForegroundColor Green
+        Write-Host "==> Visual Studio found at $vsPath" -ForegroundColor Green
         $vsInstalled = $true
     }
 }
