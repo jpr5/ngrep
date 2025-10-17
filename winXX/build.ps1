@@ -7,7 +7,7 @@
 param(
     [string]$NpcapSdkDir = "C:\npcap-sdk",
     [string]$BuildType = "Release",
-    [switch]$SkipNpcapSdkDownload,
+    [switch]$SkipNpcapSdkInstall,
     [switch]$SkipPCRE2,
     [switch]$Clean,
     [switch]$Help
@@ -22,9 +22,9 @@ if ($Help) {
     Write-Host "Usage: .\build.ps1 [options]" -ForegroundColor White
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
-    Write-Host "  -NpcapSdkDir <path>       Specify Npcap SDK directory (default: C:\npcap-sdk)"
     Write-Host "  -BuildType <type>         Build type: Release or Debug (default: Release)"
-    Write-Host "  -SkipNpcapSdkDownload     Skip downloading Npcap SDK if already installed"
+    Write-Host "  -NpcapSdkDir <path>       Specify Npcap SDK directory (default: C:\npcap-sdk)"
+    Write-Host "  -SkipNpcapSdkInstall      Skip downloading Npcap SDK if already installed"
     Write-Host "  -SkipPCRE2                Skip PCRE2 installation and use bundled regex-0.12"
     Write-Host "  -Clean                    Remove build directory and exit"
     Write-Host "  -Help                     Show this help message"
@@ -114,7 +114,7 @@ if (-Not $vsInstalled) {
 }
 
 # Download and install Npcap SDK if needed
-if (-Not $SkipNpcapSdkDownload) {
+if (-Not $SkipNpcapSdkInstall) {
     if (-Not (Test-Path "$NpcapSdkDir\Include\pcap.h")) {
         Write-Host "==> Downloading Npcap SDK..." -ForegroundColor Yellow
         $sdkUrl = "https://npcap.com/dist/npcap-sdk-1.13.zip"
@@ -199,7 +199,7 @@ if (-Not $SkipPCRE2) {
 
     # Set default triplet
     $env:VCPKG_DEFAULT_TRIPLET = $vcpkgTriplet
-    
+
     # Ensure VCPKG_FORCE_SYSTEM_BINARIES is not set (can cause download failures)
     if ($env:VCPKG_FORCE_SYSTEM_BINARIES) {
         Remove-Item Env:\VCPKG_FORCE_SYSTEM_BINARIES
