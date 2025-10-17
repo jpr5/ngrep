@@ -24,8 +24,8 @@ if ($Help) {
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "  -BuildType <type>         Build type: Release or Debug (default: Release)"
-    Write-Host "  -NpcapSdkDir <path>       Use existing Npcap SDK at path (skips download)"
-    Write-Host "  -PCRE2Dir <path>          Use existing PCRE2 at path (skips vcpkg)"
+    Write-Host "  -NpcapSdkDir <path>       Use Npcap SDK at path (instead of auto-installing)"
+    Write-Host "  -PCRE2Dir <path>          Use PCRE2 at path (instead of auto-installing)"
     Write-Host "  -SkipNpcapSdkInstall      Skip downloading Npcap SDK (uses default location)"
     Write-Host "  -SkipPCRE2                Skip PCRE2 installation and use bundled regex-0.12"
     Write-Host "  -Clean                    Remove build directory and exit"
