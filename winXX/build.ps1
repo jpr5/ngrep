@@ -8,10 +8,27 @@ param(
     [string]$NpcapSdkDir = "C:\npcap-sdk",
     [string]$BuildType = "Release",
     [switch]$SkipNpcapDownload,
-    [switch]$SkipVcpkg
+    [switch]$SkipVcpkg,
+    [switch]$Clean
 )
 
 $ErrorActionPreference = "Stop"
+
+# Handle clean operation
+if ($Clean) {
+    Write-Host "==> Cleaning build artifacts..." -ForegroundColor Cyan
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $buildDir = Join-Path $scriptDir "build"
+
+    if (Test-Path $buildDir) {
+        Write-Host "==> Removing build directory: $buildDir" -ForegroundColor Yellow
+        Remove-Item -Recurse -Force $buildDir
+        Write-Host "==> Clean complete!" -ForegroundColor Green
+    } else {
+        Write-Host "==> Build directory does not exist, nothing to clean" -ForegroundColor Yellow
+    }
+    exit 0
+}
 
 Write-Host "==> Building ngrep for Windows" -ForegroundColor Cyan
 
