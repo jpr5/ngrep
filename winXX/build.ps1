@@ -15,6 +15,63 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "==> Building ngrep for Windows" -ForegroundColor Cyan
 
+# Check for Visual Studio 2022 FIRST (needed for vcpkg to compile packages)
+Write-Host "==> Checking for Visual Studio 2022..." -ForegroundColor Yellow
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$vsInstalled = $false
+
+# Check using vswhere if available
+if (Test-Path $vswhere) {
+    $vsPath = & $vswhere -version "[17.0,18.0)" -property installationPath 2>$null
+    if ($vsPath) {
+        Write-Host "==> Visual Studio 2022 found at $vsPath" -ForegroundColor Green
+        $vsInstalled = $true
+    }
+}
+
+# Fallback: Check common VS 2022 installation paths
+if (-Not $vsInstalled) {
+    $vsPaths = @(
+        "${env:ProgramFiles}\Microsoft Visual Studio\2022\Community",
+        "${env:ProgramFiles}\Microsoft Visual Studio\2022\Professional",
+        "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise",
+        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Community",
+        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Professional",
+        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise"
+    )
+
+    foreach ($path in $vsPaths) {
+        if (Test-Path "$path\VC\Auxiliary\Build\vcvarsall.bat") {
+            Write-Host "==> Visual Studio 2022 found at $path" -ForegroundColor Green
+            $vsInstalled = $true
+            break
+        }
+    }
+}
+
+if (-Not $vsInstalled) {
+    Write-Host "==> Visual Studio 2022 not found. Installing via winget..." -ForegroundColor Yellow
+    Write-Host "==> This will take 10-20 minutes. Please be patient..." -ForegroundColor Yellow
+
+    $wingetCmd = Get-Command winget -ErrorAction SilentlyContinue
+    if ($wingetCmd) {
+        # Install VS 2022 Community with C++ Desktop workload
+        winget install --id Microsoft.VisualStudio.2022.Community --silent --accept-package-agreements --accept-source-agreements --override "--quiet --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "==> Visual Studio 2022 Community installed successfully" -ForegroundColor Green
+            Write-Host "==> Please restart PowerShell and run this script again" -ForegroundColor Yellow
+            exit 0
+        } else {
+            Write-Error "Failed to install Visual Studio 2022. Please install manually from https://visualstudio.microsoft.com/downloads/"
+            exit 1
+        }
+    } else {
+        Write-Error "Visual Studio 2022 not found and winget unavailable. Please install manually from https://visualstudio.microsoft.com/downloads/"
+        exit 1
+    }
+}
+
 # Download and install Npcap SDK if needed
 if (-Not $SkipNpcapDownload) {
     if (-Not (Test-Path "$NpcapSdkDir\Include\pcap.h")) {
@@ -89,12 +146,28 @@ if (-Not $SkipVcpkg) {
     }
 
     Write-Host "==> Installing PCRE2 via vcpkg..." -ForegroundColor Yellow
-    vcpkg install pcre2:x64-windows
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "vcpkg install failed"
-        exit 1
+
+    # Set default triplet to x64-windows (works on both x64 and ARM64 via emulation)
+    $env:VCPKG_DEFAULT_TRIPLET = "x64-windows"
+
+    # On ARM64 Windows, vcpkg may have issues. Try to install, but don't fail if it doesn't work
+    $arch = $env:PROCESSOR_ARCHITECTURE
+    if ($arch -eq "ARM64") {
+        Write-Host "==> Detected ARM64 Windows. Attempting vcpkg install..." -ForegroundColor Yellow
+        Write-Host "==> If this fails, you may need to manually install PCRE2 or use a different approach" -ForegroundColor Yellow
     }
-    Write-Host "==> PCRE2 installed" -ForegroundColor Green
+
+    # Run vcpkg integrate first to set up MSBuild integration
+    vcpkg integrate install
+
+    vcpkg install pcre2:x64-windows --allow-unsupported
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "==> vcpkg install failed. This is expected on ARM64 Windows." -ForegroundColor Yellow
+        Write-Host "==> The build will continue and attempt to use system PCRE2 if available" -ForegroundColor Yellow
+        Write-Host "==> You may need to manually install PCRE2 or build without vcpkg using -SkipVcpkg" -ForegroundColor Yellow
+    } else {
+        Write-Host "==> PCRE2 installed" -ForegroundColor Green
+    }
 }
 
 # Check for CMake
