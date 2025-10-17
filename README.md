@@ -18,9 +18,10 @@ common packet sniffing tools, such as tcpdump and snoop.
  * Eliminate various non-fatal build warnings (e.g. `pcap_lookupdev` deprecation)
  * Fix `./configure --disable-tcpkill`
  * Source cleanup (nuke old files, unused vars, missing refs, etc)
- * Win64: `-d` allows device-name now (e.g. `\\Device\...`)
- * Win64: Removed `delay_socket` hack in favor of `Sleep()`
- * Win64: Build with PCRE2 by default
+ * WinXX: `-d` allows device-name now (e.g. `\Device\...`)
+ * WinXX: Removed `delay_socket` hack in favor of `Sleep()`
+ * WinXX: Build with PCRE2 by default
+ * WinXX: Add new dedicated build script (`build.ps1`)
 
 ## How to use
 
