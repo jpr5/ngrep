@@ -330,11 +330,16 @@ if (-Not $npcapInstalled) {
 
 # Show architecture info
 $hostArch = $env:PROCESSOR_ARCHITECTURE
-if ($cmakeArch -eq $hostArch) {
+
+# Normalize architecture names for comparison (AMD64 and x64 are the same)
+$normalizedHost = if ($hostArch -eq "AMD64") { "x64" } else { $hostArch }
+$normalizedTarget = $cmakeArch
+
+if ($normalizedTarget -eq $normalizedHost) {
     Write-Host "Built native $cmakeArch binary for this system" -ForegroundColor Green
 } else {
     Write-Host "Built $cmakeArch binary (cross-compiled on $hostArch)" -ForegroundColor Cyan
-    if ($hostArch -eq "ARM64" -and $cmakeArch -eq "x64") {
+    if ($normalizedHost -eq "ARM64" -and $normalizedTarget -eq "x64") {
         Write-Host "Note: x64 binary will run via emulation on ARM64 Windows" -ForegroundColor Yellow
     }
 }
