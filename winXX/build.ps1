@@ -215,8 +215,24 @@ Write-Host "==> Configuring with CMake..." -ForegroundColor Yellow
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $buildDir = Join-Path $scriptDir "build"
 
+# Detect architecture and set CMake platform
+$arch = $env:PROCESSOR_ARCHITECTURE
+$cmakeArch = "x64"  # Default to x64
+
+if ($arch -eq "ARM64") {
+    # Check if Npcap SDK has ARM64 libraries
+    if (Test-Path "$NpcapSdkDir\Lib\ARM64") {
+        $cmakeArch = "ARM64"
+        Write-Host "==> Detected ARM64 Windows with ARM64 Npcap SDK - building native ARM64 binary" -ForegroundColor Green
+    } else {
+        Write-Host "==> Detected ARM64 Windows but no ARM64 Npcap libs - building x64 binary (will run via emulation)" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "==> Building for x64 architecture" -ForegroundColor Green
+}
+
 cmake -B $buildDir -S $scriptDir `
-    -G "Visual Studio 17 2022" -A x64 `
+    -G "Visual Studio 17 2022" -A $cmakeArch `
     -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
     -DNPCAP_SDK_DIR="$NpcapSdkDir"
 
@@ -243,6 +259,13 @@ if (-Not (Test-Path $exePath)) {
 
 Write-Host "==> Build successful!" -ForegroundColor Green
 Write-Host "==> Executable: $exePath" -ForegroundColor Cyan
+Write-Host "==> Architecture: $cmakeArch" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Note: To run ngrep.exe, you need to install Npcap runtime from:" -ForegroundColor Yellow
-Write-Host "      https://npcap.com/#download" -ForegroundColor Yellow
+Write-Host "IMPORTANT: To run ngrep.exe, you need:" -ForegroundColor Yellow
+Write-Host "  1. Install Npcap runtime from: https://npcap.com/#download" -ForegroundColor Yellow
+Write-Host ""
+if ($cmakeArch -eq "ARM64") {
+    Write-Host "Built native ARM64 binary - will run natively on ARM64 Windows" -ForegroundColor Green
+} elseif ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+    Write-Host "Built x64 binary on ARM64 Windows - will run via x64 emulation" -ForegroundColor Yellow
+}

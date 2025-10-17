@@ -66,11 +66,19 @@ target_compile_definitions(ngrep PRIVATE
     _WIN32
 )
 
-# Link libraries
+# Link libraries - detect architecture
+if(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+    set(NPCAP_LIB_DIR "${NPCAP_SDK_DIR}/Lib/ARM64")
+    message(STATUS "Using ARM64 Npcap libraries")
+else()
+    set(NPCAP_LIB_DIR "${NPCAP_SDK_DIR}/Lib/x64")
+    message(STATUS "Using x64 Npcap libraries")
+endif()
+
 target_link_libraries(ngrep PRIVATE
     ws2_32
-    ${NPCAP_SDK_DIR}/Lib/x64/wpcap.lib
-    ${NPCAP_SDK_DIR}/Lib/x64/Packet.lib
+    ${NPCAP_LIB_DIR}/wpcap.lib
+    ${NPCAP_LIB_DIR}/Packet.lib
 )
 
 # PCRE2 support (enabled by default on Windows)
