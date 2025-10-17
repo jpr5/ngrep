@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 #
 # Windows build script for ngrep
-# Requires: Visual Studio 2022, vcpkg
+# Auto-downloads all deps as needed, including Visual Studio, vcpkg, PCRE2, cmake and NpcapSDK.
 #
 
 param(
