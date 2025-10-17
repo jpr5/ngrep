@@ -8,7 +8,7 @@ param(
     [string]$NpcapSdkDir = "C:\npcap-sdk",
     [string]$BuildType = "Release",
     [switch]$SkipNpcapDownload,
-    [switch]$SkipVcpkg,
+    [switch]$SkipPCRE2,
     [switch]$Clean
 )
 
@@ -111,7 +111,7 @@ if (-Not $SkipNpcapDownload) {
 }
 
 # Check for vcpkg and install PCRE2
-if (-Not $SkipVcpkg) {
+if (-Not $SkipPCRE2) {
     # Check if vcpkg is available
     $vcpkgCmd = Get-Command vcpkg -ErrorAction SilentlyContinue
 
@@ -183,7 +183,7 @@ if (-Not $SkipVcpkg) {
     if ($LASTEXITCODE -ne 0) {
         Write-Host "==> vcpkg install failed." -ForegroundColor Yellow
         Write-Host "==> The build will continue with bundled regex-0.12 library" -ForegroundColor Yellow
-        Write-Host "==> To skip vcpkg entirely, use: .\build.ps1 -SkipVcpkg" -ForegroundColor Yellow
+        Write-Host "==> To skip PCRE2 installation, use: .\build.ps1 -SkipPCRE2" -ForegroundColor Yellow
     } else {
         Write-Host "==> PCRE2 installed for $vcpkgTriplet" -ForegroundColor Green
     }
