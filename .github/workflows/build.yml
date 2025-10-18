@@ -116,13 +116,12 @@ jobs:
         if: startsWith(matrix.name,'macos')
         run: |
           brew update
-          brew install libtool tree libpcap libnet #pcre2
+          # PCRE2 is already installed
+          brew install tree libpcap libnet
           ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
           make
           make install DESTDIR=/tmp
           tree /tmp/usr
-          uname -a
-          tar czf ngrep-${{ matrix.name }}.tar.gz /tmp/usr
 
       - name: Build FreeBSD
         if: startsWith(matrix.name,'freebsd')
@@ -186,31 +185,6 @@ jobs:
         shell: powershell
         run: |
           .\winXX\build.ps1
-
-#          # Test that it runs
-#          # Install Npcap runtime (required to run ngrep.exe)
-#          Write-Host "Downloading Npcap runtime..."
-#          $npcapUrl = "https://npcap.com/dist/npcap-1.80.exe"
-#          $npcapInstaller = "$env:TEMP\npcap-installer.exe"
-#          rite-Host "Build successful."
-#
-#          Invoke-WebRequest -Uri $npcapUrl -OutFile $npcapInstaller
-#
-#          # Run installer with full silent flags and timeout
-#          Write-Host "Installing Npcap runtime..."
-#          $process = Start-Process -FilePath $npcapInstaller -ArgumentList "/loopback_support=yes /npf_startup=yes /dlt_null=no /vlan_support=yes /dot11_support=yes /admin_only=no /disable_restore_point=yes /winpcap_mode=yes /S" -PassThru -NoNewWindow
-#
-#          # Wait up to 2 minutes for installation
-#          if (-Not $process.WaitForExit(120000)) {
-#            Write-Warning "Npcap installation timed out, killing process"
-#            $process.Kill()
-#          }
-#
-#          Write-Host "Npcap runtime installation completed"
-#
-#          Write-Host "Testing ngrep.exe..."
-#          ./bin/Release/ngrep.exe -V
-#          Write-Host "Test successful."
 
 #      - name: Upload artifact
 #        uses: actions/upload-artifact@v4
