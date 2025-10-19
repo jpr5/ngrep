@@ -294,7 +294,30 @@ if ($PCRE2Dir -ne "") {
     $cmakeArgs += "-DPCRE2_LIBRARY=$PCRE2Dir\lib\pcre2-8.lib"
 } elseif (-Not $SkipPCRE2) {
     # Use vcpkg toolchain to find PCRE2
-    $cmakeArgs += "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    # Detect vcpkg root from environment or command location
+    $vcpkgRoot = $env:VCPKG_ROOT
+    if (-Not $vcpkgRoot) {
+        $vcpkgCmd = Get-Command vcpkg -ErrorAction SilentlyContinue
+        if ($vcpkgCmd) {
+            $vcpkgRoot = Split-Path -Parent $vcpkgCmd.Source
+        } elseif (Test-Path "C:\vcpkg\vcpkg.exe") {
+            $vcpkgRoot = "C:\vcpkg"
+        }
+    }
+    
+    if ($vcpkgRoot) {
+        $vcpkgToolchain = Join-Path $vcpkgRoot "scripts\buildsystems\vcpkg.cmake"
+        if (Test-Path $vcpkgToolchain) {
+            $cmakeArgs += "-DCMAKE_TOOLCHAIN_FILE=$vcpkgToolchain"
+            Write-Host "==> Using vcpkg toolchain: $vcpkgToolchain" -ForegroundColor Green
+        } else {
+            Write-Host "==> Warning: vcpkg toolchain not found at $vcpkgToolchain" -ForegroundColor Yellow
+            Write-Host "==> Will attempt to build without vcpkg integration" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "==> Warning: Could not locate vcpkg root" -ForegroundColor Yellow
+        Write-Host "==> Will attempt to build without vcpkg integration" -ForegroundColor Yellow
+    }
 } else {
     # Skip PCRE2 entirely - use bundled regex
     Write-Host "==> Skipping PCRE2 - will use bundled regex-0.12" -ForegroundColor Yellow
