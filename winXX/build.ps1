@@ -119,11 +119,11 @@ if (-Not $vsInstalled) {
             Write-Host "==> Please restart PowerShell and run this script again" -ForegroundColor Yellow
             exit 0
         } else {
-            Write-Error "Failed to install Visual Studio 2022. Please install manually from https://visualstudio.microsoft.com/downloads/"
+            Write-Host "ERROR: Failed to install Visual Studio 2022. Please install manually from https://visualstudio.microsoft.com/downloads/" -ForegroundColor Red
             exit 1
         }
     } else {
-        Write-Error "Visual Studio 2022 not found and winget unavailable. Please install manually from https://visualstudio.microsoft.com/downloads/"
+        Write-Host "ERROR: Visual Studio 2022 not found and winget unavailable. Please install manually from https://visualstudio.microsoft.com/downloads/" -ForegroundColor Red
         exit 1
     }
 }
@@ -140,7 +140,7 @@ if (-Not $SkipNpcapSdkInstall) {
         Remove-Item $sdkZip
 
         if (-Not (Test-Path "$NpcapSdkDir\Include\pcap.h")) {
-            Write-Error "Npcap SDK installation failed"
+            Write-Host "ERROR: Npcap SDK installation failed" -ForegroundColor Red
             exit 1
         }
         Write-Host "==> Npcap SDK installed to $NpcapSdkDir" -ForegroundColor Green
@@ -179,7 +179,7 @@ if (-Not $SkipPCRE2) {
             if (-Not (Test-Path "C:\vcpkg")) {
                 git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
                 if ($LASTEXITCODE -ne 0) {
-                    Write-Error "Failed to clone vcpkg"
+                    Write-Host "ERROR: Failed to clone vcpkg" -ForegroundColor Red
                     exit 1
                 }
             }
@@ -187,7 +187,7 @@ if (-Not $SkipPCRE2) {
             # Bootstrap vcpkg
             & C:\vcpkg\bootstrap-vcpkg.bat
             if ($LASTEXITCODE -ne 0) {
-                Write-Error "Failed to bootstrap vcpkg"
+                Write-Host "ERROR: Failed to bootstrap vcpkg" -ForegroundColor Red
                 exit 1
             }
 
@@ -248,11 +248,11 @@ if (-Not $cmakeCmd) {
             $env:PATH = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
             Write-Host "==> CMake installed successfully" -ForegroundColor Green
         } else {
-            Write-Error "Failed to install CMake via winget. Please install manually from https://cmake.org/download/"
+            Write-Host "ERROR: Failed to install CMake via winget. Please install manually from https://cmake.org/download/" -ForegroundColor Red
             exit 1
         }
     } else {
-        Write-Error "CMake not found and winget unavailable. Please install CMake from https://cmake.org/download/"
+        Write-Host "ERROR: CMake not found and winget unavailable. Please install CMake from https://cmake.org/download/" -ForegroundColor Red
         exit 1
     }
 }
@@ -326,7 +326,7 @@ if ($PCRE2Dir -ne "") {
 cmake @cmakeArgs
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "CMake configuration failed"
+    Write-Host "ERROR: CMake configuration failed" -ForegroundColor Red
     exit 1
 }
 
@@ -335,14 +335,14 @@ Write-Host "==> Building..." -ForegroundColor Yellow
 cmake --build $buildDir --config $BuildType
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Build failed"
+    Write-Host "ERROR: Build failed" -ForegroundColor Red
     exit 1
 }
 
 # Verify output
 $exePath = Join-Path $buildDir "bin\$BuildType\ngrep.exe"
 if (-Not (Test-Path $exePath)) {
-    Write-Error "ngrep.exe was not built at $exePath"
+    Write-Host "ERROR: ngrep.exe was not built at $exePath" -ForegroundColor Red
     exit 1
 }
 
