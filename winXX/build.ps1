@@ -3,6 +3,10 @@
 # Windows build script for ngrep
 # Auto-downloads all deps as needed: Visual Studio, vcpkg, PCRE2, cmake, NpcapSDK and git
 #
+# If you can't run this script, execute:
+#
+#    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+#
 
 param(
     [string]$NpcapSdkDir = "",
