@@ -27,6 +27,24 @@ $script:buildDir = Join-Path $script:scriptDir "build"
 
 #region Helper Functions
 
+function Refresh-Environment {
+    Write-Host "==> Refreshing environment variables..." -ForegroundColor Yellow
+
+    # Refresh all environment variables from registry
+    foreach($level in "Machine","User") {
+        [Environment]::GetEnvironmentVariables($level).GetEnumerator() | ForEach-Object {
+            if($_.Name -notlike "PATH") {
+                [Environment]::SetEnvironmentVariable($_.Name, $_.Value, 'Process')
+            }
+        }
+    }
+
+    # Handle PATH separately to merge Machine and User paths
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+    Write-Host "==> Environment refreshed" -ForegroundColor Green
+}
+
 function Show-Help {
     Write-Host "ngrep Windows Build Script" -ForegroundColor Cyan
     Write-Host ""
@@ -97,7 +115,7 @@ function Ensure-VisualStudio {
 
     # Check using vswhere if available
     if (-Not (Test-Path $vswhere)) {
-        # vswhere not available, skip to fallback
+        Write-Host "==> vswhere.exe not found at: $vswhere" -ForegroundColor Yellow
     } else {
         $vsPath = & $vswhere -all -prerelease -version "[17.0,)" -property installationPath -latest 2>$null
         if (-Not $vsPath) {
@@ -129,7 +147,14 @@ function Ensure-VisualStudio {
                 }
 
                 Write-Host "==> Using CMake generator: $script:vsGenerator with toolset: $script:vsPlatformToolset" -ForegroundColor Cyan
-                $vsInstalled = $true
+
+                # Verify C++ build tools are installed
+                if (Test-Path "$vsPath\VC\Auxiliary\Build\vcvarsall.bat") {
+                    $vsInstalled = $true
+                } else {
+                    Write-Host "==> WARNING: Visual Studio found but C++ build tools not installed" -ForegroundColor Yellow
+                    $vsInstalled = $false
+                }
             }
         }
     }
@@ -157,16 +182,27 @@ function Ensure-VisualStudio {
         )
 
         foreach ($path in $vsPaths) {
-            if (-Not (Test-Path "$path\VC\Auxiliary\Build\vcvarsall.bat")) {
-                continue
-            }
+            Write-Host "==> Checking: $path" -ForegroundColor DarkGray
 
-            Write-Host "==> Visual Studio $($vsVer.Year) found at $path" -ForegroundColor Green
-            $script:vsGenerator = $vsVer.Generator
-            $script:vsPlatformToolset = $vsVer.Toolset
-            Write-Host "==> Using CMake generator: $script:vsGenerator with toolset: $script:vsPlatformToolset" -ForegroundColor Cyan
-            $vsInstalled = $true
-            break
+            # Check if VS directory exists at all
+            if (Test-Path $path) {
+                Write-Host "==> Found VS directory at: $path" -ForegroundColor Yellow
+
+                # Check for vcvarsall.bat
+                if (-Not (Test-Path "$path\VC\Auxiliary\Build\vcvarsall.bat")) {
+                    Write-Host "==> WARNING: VS directory exists but vcvarsall.bat not found" -ForegroundColor Yellow
+                    Write-Host "==> This suggests an incomplete installation. Please run VS Installer to repair." -ForegroundColor Yellow
+                    Write-Host "==> Continuing to check other locations..." -ForegroundColor Yellow
+                    continue
+                }
+
+                Write-Host "==> Visual Studio $($vsVer.Year) found at $path" -ForegroundColor Green
+                $script:vsGenerator = $vsVer.Generator
+                $script:vsPlatformToolset = $vsVer.Toolset
+                Write-Host "==> Using CMake generator: $script:vsGenerator with toolset: $script:vsPlatformToolset" -ForegroundColor Cyan
+                $vsInstalled = $true
+                break
+            }
         }
     }
 
@@ -174,7 +210,8 @@ function Ensure-VisualStudio {
         return
     }
 
-    Write-Host "==> Visual Studio not found. Installing via winget..." -ForegroundColor Yellow
+    Write-Host "==> Visual Studio not found at any expected location." -ForegroundColor Yellow
+    Write-Host "==> Installing via winget..." -ForegroundColor Yellow
     Write-Host "==> This will take 10-20 minutes, please wait..." -ForegroundColor Yellow
 
     $wingetCmd = Get-Command winget -ErrorAction SilentlyContinue
@@ -183,16 +220,84 @@ function Ensure-VisualStudio {
         exit 1
     }
 
-    winget install --id Microsoft.VisualStudio.2026.Community --silent --accept-package-agreements --accept-source-agreements --override "--quiet --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+    # Use VS installer directly to modify the installation
+    Write-Host "==> Adding C++ build tools to Visual Studio 2022..." -ForegroundColor Yellow
 
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Failed to install Visual Studio. Please install manually from https://visualstudio.microsoft.com/downloads/" -ForegroundColor Red
-        exit 1
+    # Find the VS installer
+    $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+    if (-Not (Test-Path $vsInstaller)) {
+        $vsInstaller = "${env:ProgramFiles}\Microsoft Visual Studio\Installer\vs_installer.exe"
     }
 
-    Write-Host "==> Visual Studio 2026 Community installed successfully" -ForegroundColor Green
-    Write-Host "==> Please restart PowerShell and run this script again" -ForegroundColor Yellow
-    exit 0
+    if (Test-Path $vsInstaller) {
+        # Use the installer to modify the installation
+        Write-Host "==> Running VS Installer to add C++ workload..." -ForegroundColor Yellow
+        Write-Host "==> Opening Visual Studio Installer..." -ForegroundColor Yellow
+        Write-Host "==> The installer will open in a new window" -ForegroundColor Yellow
+        Write-Host "==> Please complete the installation and close the installer when done" -ForegroundColor Yellow
+
+        # Kill any existing installer processes to ensure clean start
+        Write-Host "==> Checking for existing installer processes..." -ForegroundColor Yellow
+        $existingProcesses = Get-Process | Where-Object { $_.ProcessName -like "*installer*" -or $_.ProcessName -eq "setup" }
+        if ($existingProcesses) {
+            Write-Host "==> Stopping $(($existingProcesses | Measure-Object).Count) existing installer processes..." -ForegroundColor Yellow
+            $existingProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 2
+        }
+
+        # Launch the installer GUI
+        Write-Host "==> Launching Visual Studio Installer..." -ForegroundColor Green
+        Write-Host "==> The installer will open in a new window" -ForegroundColor Green
+        Write-Host "==> Please complete the installation and close the installer when done" -ForegroundColor Green
+        Write-Host "==> This may take 10-20 minutes..." -ForegroundColor Green
+
+        $installPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Community"
+        $arguments = "modify --installPath `"$installPath`" --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.Windows11SDK.22621"
+        $process = Start-Process -FilePath $vsInstaller -ArgumentList $arguments -PassThru
+
+        Write-Host "==> Waiting for installer to complete (PID: $($process.Id))..." -ForegroundColor Yellow
+        $process.WaitForExit()
+
+        Write-Host "==> Parent installer exited with code: $($process.ExitCode)" -ForegroundColor Green
+
+        # Wait for all child installer processes to finish
+        Write-Host "==> Waiting for installation to complete..." -ForegroundColor Yellow
+        do {
+            Start-Sleep -Seconds 5
+            $installerProcesses = Get-Process | Where-Object { $_.ProcessName -like "*installer*" -and $_.MainWindowTitle -like "*Visual Studio*" }
+            if ($installerProcesses) {
+                Write-Host "==> Installation in progress ($(($installerProcesses | Measure-Object).Count) processes)..." -ForegroundColor Yellow
+            }
+        } while ($installerProcesses)
+
+        Write-Host "==> Installation complete!" -ForegroundColor Green
+
+        # Re-detect VS to verify C++ tools are now installed
+        Write-Host "==> Verifying C++ build tools installation..." -ForegroundColor Yellow
+        $script:vsGenerator = $null
+        $script:vsPlatformToolset = $null
+        Ensure-VisualStudio
+    } else {
+        # VS not installed - install it via winget first
+        Write-Host "==> Visual Studio not installed. Installing via winget..." -ForegroundColor Yellow
+        Write-Host "==> This will take 5-10 minutes..." -ForegroundColor Yellow
+
+        winget install --id Microsoft.VisualStudio.2022.Community --silent --accept-package-agreements --accept-source-agreements
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Failed to install Visual Studio. Please install manually from https://visualstudio.microsoft.com/downloads/" -ForegroundColor Red
+            exit 1
+        }
+
+        Write-Host "==> Visual Studio 2022 installed successfully" -ForegroundColor Green
+        Write-Host "==> Now adding C++ build tools..." -ForegroundColor Yellow
+
+        # Refresh environment and recursively call this function to add C++ tools
+        Refresh-Environment
+        Ensure-VisualStudio
+        return
+    }
+
 }
 
 function Ensure-Git {
@@ -331,7 +436,7 @@ function Ensure-Vcpkg {
 }
 
 function Ensure-PCRE2 {
-    Write-Host "==> Installing PCRE2 via vcpkg..." -ForegroundColor Yellow
+    Write-Host "==> Ensuring PCRE2 is installed via vcpkg..." -ForegroundColor Yellow
 
     # Detect architecture and set appropriate vcpkg triplet
     $arch = $env:PROCESSOR_ARCHITECTURE
@@ -383,7 +488,7 @@ function Ensure-CMake {
         exit 1
     }
 
-    $env:PATH = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    Refresh-Environment
     Write-Host "==> CMake installed successfully" -ForegroundColor Green
 }
 
@@ -428,6 +533,7 @@ function Invoke-CMakeConfiguration {
         "-G", $script:vsGenerator,
         "-A", $cmakeArch,
         "-T", $script:vsPlatformToolset,
+        "-DCMAKE_SUPPRESS_REGENERATION=ON",
         "-DNPCAP_SDK_DIR=$NpcapSdkDir"
     )
 
@@ -446,6 +552,63 @@ function Invoke-CMakeConfiguration {
         }
     } else {
         Write-Host "==> Skipping PCRE2 - will use bundled regex-0.12" -ForegroundColor Yellow
+    }
+
+    # Clean build directory if it has old CMake cache
+    if (Test-Path "$script:buildDir\CMakeCache.txt") {
+        Write-Host "==> Cleaning old CMake cache..." -ForegroundColor Yellow
+        Remove-Item -Path "$script:buildDir\CMakeCache.txt" -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$script:buildDir\CMakeFiles" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    # Initialize VS environment before running CMake
+    Write-Host "==> Initializing Visual Studio environment..." -ForegroundColor Yellow
+    $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath 2>$null
+    if (-Not $vsPath) {
+        # Fallback to common path
+        $vsPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Community"
+    }
+
+    $vcvarsall = Join-Path $vsPath "VC\Auxiliary\Build\vcvarsall.bat"
+    if (Test-Path $vcvarsall) {
+        # Call vcvarsall and import the environment variables it sets
+        $archArg = if ($cmakeArch -eq "ARM64") { "arm64" } else { "x64" }
+        cmd /c "`"$vcvarsall`" $archArg >nul 2>&1 && set" | ForEach-Object {
+            if ($_ -match "^([^=]+)=(.*)$") {
+                [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
+            }
+        }
+
+        # Verify critical environment variables are set
+        if (-Not $env:WindowsSDKDir) {
+            Write-Host "==> WARNING: WindowsSDKDir not set after vcvarsall" -ForegroundColor Yellow
+            Write-Host "==> Checking for Windows SDK installation..." -ForegroundColor Yellow
+
+            # Try to find Windows SDK
+            $sdkRoot = "${env:ProgramFiles(x86)}\Windows Kits\10"
+            if (Test-Path $sdkRoot) {
+                $env:WindowsSDKDir = $sdkRoot
+                Write-Host "==> Found Windows SDK at: $sdkRoot" -ForegroundColor Green
+            } else {
+                Write-Host "ERROR: Windows SDK not found. Please install 'Windows SDK' component via Visual Studio Installer" -ForegroundColor Red
+                exit 1
+            }
+        }
+
+        Write-Host "==> VS environment initialized" -ForegroundColor Green
+
+        # Find and set the C/C++ compiler paths explicitly
+        $vcToolsDir = Get-ChildItem "$vsPath\VC\Tools\MSVC" | Sort-Object Name -Descending | Select-Object -First 1
+        if ($vcToolsDir) {
+            $compilerHost = if ($cmakeArch -eq "ARM64") { "Hostarm64\arm64" } else { "Hostx64\x64" }
+            $clPath = Join-Path $vcToolsDir.FullName "bin\$compilerHost\cl.exe"
+            if (Test-Path $clPath) {
+                # Convert backslashes to forward slashes for CMake
+                $clPathCMake = $clPath -replace '\\', '/'
+                $cmakeArgs += "-DCMAKE_C_COMPILER=$clPathCMake"
+                Write-Host "==> Using compiler: $clPath" -ForegroundColor Cyan
+            }
+        }
     }
 
     cmake @cmakeArgs | Out-Host
