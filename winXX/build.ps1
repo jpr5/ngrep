@@ -432,7 +432,9 @@ function Ensure-Vcpkg {
     $vcpkgExe = Join-Path $defaultVcpkgPath "vcpkg.exe"
     Write-Host "==> vcpkg installed successfully" -ForegroundColor Green
 
-    $env:PATH = "$(Split-Path $vcpkgExe);$env:PATH"
+    # Set VCPKG_ROOT so it can be found even after PATH changes
+    $env:VCPKG_ROOT = $defaultVcpkgPath
+    $env:PATH = "$defaultVcpkgPath;$env:PATH"
 }
 
 function Ensure-PCRE2 {
