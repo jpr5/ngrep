@@ -541,12 +541,27 @@ function Invoke-CMakeConfiguration {
         $cmakeArgs += "-DPCRE2_INCLUDE_DIR=$PCRE2Dir\include"
         $cmakeArgs += "-DPCRE2_LIBRARY=$PCRE2Dir\lib\pcre2-8.lib"
     } elseif (-Not $SkipPCRE2) {
-        $vcpkgCmd = Get-Command vcpkg -ErrorAction SilentlyContinue
-        if ($vcpkgCmd) {
-            $vcpkgRoot = Split-Path -Parent $vcpkgCmd.Source
+        # Find vcpkg root - check VCPKG_ROOT env var first, then find from vcpkg.exe location
+        $vcpkgRoot = $env:VCPKG_ROOT
+        if (-Not $vcpkgRoot) {
+            $vcpkgCmd = Get-Command vcpkg -ErrorAction SilentlyContinue
+            if ($vcpkgCmd) {
+                # vcpkg.exe is in the root directory, not in a bin subdirectory
+                $vcpkgRoot = Split-Path -Parent $vcpkgCmd.Source
+            }
+        }
+
+        if ($vcpkgRoot) {
             $vcpkgToolchain = Join-Path $vcpkgRoot "scripts\buildsystems\vcpkg.cmake"
-            $cmakeArgs += "-DCMAKE_TOOLCHAIN_FILE=$vcpkgToolchain"
-            Write-Host "==> Using vcpkg toolchain: $vcpkgToolchain" -ForegroundColor Green
+            if (Test-Path $vcpkgToolchain) {
+                # Convert to forward slashes for CMake
+                $vcpkgToolchainCMake = $vcpkgToolchain -replace '\\', '/'
+                $cmakeArgs += "-DCMAKE_TOOLCHAIN_FILE=$vcpkgToolchainCMake"
+                Write-Host "==> Using vcpkg toolchain: $vcpkgToolchain" -ForegroundColor Green
+            } else {
+                Write-Host "==> Warning: vcpkg toolchain not found at $vcpkgToolchain" -ForegroundColor Yellow
+                Write-Host "==> Building without PCRE2" -ForegroundColor Yellow
+            }
         } else {
             Write-Host "==> Warning: vcpkg not found, building without PCRE2" -ForegroundColor Yellow
         }
