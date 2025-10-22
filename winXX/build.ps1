@@ -571,13 +571,6 @@ function Invoke-CMakeConfiguration {
         Write-Host "==> Skipping PCRE2 - will use bundled regex-0.12" -ForegroundColor Yellow
     }
 
-    # Clean build directory if it has old CMake cache
-    if (Test-Path "$script:buildDir\CMakeCache.txt") {
-        Write-Host "==> Cleaning old CMake cache..." -ForegroundColor Yellow
-        Remove-Item -Path "$script:buildDir\CMakeCache.txt" -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path "$script:buildDir\CMakeFiles" -Recurse -Force -ErrorAction SilentlyContinue
-    }
-
     # Initialize VS environment before running CMake
     Write-Host "==> Initializing Visual Studio environment..." -ForegroundColor Yellow
     $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath 2>$null
@@ -628,11 +621,25 @@ function Invoke-CMakeConfiguration {
         }
     }
 
-    cmake @cmakeArgs | Out-Host
+    # Only configure if build directory doesn't exist or is not configured
+    $needsConfigure = $false
+    if (-Not (Test-Path $script:buildDir)) {
+        $needsConfigure = $true
+        Write-Host "==> Build directory not found, configuring..." -ForegroundColor Yellow
+    } elseif (-Not (Test-Path "$script:buildDir\CMakeCache.txt")) {
+        $needsConfigure = $true
+        Write-Host "==> CMake cache not found, reconfiguring..." -ForegroundColor Yellow
+    }
 
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: CMake configuration failed" -ForegroundColor Red
-        exit 1
+    if ($needsConfigure) {
+        cmake @cmakeArgs | Out-Host
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: CMake configuration failed" -ForegroundColor Red
+            exit 1
+        }
+    } else {
+        Write-Host "==> Build already configured, skipping CMake configuration" -ForegroundColor Green
     }
 
     return $cmakeArch
