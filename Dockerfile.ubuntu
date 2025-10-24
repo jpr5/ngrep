@@ -1,0 +1,42 @@
+# Multi-stage build for minimal final image (Ubuntu-based)
+# Use this if you need glibc compatibility or prefer Ubuntu
+FROM ubuntu:24.04 AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    autoconf \
+    automake \
+    libpcap-dev \
+    libpcre2-dev \
+    libnet-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy source code
+WORKDIR /build
+COPY . .
+
+# Build ngrep
+RUN ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr && \
+    make && \
+    make install DESTDIR=/install
+
+# Final minimal image
+FROM ubuntu:24.04
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpcap0.8 \
+    libpcre2-8-0 \
+    libnet1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy built binary from builder
+COPY --from=builder /install/usr/bin/ngrep /usr/bin/ngrep
+COPY --from=builder /install/usr/share/man/man8/ngrep.8 /usr/share/man/man8/ngrep.8
+
+# ngrep needs to run as root or with NET_CAP_RAW capability
+USER root
+
+ENTRYPOINT ["/usr/bin/ngrep"]
+CMD ["--help"]
