@@ -24,6 +24,27 @@ common packet sniffing tools, such as tcpdump and snoop.
  * WinXX: Add new dedicated build script (`build.ps1`)
  * WinXX: Builds on both x86_64 and ARM64 cpu architectures
 
+## Installation
+
+### Docker (Recommended)
+
+The easiest way to run ngrep is via Docker:
+
+```bash
+docker pull ghcr.io/jpr5/ngrep:latest
+docker run --rm --net=host --cap-add=NET_RAW ghcr.io/jpr5/ngrep:latest -q 'GET|POST' tcp port 80
+```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker usage instructions.
+
+### Binary Releases
+
+Download pre-built binaries from the [Releases](https://github.com/jpr5/ngrep/releases) page.
+
+### Build from Source
+
+See [INSTALL](INSTALL) for build instructions.
+
 ## How to use
 
 ngrep was originally developed to:
