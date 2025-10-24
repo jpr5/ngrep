@@ -77,9 +77,13 @@ jobs:
             - libpcre2-8 (if built with PCRE2 support)
 
             Install via package manager:
-            - Debian/Ubuntu: `apt install libpcap0.8 libpcre2-8-0`
+            - Ubuntu: `apt install libpcap0.8 libpcre2-8-0`
             - macOS: `brew install libpcap pcre2`
-            - FreeBSD: `pkg install libpcap pcre2`
+            - FreeBSD: `pkg install pcre2` # libpcap installed by default
+            - OpenBSD: `pkg_add pcre2` # libpcap installed by default
+            - NetBSD: `pkg_add libpcap` # pcre2 installed by default
+            - Solaris: `pkg install libpcap pcre2`
+            - Windows: the `winXX\build.ps1` script does it all for you
 
             **Windows:**
             Extract the zip file. The package includes `ngrep.exe` and required DLLs.
