@@ -89,8 +89,9 @@ jobs:
           sudo apt-get install -y build-essential clang tree libpcap-dev libnet-dev libpcre2-dev
           ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
           make
-          make install DESTDIR=/tmp
-          tree /tmp/usr
+          mkdir -p _install
+          make install DESTDIR=$PWD/_install
+          tree $PWD/_install/usr
 
       - name: Build Linux ARM64
         if: startsWith(matrix.name,'ubuntu') && matrix.arch == 'arm64'
@@ -100,8 +101,9 @@ jobs:
             apt-get install -q -y build-essential tree libpcap-dev libnet-dev libpcre2-dev &&
             ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }} &&
             make &&
-            make install DESTDIR=/tmp &&
-            tree /tmp/usr
+            mkdir -p /work/_install &&
+            make install DESTDIR=/work/_install &&
+            tree /work/_install/usr
           "
 
       - name: Build MacOS
@@ -111,8 +113,9 @@ jobs:
           brew install tree libpcap libnet
           ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
           make
-          make install DESTDIR=/tmp
-          tree /tmp/usr
+          mkdir -p _install
+          make install DESTDIR=$PWD/_install
+          tree $PWD/_install/usr
 
       - name: Build FreeBSD
         if: startsWith(matrix.name,'freebsd')
@@ -125,8 +128,9 @@ jobs:
           run: |
             ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
             make
-            make install DESTDIR=/tmp
-            tree /tmp/usr
+            mkdir -p _install
+            make install DESTDIR=$PWD/_install
+            tree $PWD/_install/usr
 
       - name: Build OpenBSD
         if: startsWith(matrix.name,'openbsd')
@@ -139,8 +143,9 @@ jobs:
           run: |
             ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
             make
-            make install DESTDIR=/tmp
-            tree /tmp/usr
+            mkdir -p _install
+            make install DESTDIR=$PWD/_install
+            tree $PWD/_install/usr
 
       - name: Build NetBSD
         if: startsWith(matrix.name,'netbsd')
@@ -154,8 +159,9 @@ jobs:
           run: |
             ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
             make
-            make install DESTDIR=/tmp
-            tree /tmp/usr
+            mkdir -p _install
+            make install DESTDIR=$PWD/_install
+            tree $PWD/_install/usr
 
       - name: Build Solaris
         if: startsWith(matrix.name,'solaris')
@@ -167,8 +173,9 @@ jobs:
           run: |
             ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
             make
-            make install DESTDIR=/tmp
-            tree /tmp/usr
+            mkdir -p _install
+            make install DESTDIR=$PWD/_install
+            tree $PWD/_install/usr
 
       - name: Build Windows
         if: startsWith(matrix.name,'windows')
@@ -180,15 +187,15 @@ jobs:
         if: inputs.create_artifacts && !startsWith(matrix.name,'macos') && !startsWith(matrix.name,'windows') && matrix.artifact_name != ''
         run: |
           mkdir -p release
-          tar -czf release/${{ matrix.artifact_name }}.tar.gz -C /tmp/usr/bin ngrep
-          tar -czf release/${{ matrix.artifact_name }}-full.tar.gz -C /tmp usr
+          tar -czf release/${{ matrix.artifact_name }}.tar.gz -C _install/usr/bin ngrep
+          tar -czf release/${{ matrix.artifact_name }}-full.tar.gz -C _install usr
 
       - name: Package MacOS
         if: inputs.create_artifacts && startsWith(matrix.name,'macos')
         run: |
           mkdir -p release
-          tar -czf release/${{ matrix.artifact_name }}.tar.gz -C /tmp/usr/bin ngrep
-          tar -czf release/${{ matrix.artifact_name }}-full.tar.gz -C /tmp usr
+          tar -czf release/${{ matrix.artifact_name }}.tar.gz -C _install/usr/bin ngrep
+          tar -czf release/${{ matrix.artifact_name }}-full.tar.gz -C _install usr
 
       - name: Package Windows
         if: inputs.create_artifacts && startsWith(matrix.name,'windows')
