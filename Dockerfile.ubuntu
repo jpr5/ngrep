@@ -39,4 +39,4 @@ COPY --from=builder /install/usr/share/man/man8/ngrep.8 /usr/share/man/man8/ngre
 USER root
 
 ENTRYPOINT ["/usr/bin/ngrep"]
-CMD ["--help"]
+CMD ["-h"]
