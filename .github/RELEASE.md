@@ -1,0 +1,127 @@
+# Release Process
+
+This document explains how to create a new release of ngrep.
+
+## Overview
+
+ngrep uses **Git tags** to trigger release builds. When you push a version tag, GitHub Actions automatically:
+
+1. Builds binaries for all supported platforms (9 platforms total)
+2. Packages them as `.tar.gz` (Unix) or `.zip` (Windows)
+3. Generates SHA256 checksums
+4. Creates a GitHub Release with all artifacts
+
+## Supported Platforms
+
+Release builds are created for:
+
+- **Linux**: x86_64, ARM64
+- **macOS**: macOS 15 (ARM64), macOS 26 (ARM64)
+- **BSD**: FreeBSD 15, OpenBSD 7, NetBSD 10
+- **Solaris**: Solaris 11
+- **Windows**: x86_64
+
+## Creating a Release
+
+### 1. Prepare the Release
+
+Ensure all changes are committed and pushed to `master`:
+
+```bash
+git checkout master
+git pull
+```
+
+### 2. Update Version Information
+
+Update version numbers in relevant files:
+- `configure.in` or version headers
+- `README` or `CHANGELOG` if applicable
+
+Commit these changes:
+
+```bash
+git add .
+git commit -m "Bump version to X.Y.Z"
+git push
+```
+
+### 3. Create and Push the Tag
+
+Create an annotated tag with the version number:
+
+```bash
+# Format: vMAJOR.MINOR.PATCH
+git tag -a v1.0.0 -m "Release 1.0.0"
+git push origin v1.0.0
+```
+
+**Important**: The tag MUST start with `v` (e.g., `v1.0.0`, `v2.1.3`)
+
+### 4. Monitor the Build
+
+1. Go to: https://github.com/jpr5/ngrep/actions
+2. Watch the "Release Build & Publish" workflow
+3. Build takes ~30-45 minutes (BSD/Solaris VMs are slow)
+
+### 5. Verify the Release
+
+Once complete:
+
+1. Go to: https://github.com/jpr5/ngrep/releases
+2. Verify all 9 platform artifacts are present
+3. Check SHA256SUMS file
+4. Test download and extraction of at least one artifact
+
+## Release Artifacts
+
+Each release includes:
+
+### Binary-Only Packages
+- `ngrep-<platform>.tar.gz` - Just the `ngrep` binary
+- `ngrep-windows-x86_64.zip` - Windows executable
+
+### Full Packages
+- `ngrep-<platform>-full.tar.gz` - Complete installation (binary + man pages + docs)
+
+### Checksums
+- `SHA256SUMS` - SHA256 checksums for all artifacts
+
+## Troubleshooting
+
+### Build Failed for One Platform
+
+If a single platform fails:
+1. Check the workflow logs for that platform
+2. Fix the issue in the code
+3. Delete the tag: `git tag -d v1.0.0 && git push origin :refs/tags/v1.0.0`
+4. Re-create the tag after fixing
+
+### Wrong Version Number
+
+If you tagged the wrong version:
+1. Delete the GitHub Release (if created)
+2. Delete the tag locally: `git tag -d v1.0.0`
+3. Delete the tag remotely: `git push origin :refs/tags/v1.0.0`
+4. Create the correct tag
+
+### Pre-release / Beta Versions
+
+For pre-releases, use tags like:
+- `v1.0.0-beta1`
+- `v1.0.0-rc1`
+- `v2.0.0-alpha`
+
+The workflow will still build them, but you should manually mark the GitHub Release as "pre-release".
+
+## Workflow Files
+
+- `.github/workflows/matrix.yml` - Base build steps, reused by build & release
+- `.github/workflows/build.yml` - CI validation (runs on every push)
+- `.github/workflows/release.yml` - Release builds (runs on tags only)
+
+## Notes
+
+- **No artifacts on regular commits**: Only tagged releases create downloadable artifacts
+- **Retention**: Workflow artifacts are kept for 5 days during build, then moved to GitHub Releases permanently
+- **Permissions**: You need write access to the repository to push tags and create releases

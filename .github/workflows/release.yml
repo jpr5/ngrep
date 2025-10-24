@@ -1,0 +1,102 @@
+name: Release Build & Publish
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v1.0.0, v2.1.3, etc.
+
+jobs:
+  build-and-package:
+    uses: ./.github/workflows/matrix.yml
+    with:
+      create_artifacts: true
+
+  create-release:
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release-assets/ \;
+          ls -lh release-assets/
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Generate checksums
+        run: |
+          cd release-assets
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## ngrep ${{ steps.get_version.outputs.VERSION }}
+
+            ### Downloads
+
+            Download the appropriate binary for your platform:
+
+            - **Linux x86_64**: `ngrep-linux-x86_64.tar.gz`
+            - **Linux ARM64**: `ngrep-linux-arm64.tar.gz`
+            - **macOS 15 (ARM64)**: `ngrep-macos-15-arm64.tar.gz`
+            - **macOS 26 (ARM64)**: `ngrep-macos-26-arm64.tar.gz`
+            - **FreeBSD 15**: `ngrep-freebsd-15-x86_64.tar.gz`
+            - **OpenBSD 7**: `ngrep-openbsd-7-x86_64.tar.gz`
+            - **NetBSD 10**: `ngrep-netbsd-10-x86_64.tar.gz`
+            - **Solaris 11**: `ngrep-solaris-11-x86_64.tar.gz`
+            - **Windows x86_64**: `ngrep-windows-x86_64.zip`
+
+            ### Installation
+
+            **Unix-like systems:**
+            ```bash
+            tar -xzf ngrep-*.tar.gz
+            sudo install -m 755 ngrep /usr/local/bin/
+            ```
+
+            **Dependencies (Unix):**
+            - libpcap (or equivalent packet capture library)
+            - libpcre2-8 (if built with PCRE2 support)
+
+            Install via package manager:
+            - Debian/Ubuntu: `apt install libpcap0.8 libpcre2-8-0`
+            - macOS: `brew install libpcap pcre2`
+            - FreeBSD: `pkg install libpcap pcre2`
+
+            **Windows:**
+            Extract the zip file. The package includes `ngrep.exe` and required DLLs.
+            You'll need [Npcap](https://npcap.com/#download) installed to capture packets.
+
+            ### Verification
+
+            Verify your download with SHA256:
+            ```bash
+            sha256sum -c SHA256SUMS
+            ```
+
+            ### Full Installation Packages
+
+            Files ending in `-full.tar.gz` contain the complete installation tree including man pages and documentation.
+          files: |
+            release-assets/*
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
