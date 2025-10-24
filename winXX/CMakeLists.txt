@@ -29,15 +29,15 @@ endif()
 if(USE_PCRE2)
     set(NGREP_SOURCES
         ../ngrep.c
-        support/getopt.c
-        support/inet_ntop.c
+        ./getopt.c
+        ./inet_ntop.c
     )
 else()
     set(NGREP_SOURCES
         ../ngrep.c
         ../regex-0.12/regex.c
-        support/getopt.c
-        support/inet_ntop.c
+        ./getopt.c
+        ./inet_ntop.c
     )
 endif()
 
@@ -45,10 +45,10 @@ endif()
 set(NGREP_HEADERS
     ../ngrep.h
     ../regex-0.12/regex.h
-    support/config.h
-    support/getopt.h
-    support/inet_ntop.h
-    support/types.h
+    ./config.h
+    ./getopt.h
+    ./inet_ntop.h
+    ./types.h
 )
 
 # Create executable
@@ -56,7 +56,7 @@ add_executable(ngrep ${NGREP_SOURCES} ${NGREP_HEADERS})
 
 # Include directories
 target_include_directories(ngrep PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/../regex-0.12
     ${NPCAP_SDK_DIR}/Include
 )

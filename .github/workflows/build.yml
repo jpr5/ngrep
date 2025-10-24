@@ -4,14 +4,13 @@ on:
   push:
     paths:
       - ".github/workflows/build.yml"
-      - "*.c"
-      - "*.h"
-      - "config.h.in"
-      - "configure"
-      - "configure.ac"
-      - "Makefile"
-      - "Makefile.in"
-      - "winXX/**"
+      - "**/*.c"
+      - "**/*.h"
+      - "**/*.in"
+      - "configure*"
+      - "Makefile*"
+      - "winXX/build.ps1"
+      - "winXX/CMakeLists.txt"
     branches:
       - master
   pull_request:
