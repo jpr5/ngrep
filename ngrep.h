@@ -5,7 +5,7 @@
  *
  */
 
-#define VERSION "1.48-git"
+#define VERSION "1.48.0"
 
 /*
  * We cache the standard frame sizes here to save us time and
