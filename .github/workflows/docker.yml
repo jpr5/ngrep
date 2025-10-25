@@ -6,6 +6,13 @@ on:
       - master
     tags:
       - 'v*'
+    paths:
+      - ".github/workflows/docker.yml"
+      - "**/*.c"
+      - "**/*.h"
+      - "**/*.in"
+      - "configure*"
+      - "Makefile*"
   workflow_dispatch: {}
 
 env:
