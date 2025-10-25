@@ -58,36 +58,13 @@ The workflows use a **reusable workflow pattern** to eliminate code duplication 
 
 **Behavior**:
 - Builds multi-architecture Docker images (amd64, arm64)
-- Uses Alpine Linux for minimal image size (~20-30MB)
+- Uses Alpine Linux for minimal image size (~15-20MB)
 - Publishes to `ghcr.io/jpr5/ngrep`
 - Creates build attestations for supply chain security
 - Tags appropriately based on trigger:
   - `latest` - Latest master build
   - `1.48.0`, `1.48`, `1` - Version tags
   - `master`, `master-<sha>` - Branch tags
-
-## Benefits of This Architecture
-
-### 1. **DRY (Don't Repeat Yourself)**
-- Build steps defined once in `matrix.yml`
-- Changes automatically apply to both CI and releases
-- Reduces maintenance burden
-
-### 2. **Clear Separation of Concerns**
-- `build.yml`: Validation only
-- `release.yml`: Distribution
-- `docker.yml`: Container packaging
-- `matrix.yml`: Shared build logic
-
-### 3. **Conditional Behavior**
-- Same build steps, different outcomes
-- Artifacts only created when needed
-- Saves storage and bandwidth
-
-### 4. **Easy to Extend**
-- Add new platform: Edit `matrix.yml` only
-- Change build steps: One place to update
-- Modify release process: Edit `release.yml` only
 
 ## Artifact Generation
 
@@ -156,7 +133,7 @@ git push → build.yml → matrix.yml (artifacts: false) → Validation only
 ```
 git tag v1.0.0
 git push origin v1.0.0 → release.yml → matrix.yml (artifacts: true) → GitHub Release
-                      → docker.yml → Build & publish container → ghcr.io/jpr5/ngrep:1.0.0
+                       → docker.yml → Build & publish container → ghcr.io/jpr5/ngrep:1.0.0
 ```
 
 ## Distribution Channels
@@ -172,7 +149,7 @@ ngrep is distributed through multiple channels:
 2. **Docker Containers** - Multi-architecture containers via GHCR
    - `ghcr.io/jpr5/ngrep:latest` - Latest master build
    - `ghcr.io/jpr5/ngrep:1.48.0` - Specific version
-   - Alpine-based (~20-30MB)
+   - Alpine-based (~15-20MB)
    - Supports linux/amd64 and linux/arm64
 
 3. **Source Code** - Via GitHub repository
