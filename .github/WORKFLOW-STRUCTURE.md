@@ -48,6 +48,24 @@ The workflows use a **reusable workflow pattern** to eliminate code duplication 
   - SHA256 checksums
   - Professional release notes
 
+### `docker.yml` (Container Builds)
+**Purpose**: Build and publish Docker containers to GitHub Container Registry
+
+**Triggers**:
+- Push to `master` branch
+- Git tags matching `v*` (e.g., `v1.0.0`, `v2.1.3`)
+- Manual workflow dispatch
+
+**Behavior**:
+- Builds multi-architecture Docker images (amd64, arm64)
+- Uses Alpine Linux for minimal image size (~20-30MB)
+- Publishes to `ghcr.io/jpr5/ngrep`
+- Creates build attestations for supply chain security
+- Tags appropriately based on trigger:
+  - `latest` - Latest master build
+  - `1.48.0`, `1.48`, `1` - Version tags
+  - `master`, `master-<sha>` - Branch tags
+
 ## Benefits of This Architecture
 
 ### 1. **DRY (Don't Repeat Yourself)**
@@ -58,6 +76,7 @@ The workflows use a **reusable workflow pattern** to eliminate code duplication 
 ### 2. **Clear Separation of Concerns**
 - `build.yml`: Validation only
 - `release.yml`: Distribution
+- `docker.yml`: Container packaging
 - `matrix.yml`: Shared build logic
 
 ### 3. **Conditional Behavior**
@@ -130,10 +149,32 @@ The build matrix includes:
 ### Normal Development
 ```
 git push → build.yml → matrix.yml (artifacts: false) → Validation only
+         → docker.yml → Build & publish container → ghcr.io/jpr5/ngrep:latest
 ```
 
 ### Creating a Release
 ```
 git tag v1.0.0
 git push origin v1.0.0 → release.yml → matrix.yml (artifacts: true) → GitHub Release
+                      → docker.yml → Build & publish container → ghcr.io/jpr5/ngrep:1.0.0
 ```
+
+## Distribution Channels
+
+ngrep is distributed through multiple channels:
+
+1. **Binary Releases** - Platform-specific binaries via GitHub Releases
+   - Linux (x86_64, ARM64)
+   - macOS (ARM64)
+   - FreeBSD, OpenBSD, NetBSD, Solaris
+   - Windows (x86_64)
+
+2. **Docker Containers** - Multi-architecture containers via GHCR
+   - `ghcr.io/jpr5/ngrep:latest` - Latest master build
+   - `ghcr.io/jpr5/ngrep:1.48.0` - Specific version
+   - Alpine-based (~20-30MB)
+   - Supports linux/amd64 and linux/arm64
+
+3. **Source Code** - Via GitHub repository
+   - Autotools-based build system
+   - CMake for Windows

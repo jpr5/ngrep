@@ -10,6 +10,7 @@ ngrep uses **Git tags** to trigger release builds. When you push a version tag, 
 2. Packages them as `.tar.gz` (Unix) or `.zip` (Windows)
 3. Generates SHA256 checksums
 4. Creates a GitHub Release with all artifacts
+5. Builds and publishes Docker containers to GitHub Container Registry
 
 ## Supported Platforms
 
@@ -62,16 +63,23 @@ git push origin v1.0.0
 
 1. Go to: https://github.com/jpr5/ngrep/actions
 2. Watch the "Release Build & Publish" workflow
-3. Build takes ~30-45 minutes (BSD/Solaris VMs are slow)
+3. Watch the "Docker Build & Publish" workflow
+4. Build takes ~30-45 minutes (BSD/Solaris VMs are slow)
 
 ### 5. Verify the Release
 
 Once complete:
 
-1. Go to: https://github.com/jpr5/ngrep/releases
-2. Verify all 9 platform artifacts are present
-3. Check SHA256SUMS file
-4. Test download and extraction of at least one artifact
+1. **Binary Release**:
+   - Go to: https://github.com/jpr5/ngrep/releases
+   - Verify all 9 platform artifacts are present
+   - Check SHA256SUMS file
+   - Test download and extraction of at least one artifact
+
+2. **Docker Container**:
+   - Go to: https://github.com/jpr5/ngrep/pkgs/container/ngrep
+   - Verify the version tag is present (e.g., `1.48.0`)
+   - Test pulling and running: `docker pull ghcr.io/jpr5/ngrep:1.48.0`
 
 ## Release Artifacts
 
@@ -79,13 +87,21 @@ Each release includes:
 
 ### Binary-Only Packages
 - `ngrep-<platform>.tar.gz` - Just the `ngrep` binary
-- `ngrep-windows-x86_64.zip` - Windows executable
+- `ngrep-windows-x86_64.zip` - Windows executable with DLLs
 
 ### Full Packages
 - `ngrep-<platform>-full.tar.gz` - Complete installation (binary + man pages + docs)
 
 ### Checksums
 - `SHA256SUMS` - SHA256 checksums for all artifacts
+
+### Docker Containers
+- `ghcr.io/jpr5/ngrep:1.48.0` - Specific version
+- `ghcr.io/jpr5/ngrep:1.48` - Major.minor version
+- `ghcr.io/jpr5/ngrep:1` - Major version
+- `ghcr.io/jpr5/ngrep:latest` - Latest release
+- Multi-architecture: linux/amd64, linux/arm64
+- Alpine-based (~20-30MB compressed)
 
 ## Troubleshooting
 
@@ -119,9 +135,30 @@ The workflow will still build them, but you should manually mark the GitHub Rele
 - `.github/workflows/matrix.yml` - Base build steps, reused by build & release
 - `.github/workflows/build.yml` - CI validation (runs on every push)
 - `.github/workflows/release.yml` - Release builds (runs on tags only)
+- `.github/workflows/docker.yml` - Docker container builds (runs on push to master and tags)
 
 ## Notes
 
 - **No artifacts on regular commits**: Only tagged releases create downloadable artifacts
 - **Retention**: Workflow artifacts are kept for 5 days during build, then moved to GitHub Releases permanently
 - **Permissions**: You need write access to the repository to push tags and create releases
+- **Docker containers**: Published on both master commits (as `latest`) and version tags (as versioned tags)
+- **Container visibility**: First-time Docker publish creates a private package - you must manually make it public in package settings
+
+## Distribution Channels
+
+After a release, ngrep is available through:
+
+1. **GitHub Releases**: https://github.com/jpr5/ngrep/releases
+   - Platform-specific binaries
+   - Full installation packages
+   - SHA256 checksums
+
+2. **GitHub Container Registry**: https://github.com/jpr5/ngrep/pkgs/container/ngrep
+   - Docker containers for linux/amd64 and linux/arm64
+   - Multiple version tags
+   - Alpine-based for minimal size
+
+3. **Source Code**: https://github.com/jpr5/ngrep
+   - Git repository with full history
+   - Build from source instructions
