@@ -16,11 +16,11 @@ ngrep uses **Git tags** to trigger release builds. When you push a version tag, 
 
 Release builds are created for:
 
-- **Linux**: x86_64, ARM64
+- **Linux**: Ubuntu (x86_64, ARM64)
 - **macOS**: macOS 15 (ARM64), macOS 26 (ARM64)
-- **BSD**: FreeBSD 15, OpenBSD 7, NetBSD 10
-- **Solaris**: Solaris 11
-- **Windows**: x86_64
+- **BSD**: FreeBSD 15, OpenBSD 7, NetBSD 10 (x86_64)
+- **Solaris**: Solaris 11 (x86_64)
+- **Windows**: Windows 11 (x86_64)
 
 ## Creating a Release
 
@@ -64,7 +64,7 @@ git push origin v1.0.0
 1. Go to: https://github.com/jpr5/ngrep/actions
 2. Watch the "Release Build & Publish" workflow
 3. Watch the "Docker Build & Publish" workflow
-4. Build takes ~30-45 minutes (BSD/Solaris VMs are slow)
+4. Build takes upwards of ~10 minutes (emulated BSD/Solaris VMs are slower)
 
 ### 5. Verify the Release
 
@@ -143,7 +143,6 @@ The workflow will still build them, but you should manually mark the GitHub Rele
 - **Retention**: Workflow artifacts are kept for 5 days during build, then moved to GitHub Releases permanently
 - **Permissions**: You need write access to the repository to push tags and create releases
 - **Docker containers**: Published on both master commits (as `latest`) and version tags (as versioned tags)
-- **Container visibility**: First-time Docker publish creates a private package - you must manually make it public in package settings
 
 ## Distribution Channels
 

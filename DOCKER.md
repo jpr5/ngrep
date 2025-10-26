@@ -125,7 +125,7 @@ Or for full privileges (not recommended):
 git clone https://github.com/jpr5/ngrep.git
 cd ngrep
 
-# Build the Alpine-based image (~20-30MB)
+# Build the Alpine-based image (~16MB)
 docker build -t ngrep:local .
 
 # Run it
@@ -137,16 +137,12 @@ docker run --rm --net=host --cap-add=NET_RAW ngrep:local --help
 If you need glibc compatibility or prefer Ubuntu:
 
 ```bash
-# Build the Ubuntu-based image (~100MB)
+# Build the Ubuntu-based image (~150MB)
 docker build -f Dockerfile.ubuntu -t ngrep:ubuntu .
 
 # Run it
 docker run --rm --net=host --cap-add=NET_RAW ngrep:ubuntu --help
 ```
-
-**Size Comparison:**
-- Alpine: ~20-30MB compressed, ~60MB uncompressed
-- Ubuntu: ~100MB compressed, ~250MB uncompressed
 
 ## Multi-Architecture Support
 
@@ -160,7 +156,7 @@ Docker will automatically pull the correct image for your platform.
 ## Image Details
 
 - **Base**: Alpine Linux 3.20
-- **Size**: ~20-30MB (compressed)
+- **Size**: ~16MB (compressed)
 - **C Library**: musl libc (smaller and more secure than glibc)
 - **Runtime Dependencies**: libpcap, pcre2, libnet
 - **Build**: Multi-stage for minimal final image
