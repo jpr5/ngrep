@@ -5,8 +5,10 @@ dnl Please refer to the LICENSE file for more information.
 dnl
 dnl NOTE: configure.in requires autoconf 2.57 or more recent.
 
-AC_INIT([ngrep],[1.48.0],[jpr5@darkridge.com])
+AC_INIT([ngrep],m4_esyscmd_s([cat VERSION]),[jpr5@darkridge.com])
 AC_CONFIG_SRCDIR([ngrep.c])
+
+AC_DEFINE_UNQUOTED(VERSION, "AC_PACKAGE_VERSION", [ngrep version])
 
 AC_MSG_RESULT
 AC_MSG_RESULT(Configuring System ...)

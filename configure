@@ -2366,6 +2366,10 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+printf "%s\n" "#define VERSION \"1.48.0\"" >>confdefs.h
+
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: " >&5
 printf "%s\n" "" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Configuring System ..." >&5

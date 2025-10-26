@@ -83,7 +83,7 @@
 
 #include <pcap.h>
 
-#ifdef HAVE_CONFIG_H
+#if !defined(_WIN32) && !defined(_WIN64)
 #include "config.h"
 #endif
 

@@ -136,6 +136,17 @@ git push origin v1.0.0 → release.yml → matrix.yml (artifacts: true) → GitH
                        → docker.yml → Build & publish container → ghcr.io/jpr5/ngrep:1.0.0
 ```
 
+## Version Management
+
+ngrep uses a **centralized version system**:
+
+- **Single Source**: `VERSION` file in repository root
+- **Unix builds**: `configure.ac` reads `VERSION` → generates `config.h`
+- **Windows builds**: `CMakeLists.txt` reads `VERSION` → passes to compiler
+- **Result**: All builds get version from one place
+
+See [RELEASE.md](RELEASE.md) for detailed version management documentation.
+
 ## Distribution Channels
 
 ngrep is distributed through multiple channels:

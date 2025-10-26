@@ -57,6 +57,9 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* ngrep version */
+#undef VERSION
+
 /* routine used for restarting the BPF lexer */
 #undef PCAP_RESTART_FUNC
 

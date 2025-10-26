@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
-project(ngrep C)
+
+# Read version from VERSION file
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../VERSION" NGREP_VERSION)
+string(STRIP "${NGREP_VERSION}" NGREP_VERSION)
+
+project(ngrep VERSION ${NGREP_VERSION} LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
 
@@ -68,6 +73,7 @@ target_compile_definitions(ngrep PRIVATE
     _CRT_SECURE_NO_WARNINGS
     REGEX_MALLOC
     _WIN32
+    VERSION="${NGREP_VERSION}"
 )
 
 # Link libraries - detect architecture

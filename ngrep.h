@@ -5,7 +5,10 @@
  *
  */
 
-#define VERSION "1.48.0"
+/*
+ * VERSION is now defined in config.h, generated from the VERSION file
+ * by configure.ac (Unix) or CMakeLists.txt (Windows).
+ */
 
 /*
  * We cache the standard frame sizes here to save us time and
