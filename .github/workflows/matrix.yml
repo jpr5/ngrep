@@ -183,15 +183,8 @@ jobs:
         run: |
           .\winXX\build.ps1
 
-      - name: Package Linux/BSD/Solaris
-        if: inputs.create_artifacts && !startsWith(matrix.name,'macos') && !startsWith(matrix.name,'windows') && matrix.artifact_name != ''
-        run: |
-          mkdir -p release
-          tar -czf release/${{ matrix.artifact_name }}.tar.gz -C _install/usr/bin ngrep
-          tar -czf release/${{ matrix.artifact_name }}-full.tar.gz -C _install usr
-
-      - name: Package MacOS
-        if: inputs.create_artifacts && startsWith(matrix.name,'macos')
+      - name: Package Linux/BSD/Solaris/MacOS
+        if: inputs.create_artifacts && !startsWith(matrix.name,'windows') && matrix.artifact_name != ''
         run: |
           mkdir -p release
           tar -czf release/${{ matrix.artifact_name }}.tar.gz -C _install/usr/bin ngrep
