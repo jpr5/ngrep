@@ -120,7 +120,7 @@ Each release includes:
 - `ghcr.io/jpr5/ngrep:1` - Major version
 - `ghcr.io/jpr5/ngrep:latest` - Latest release
 - Multi-architecture: linux/amd64, linux/arm64
-- Alpine-based (~20-30MB compressed)
+- Alpine-based (~15-20MB compressed)
 
 ## Troubleshooting
 

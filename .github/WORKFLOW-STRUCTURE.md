@@ -131,7 +131,7 @@ git push → build.yml → matrix.yml (artifacts: false) → Validation only
 
 ### Creating a Release
 ```
-git tag v1.0.0
+git tag -a v1.0.0 -m "Release 1.0.0"
 git push origin v1.0.0 → release.yml → matrix.yml (artifacts: true) → GitHub Release
                        → docker.yml → Build & publish container → ghcr.io/jpr5/ngrep:1.0.0
 ```
@@ -154,7 +154,7 @@ ngrep is distributed through multiple channels:
 1. **Binary Releases** - Platform-specific binaries via GitHub Releases
    - Linux (x86_64, ARM64)
    - macOS (ARM64)
-   - FreeBSD, OpenBSD, NetBSD, Solaris
+   - FreeBSD, OpenBSD, NetBSD, Solaris (x86_64)
    - Windows (x86_64)
 
 2. **Docker Containers** - Multi-architecture containers via GHCR

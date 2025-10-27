@@ -236,7 +236,7 @@ jobs:
             $readme += "- ngrep.exe: Main executable`n"
             $readme += "- pcre2-8.dll: PCRE2 regular expression library (if built with PCRE2)`n`n"
             $readme += "Usage:`n"
-            $readme += "  ngrep.exe <pattern> [interface]`n`n"
+            $readme += "  ngrep.exe [options] <match expression> <bpf filter>`n`n"
             $readme += "For help:`n"
             $readme += "  ngrep.exe -h`n"
             $readme | Out-File -FilePath release/ngrep/README.txt -Encoding utf8
