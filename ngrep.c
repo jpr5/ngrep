@@ -130,6 +130,8 @@ char *usedev = NULL;
 
 char nonprint_char = '.';
 
+uint8_t  show_utf8 = 0;
+
 /*
  * ANSI color/hilite stuff.
  */
@@ -226,7 +228,7 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:u")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -243,6 +245,10 @@ int main(int argc, char **argv) {
                     usage();
                 }
             } break;
+
+            case 'u':
+                show_utf8 = 1;
+                break;
 
             case 'F':
                 filter_file = optarg;
@@ -1120,6 +1126,57 @@ int8_t blank_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uin
     return 1;
 }
 
+static int is_utf8_printable(const unsigned char *s) {
+    if (!s) return 0;
+
+    unsigned char c = (unsigned char)s[0];
+    int len = 0;
+    uint32_t codepoint = 0;
+
+    if (c < 0x80) {
+        // ASCII
+        if (c < 0x20 || c == 0x7F) return 0;  // control characters
+        return 1;
+    } else if ((c & 0xE0) == 0xC0) {
+        // 2-byte sequence
+        len = 2;
+        codepoint = c & 0x1F;
+    } else if ((c & 0xF0) == 0xE0) {
+        // 3-byte sequence
+        len = 3;
+        codepoint = c & 0x0F;
+    } else if ((c & 0xF8) == 0xF0) {
+        // 4-byte sequence
+        len = 4;
+        codepoint = c & 0x07;
+    } else {
+        return 0;  // invalid starting byte
+    }
+
+    // checking if remaining bytes are valid
+    for (int i = 1; i < len; i++) {
+        unsigned char t = (unsigned char)s[i];
+        if ((t & 0xC0) != 0x80) return 0;
+        codepoint = (codepoint << 6) | (t & 0x3F);
+    }
+
+    // overlong encoding checking
+    if ((len == 2 && codepoint < 0x80) ||
+        (len == 3 && codepoint < 0x800) ||
+        (len == 4 && codepoint < 0x10000))
+        return 0;
+
+    // UTF-8 valid range
+    if (codepoint > 0x10FFFF) return 0;
+    if (codepoint >= 0xD800 && codepoint <= 0xDFFF) return 0; // surrogate
+
+    // printable range (excluding control, special characters)
+    if (codepoint < 0x20) return 0;          // C0 control
+    if (codepoint >= 0x7F && codepoint < 0xA0) return 0; // C1 control
+
+    return len;
+}
+
 void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
         const unsigned char *s      = data;
@@ -1131,10 +1188,26 @@ void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t ms
             if (should_hilite && s == hilite_start)
                 printf("%s", ANSI_hilite);
 
-            printf("%c", (*s == '\n' || isprint(*s)) ? *s : nonprint_char);
-            s++;
+            int utf8_len = show_utf8 ? is_utf8_printable(s): 0;
+            
+            if (*s == '\n') {
+                printf("%c", *s);
+                s++;
+            } else if (utf8_len > 0) {
+                /* Print UTF-8 character */
+                for (int i = 0; i < utf8_len && s < data + len; i++) {
+                    printf("%c", *s);
+                    s++;
+                }
+            } else if (isprint(*s)) {
+                printf("%c", *s);
+                s++;
+            } else {
+                printf("%c", nonprint_char);
+                s++;
+            }
 
-            if (should_hilite && s == hilite_end)
+            if (should_hilite && s >= hilite_end)
                 printf("%s", ANSI_off);
         }
 
@@ -1153,10 +1226,23 @@ void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
             if (should_hilite && s == hilite_start)
                 printf("%s", ANSI_hilite);
 
-            printf("%c", isprint(*s) ? *s : nonprint_char);
-            s++;
+            int utf8_len = show_utf8 ? is_utf8_printable(s): 0;
+            
+            if (utf8_len > 0) {
+                /* Print UTF-8 character */
+                for (int i = 0; i < utf8_len && s < data + len; i++) {
+                    printf("%c", *s);
+                    s++;
+                }
+            } else if (isprint(*s)) {
+                printf("%c", *s);
+                s++;
+            } else {
+                printf("%c", nonprint_char);
+                s++;
+            }
 
-            if (should_hilite && s == hilite_end)
+            if (should_hilite && s >= hilite_end)
                 printf("%s", ANSI_off);
         }
 
@@ -1173,6 +1259,10 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
                    uint32_t i = 0,
                             j = 0;
 
+
+
+        uint8_t utf8_bytes_to_skip = 0;
+        
         while (i < len) {
             printf("  ");
 
@@ -1197,24 +1287,45 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
                 }
             }
 
-            for (j = 0; j < width; j++) {
+            /* For text portion, handle UTF-8 */
+            j = utf8_bytes_to_skip;
+            while (j < width && i + j < len) {
                 if (should_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
                     hiliting = 1;
                     printf("%s", ANSI_hilite);
                 }
 
-                if (i + j < len)
-                    printf("%c", isprint(str[j]) ? str[j] : nonprint_char);
-                else printf(" ");
+                int utf8_len = show_utf8 ? is_utf8_printable(&str[j]): 0;
+                
+                if (utf8_len > 0) {
+                    /* Print UTF-8 character */
+                    for (int k = 0; k < utf8_len; k++) {
+                        printf("%c", str[j]);
+                        j++;
+                    }
+                } else if (isprint(str[j])) {
+                    printf("%c", str[j]);
+                    j++;
+                } else {
+                    printf("%c", nonprint_char);
+                    j++;
+                }
 
                 if (hiliting) {
                     hiliting = 0;
                     printf("%s", ANSI_off);
                 }
             }
+            
+            /* Pad remaining space */
+            while (j < width) {
+                printf(" ");
+                j++;
+            }
 
+            utf8_bytes_to_skip = j - width > 0 ? j - width : 0;
             str += width;
-            i   += j;
+            i   += width;
 
             printf("\n");
         }
@@ -1478,6 +1589,7 @@ void usage(void) {
            "   -S  is set the limitlen on matched packets\n"
            "   -W  is set the dump format (normal, byline, single, none)\n"
            "   -c  is force the column width to the specified size\n"
+           "   -u  is showing payload as utf-8 characters\n"
            "   -P  is set the non-printable display char to what is specified\n"
            "   -F  is read the bpf filter from the specified file\n"
            "   -N  is show sub protocol number\n"
