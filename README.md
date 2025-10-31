@@ -35,7 +35,7 @@ docker pull ghcr.io/jpr5/ngrep:latest
 docker run --rm --net=host --cap-add=NET_RAW ghcr.io/jpr5/ngrep:latest -q 'GET|POST' tcp port 80
 ```
 
-See [DOCKER.md](DOCKER.md) for detailed Docker usage instructions.
+See [DOCKER](DOCKER.md) for detailed Docker usage instructions.
 
 ### Binary Releases
 
