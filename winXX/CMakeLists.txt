@@ -36,6 +36,7 @@ if(USE_PCRE2)
         ../ngrep.c
         ./getopt.c
         ./inet_ntop.c
+        ./wcwidth.c
     )
 else()
     set(NGREP_SOURCES
@@ -43,6 +44,7 @@ else()
         ../regex-0.12/regex.c
         ./getopt.c
         ./inet_ntop.c
+        ./wcwidth.c
     )
 endif()
 
@@ -54,6 +56,7 @@ set(NGREP_HEADERS
     ./getopt.h
     ./inet_ntop.h
     ./types.h
+    ./wcwidth.h
 )
 
 # Create executable

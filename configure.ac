@@ -424,6 +424,16 @@ AS_IF([test "$USE_PCAP_RESTART" = "1"], [
 ])
 
 dnl
+dnl Check for wcwidth() for UTF-8 character width calculation
+dnl
+AC_CHECK_FUNCS([wcwidth], [
+    HAVE_WCWIDTH="1"
+], [
+    HAVE_WCWIDTH="0"
+    AC_MSG_WARN([wcwidth() not found - will use bundled implementation])
+])
+
+dnl
 dnl Next figure out which bpf header file to look at.
 dnl
 
