@@ -12,7 +12,7 @@ ngrep \- network grep
 
 .SH SYNOPSIS
 
-.B ngrep <-hNXViwqpevxlDtTRMC> <-IO
+.B ngrep <-hNXViwqpevxlDtTRMCu> <-IO
 .I pcap_dump
 .B > < -n
 .I num
@@ -89,13 +89,16 @@ regardless of the specified regex expression.
 Invert the match; only display packets that don't match.
 
 .IP -x
-Dump packet contents as hexadecimal as well as ASCII.
+Dump packet contents as both hexadecimal and ASCII.
 
 .IP -l
 Make stdout line buffered.
 
 .IP -C
-Colorize matches in ASCII output.
+Colorize matches in packet contents output.
+
+.IP -U
+Display UTF-8 characters in packet contents output.
 
 .IP -D
 When reading pcap_dump files, replay them at their recorded time

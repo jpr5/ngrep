@@ -1607,7 +1607,7 @@ void usage(void) {
 #if defined(_WIN32) || defined(_WIN64)
            "L"
 #endif
-           "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+           "hNXViwqpevxlDtTRMCu> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>\n"
            "             <-P char> <-F file>"
 #if USE_TCPKILL
@@ -1640,6 +1640,7 @@ void usage(void) {
            "   -S  is set the limitlen on matched packets\n"
            "   -W  is set the dump format (normal, byline, single, none)\n"
            "   -c  is force the column width to the specified size\n"
+           "   -C  is colorize matches in packet contents output\n"
            "   -u  is show payload as UTF-8 characters\n"
            "   -P  is set the non-printable display char to what is specified\n"
            "   -F  is read the bpf filter from the specified file\n"
