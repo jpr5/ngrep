@@ -1,4 +1,4 @@
-## ngrep 1.48.0 (10.23.2025) [![Build](https://github.com/jpr5/ngrep/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/jpr5/ngrep/actions/workflows/build.yml)
+## ngrep 1.48.1 (10.31.2025) [![Build](https://github.com/jpr5/ngrep/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/jpr5/ngrep/actions/workflows/build.yml)
 
 ngrep is like GNU grep applied to the network layer.  It's a PCAP-based tool
 that allows you to specify an extended regular or hexadecimal expression to
@@ -9,7 +9,8 @@ common packet sniffing tools, such as tcpdump and snoop.
 
 ## What's New
 
- * Upgrade to PCRE2
+ * Support display of UTF8 data when `-u` is specified
+ * Upgrade to PCRE2 (default on MacOS/homebrew and Windows builds)
  * Add additional level of quiet for certain filtering scenarios
  * Update to latest autotools for ngrep and regex-0.12 (2.72, 2023)
  * Update manpage for missing options and typos
@@ -26,7 +27,7 @@ common packet sniffing tools, such as tcpdump and snoop.
 
 ## Installation
 
-### Docker (Recommended)
+### Docker
 
 The easiest way to run ngrep is via Docker:
 
