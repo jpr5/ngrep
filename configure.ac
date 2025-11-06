@@ -153,8 +153,12 @@ AS_HELP_STRING([--enable-pcre2], [use PCRE2 instead of GNU regex (default GNU)])
 
 AS_IF([test $use_pcre2 = yes], [
   USE_PCRE2="1"
-  EXTRA_INCLUDES="$EXTRA_INCLUDES $(pcre2-config --cflags-posix)"
-  EXTRA_LIBS="$EXTRA_LIBS $(pcre2-config --libs-posix)"
+  AC_PATH_PROGS(NGREP_PCRE2_CONFIG_SCRIPT, [pcre2-config], [no])
+    AS_IF([test $NGREP_PCRE2_CONFIG_SCRIPT = no], [
+      AC_MSG_ERROR(!!! error: pcre2-config not found)
+    ])
+  EXTRA_INCLUDES="$EXTRA_INCLUDES $($NGREP_PCRE2_CONFIG_SCRIPT --cflags-posix)"
+  EXTRA_LIBS="$EXTRA_LIBS $($NGREP_PCRE2_CONFIG_SCRIPT --libs-posix)"
 ], [
   USE_PCRE2="0"
 
