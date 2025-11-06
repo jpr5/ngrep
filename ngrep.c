@@ -1811,9 +1811,12 @@ char *net_choosedevice(void) {
         clean_exit(2);
     }
 
-    for (pcap_if_t *d = alldevs; d != NULL; d = d->next)
-        if ((d->addresses) && (d->addresses->addr))
+    for (pcap_if_t *d = alldevs; d != NULL; d = d->next) {
+        if ((d->addresses) && (d->addresses->addr)) {
             strncpy(dev, d->name, sizeof(dev)-1);
+            break;
+        }
+    }
 
     pcap_freealldevs(alldevs);
 #else
