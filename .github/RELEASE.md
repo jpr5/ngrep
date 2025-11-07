@@ -40,11 +40,11 @@ git pull
 Update the version number:
 
 ```bash
-# Edit the VERSION file (contains just the version number, e.g., "1.49.0")
-echo "1.49.0" > VERSION
+# Edit the VERSION file (contains just the version number, e.g., "1.0.0")
+echo "1.0.0" > VERSION
 
 # Optionally update README.md header (line 1) to match
-# Example: ## ngrep 1.49.0 (MM.DD.YYYY)
+# Example: ## ngrep 1.0.0 (MM.DD.YYYY)
 
 # Regenerate configure script from configure.ac
 autoconf
@@ -62,7 +62,7 @@ Commit these changes:
 
 ```bash
 git add VERSION README.md configure
-git commit -m "Bump version to 1.49.0"
+git commit -m "Bump version to 1.0.0"
 git push
 ```
 
@@ -97,8 +97,8 @@ Once complete:
 
 2. **Docker Container**:
    - Go to: https://github.com/jpr5/ngrep/pkgs/container/ngrep
-   - Verify the version tag is present (e.g., `1.48.0`)
-   - Test pulling and running: `docker pull ghcr.io/jpr5/ngrep:1.48.0`
+   - Verify the version tag is present (e.g., `1.0.0`)
+   - Test pulling and running: `docker pull ghcr.io/jpr5/ngrep:1.0.0`
 
 ## Release Artifacts
 
@@ -115,8 +115,8 @@ Each release includes:
 - `SHA256SUMS` - SHA256 checksums for all artifacts
 
 ### Docker Containers
-- `ghcr.io/jpr5/ngrep:1.48.0` - Specific version
-- `ghcr.io/jpr5/ngrep:1.48` - Major.minor version
+- `ghcr.io/jpr5/ngrep:1.0.0` - Specific version
+- `ghcr.io/jpr5/ngrep:1.0` - Major.minor version
 - `ghcr.io/jpr5/ngrep:1` - Major version
 - `ghcr.io/jpr5/ngrep:latest` - Latest release
 - Multi-architecture: linux/amd64, linux/arm64
@@ -155,7 +155,7 @@ ngrep uses a **centralized version system** with a single source of truth:
 
 ### Architecture
 
-**Single Source**: `VERSION` file (contains just the version number, e.g., `1.48.0`)
+**Single Source**: `VERSION` file (contains just the version number, e.g., `1.0.0`)
 
 **How it flows:**
 
@@ -167,7 +167,7 @@ ngrep uses a **centralized version system** with a single source of truth:
 
 2. **Windows builds** (CMake):
    - `CMakeLists.txt` reads `VERSION` via `file(READ ... NGREP_VERSION)`
-   - Passes `-DVERSION="1.48.0"` to compiler
+   - Passes `-DVERSION="1.0.0"` to compiler
    - `ngrep.c` uses `VERSION` macro from compile definition
 
 3. **Documentation**:

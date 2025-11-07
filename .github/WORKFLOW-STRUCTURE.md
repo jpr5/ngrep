@@ -63,7 +63,7 @@ The workflows use a **reusable workflow pattern** to eliminate code duplication 
 - Creates build attestations for supply chain security
 - Tags appropriately based on trigger:
   - `latest` - Latest master build
-  - `1.48.0`, `1.48`, `1` - Version tags
+  - `1.0.0`, `1.0`, `1` - Version tags
   - `master`, `master-<sha>` - Branch tags
 
 ## Artifact Generation
@@ -159,7 +159,7 @@ ngrep is distributed through multiple channels:
 
 2. **Docker Containers** - Multi-architecture containers via GHCR
    - `ghcr.io/jpr5/ngrep:latest` - Latest master build
-   - `ghcr.io/jpr5/ngrep:1.48.0` - Specific version
+   - `ghcr.io/jpr5/ngrep:1.0.0` - Specific version
    - Alpine-based (~15-20MB)
    - Supports linux/amd64 and linux/arm64
 
