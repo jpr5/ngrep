@@ -100,6 +100,20 @@ Once complete:
    - Verify the version tag is present (e.g., `1.0.0`)
    - Test pulling and running: `docker pull ghcr.io/jpr5/ngrep:1.0.0`
 
+### 6. Update Homebrew
+
+1. Fork the Homebrew/homebrew-core repository on Github to your account
+
+2. Bring local copy of homebrew repo
+   ```bash
+   brew tap homebrew/core --force
+   ```
+
+3. Auto-submit PR for version update
+   ```bash
+   brew bump-formula-pr --strict ngrep --version 1.0.0
+   ```
+
 ## Release Artifacts
 
 Each release includes:
