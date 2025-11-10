@@ -15,7 +15,7 @@ common packet sniffing tools, such as tcpdump and snoop.
  * Update to latest autotools for ngrep and regex-0.12 (2.72, 2023)
  * Update manpage for missing options and typos
  * Fix BPF `DLT_` type detections within libpcap (e.g. `DLT_LINUX_SLL`)
- * Allow for specifying specific location of PCRE2 includes
+ * Allow for specifying location of PCRE2 includes
  * Eliminate various non-fatal build warnings (e.g. `pcap_lookupdev` deprecation)
  * Fix `./configure --disable-tcpkill`
  * Source cleanup (nuke old files, unused vars, missing refs, etc)
