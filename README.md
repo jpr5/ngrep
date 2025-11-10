@@ -97,7 +97,7 @@ is lost or missed (as has been the case in the past, unfortunately).
 Please see [CREDITS](CREDITS) for a partial list of the many people who helped make ngrep
 what it is today.  Also, please note that ngrep is released under a simple
 BSD-style license, though depending on which regex library you compile
-against, you'll either get the GPL (GNU regex) or Artistic (PCRE).
+against, you'll either get the GPL (GNU regex) or BSD (PCRE2).
 
 ## A Request to Distribution Package Maintainers
 
