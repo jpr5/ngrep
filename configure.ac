@@ -190,6 +190,24 @@ AS_IF([test $use_vlan_hack = yes], [
   USE_VLAN_HACK="0"
 ])
 
+dnl
+dnl Container name resolution support
+dnl
+
+AC_ARG_ENABLE([container-resolution], [
+AS_HELP_STRING([--enable-container-resolution], [enable container name resolution (default off)])],
+[
+  use_container_resolution="$enableval"
+],
+[ use_container_resolution="no" ])
+
+AS_IF([test $use_container_resolution = yes], [
+  USE_CONTAINER_RESOLUTION="1"
+  EXTRA_OBJS="$EXTRA_OBJS container-resolution.o"
+], [
+  USE_CONTAINER_RESOLUTION="0"
+])
+
 
 AC_ARG_WITH([pcap-includes], [
 AS_HELP_STRING([--with-pcap-includes=dir], [specify the pcap include directory])],
@@ -506,6 +524,7 @@ AC_DEFINE_UNQUOTED(USE_PCRE2,                 $USE_PCRE2,                 [wheth
 AC_DEFINE_UNQUOTED(USE_IPv6,                  $USE_IPv6,                  [whether to use IPv6 (default off)])
 AC_DEFINE_UNQUOTED(USE_TCPKILL,               $USE_TCPKILL,               [whether to enable tcpkill functionality (default off)])
 AC_DEFINE_UNQUOTED(USE_VLAN_HACK,             $USE_VLAN_HACK,             [whether to automatically include VLAN frames (default on)])
+AC_DEFINE_UNQUOTED(USE_CONTAINER_RESOLUTION,  $USE_CONTAINER_RESOLUTION,  [whether to enable container name resolution (default off)])
 
 AC_DEFINE_UNQUOTED(USE_DROPPRIVS,             $USE_DROPPRIVS,             [whether to use privileges dropping (default yes)])
 AC_DEFINE_UNQUOTED(DROPPRIVS_USER,           "$DROPPRIVS_USER",           [pseudo-user for running ngrep (default "nobody")])
@@ -566,6 +585,12 @@ AS_IF([test "$USE_VLAN_HACK" = "1"], [
     AC_MSG_RESULT(CONFIG: automatically including VLAN frames)
 ], [
     AC_MSG_RESULT(CONFIG: NOT automatically including VLAN frames)
+])
+
+AS_IF([test "$USE_CONTAINER_RESOLUTION" = "1"], [
+    AC_MSG_RESULT(CONFIG: container name resolution enabled)
+], [
+    AC_MSG_RESULT(CONFIG: container name resolution disabled)
 ])
 
 dnl

@@ -60,6 +60,9 @@
 /* routine used for restarting the BPF lexer */
 #undef PCAP_RESTART_FUNC
 
+/* whether to enable container name resolution (default off) */
+#undef USE_CONTAINER_RESOLUTION
+
 /* whether to use privileges dropping (default yes) */
 #undef USE_DROPPRIVS
 

@@ -104,6 +104,10 @@
 
 #include "ngrep.h"
 
+#if USE_CONTAINER_RESOLUTION
+#include "container-resolution.h"
+#endif
+
 
 /*
  * Configuration Options
@@ -458,7 +462,21 @@ int main(int argc, char **argv) {
     win32_initwinsock();
 #endif
 
-#if !defined(_WIN32) && USE_DROPPRIVS
+#if USE_CONTAINER_RESOLUTION
+    /* Initialize container cache if container resolution is enabled */
+    /* Note: This must be done BEFORE dropping privileges to access Docker socket */
+    {
+        int cache_result = container_resolution_init();
+        if (cache_result != 0) {
+            fprintf(stderr, "warning: failed to initialize container cache (returned %d)\n", cache_result);
+        } else if (!quiet) {
+            fprintf(stderr, "info: container cache initialized\n");
+        }
+        atexit(container_cleanup);
+    }
+#endif
+
+#if !defined(_WIN32) && !defined(_WIN64) && USE_DROPPRIVS
     drop_privs();
 #endif
 
@@ -993,13 +1011,25 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
     if (print_time)
         print_time(h);
 
-    if ((proto == IPPROTO_TCP || proto == IPPROTO_UDP) && (sport || dport) && (hdr_offset || frag_offset == 0))
-
+    if ((proto == IPPROTO_TCP || proto == IPPROTO_UDP) && (sport || dport) && (hdr_offset || frag_offset == 0)) {
+#if USE_CONTAINER_RESOLUTION
+        char src_formatted[128], dst_formatted[128];
+        container_format_ip(ip_src, src_formatted, sizeof(src_formatted));
+        container_format_ip(ip_dst, dst_formatted, sizeof(dst_formatted));
+        printf("%s:%u -> %s:%u", src_formatted, sport, dst_formatted, dport);
+#else
         printf("%s:%u -> %s:%u", ip_src, sport, ip_dst, dport);
-
-    else
-
+#endif
+    } else {
+#if USE_CONTAINER_RESOLUTION
+        char src_formatted[128], dst_formatted[128];
+        container_format_ip(ip_src, src_formatted, sizeof(src_formatted));
+        container_format_ip(ip_dst, dst_formatted, sizeof(dst_formatted));
+        printf("%s -> %s", src_formatted, dst_formatted);
+#else
         printf("%s -> %s", ip_src, ip_dst);
+#endif
+    }
 
     if (proto == IPPROTO_TCP && flags)
         printf(" [%s%s%s%s%s%s%s%s]",
