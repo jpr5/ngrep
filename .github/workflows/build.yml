@@ -1,0 +1,33 @@
+name: ngrep multiplatform autobuilds
+
+on:
+  push:
+    paths:
+      - ".github/workflows/build.yml"
+      - ".github/workflows/matrix.yml"
+      - "**/*.c"
+      - "**/*.h"
+      - "**/*.in"
+      - "configure*"
+      - "Makefile*"
+      - "winXX/build.ps1"
+      - "winXX/CMakeLists.txt"
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      deploymentName:
+        description: "Name for this deployment"
+        required: true
+        default: "Manual Deployment"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/matrix.yml
+    with:
+      create_artifacts: false

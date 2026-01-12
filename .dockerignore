@@ -1,0 +1,41 @@
+# Git
+.git
+.github
+.gitignore
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.dll
+ngrep
+config.log
+config.status
+autom4te.cache/
+_install/
+install/
+release/
+
+# Documentation
+*.md
+!README.md
+CREDITS
+LICENSE
+doc/
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+*.pcap
+*.dump

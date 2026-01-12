@@ -5,7 +5,10 @@
  *
  */
 
-#define VERSION "1.48-git"
+/*
+ * VERSION is now defined in config.h, generated from the VERSION file
+ * by configure.ac (Unix) or CMakeLists.txt (Windows).
+ */
 
 /*
  * We cache the standard frame sizes here to save us time and
@@ -143,14 +146,14 @@ char *get_filter_from_argv  (char **);
 
 uint8_t strishex(char *);
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
 void drop_privs(void);
 #endif
 
-#if defined(_WIN32)
-int8_t win32_initwinsock(void);
-void win32_listdevices(void);
-char *win32_usedevice(const char *);
+#if defined(_WIN32) || defined(_WIN64)
+int8_t winXX_initwinsock(void);
+void winXX_listdevices(void);
+char *winXX_usedevice(const char *);
 #endif
 
 extern char *net_choosedevice(void); // extern for tcp_kill reuse

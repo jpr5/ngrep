@@ -5,8 +5,10 @@ dnl Please refer to the LICENSE file for more information.
 dnl
 dnl NOTE: configure.in requires autoconf 2.57 or more recent.
 
-AC_INIT([ngrep],[1.48-git],[jpr5@darkridge.com])
+AC_INIT([ngrep],m4_esyscmd_s([cat VERSION]),[jpr5@darkridge.com])
 AC_CONFIG_SRCDIR([ngrep.c])
+
+AC_DEFINE_UNQUOTED(VERSION, "AC_PACKAGE_VERSION", [ngrep version])
 
 AC_MSG_RESULT
 AC_MSG_RESULT(Configuring System ...)
@@ -14,6 +16,9 @@ AC_MSG_RESULT
 
 AC_CANONICAL_TARGET
 AC_PROG_CC
+
+dnl Find strip or use a no-op for systems without it
+AC_CHECK_TOOL(STRIP, strip, :)
 
 AC_PREFIX_DEFAULT(/usr/local)
 AS_IF([test -n "$(command -v tcpdump 2> /dev/null)"], [
@@ -148,8 +153,12 @@ AS_HELP_STRING([--enable-pcre2], [use PCRE2 instead of GNU regex (default GNU)])
 
 AS_IF([test $use_pcre2 = yes], [
   USE_PCRE2="1"
-  EXTRA_INCLUDES="$EXTRA_INCLUDES $(pcre2-config --cflags-posix)"
-  EXTRA_LIBS="$EXTRA_LIBS $(pcre2-config --libs-posix)"
+  AC_PATH_PROGS(NGREP_PCRE2_CONFIG_SCRIPT, [pcre2-config], [no])
+    AS_IF([test $NGREP_PCRE2_CONFIG_SCRIPT = no], [
+      AC_MSG_ERROR(!!! error: pcre2-config not found)
+    ])
+  EXTRA_INCLUDES="$EXTRA_INCLUDES $($NGREP_PCRE2_CONFIG_SCRIPT --cflags-posix)"
+  EXTRA_LIBS="$EXTRA_LIBS $($NGREP_PCRE2_CONFIG_SCRIPT --libs-posix)"
 ], [
   USE_PCRE2="0"
 
@@ -241,11 +250,22 @@ dnl
 dnl OS-specific options
 dnl
 
+BASE_PCAP_H="pcap/pcap.h"
+
 AS_CASE(["$target_os"],
 [*linux*], [
     AC_SUBST(OS, LINUX)
 
     EXTRA_DEFINES="$EXTRA_DEFINES -D_DEFAULT_SOURCE=1"
+],
+[*openbsd*], [
+    AC_SUBST(OS, BSD)
+
+dnl OpenBSD doesn't have an indirect pcap.h, pointing to pcap/pcap.h.
+dnl I guess it's just considered a core/built-in, as there isn't even a libpcap
+dnl package to install (unlike *any* other OS or distribution).
+    BASE_PCAP_H="pcap.h"
+    EXTRA_DEFINES="$EXTRA_DEFINES -D_BSD_SOURCE=1"
 ],
 [*bsd*], [
     AC_SUBST(OS, BSD)
@@ -319,9 +339,12 @@ AC_MSG_CHECKING(for a complete set of pcap headers)
 
 pcap_base=""
 for dir in $PCAP_DIR ; do
-    AS_IF([test -d $dir -a -r "$dir/pcap/pcap.h"], [
+dnl In every case *BUT* OpenBSD, there's a indirect $include/pcap.h that
+dnl points to $include/pcap/pcap.h.  For OpenBSD, there's no indirect; it's
+dnl just $include/pcap.h.
+    AS_IF([test -d $dir -a -r "$dir/$BASE_PCAP_H"], [
         AC_EGREP_CPP([yes], [
-            #include "$dir/pcap/pcap.h"
+            #include "$dir/$BASE_PCAP_H"
             #ifdef PCAP_VERSION_MAJOR
             yes
             #endif
@@ -365,19 +388,25 @@ dnl If tcpkill is enabled, check for libnet.
 dnl
 
 AS_IF([test $use_tcpkill = yes], [
-  USE_TCPKILL="1"
+    USE_TCPKILL="1"
 
-  EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
-  EXTRA_DEFINES="$EXTRA_DEFINES $(libnet-config --defines)"
-  EXTRA_INCLUDES="$EXTRA_INCLUDES $(libnet-config --cflags)"
-  EXTRA_LIBS="$EXTRA_LIBS $(libnet-config --libs)"
+dnl Find libnet-config with any suffix (e.g., libnet-config-1.1 on OpenBSD)
+    AC_PATH_PROGS(LIBNET_CONFIG_BIN, [libnet-config libnet-config-1.1 libnet-config-1.0], [no])
+    AS_IF([test $LIBNET_CONFIG_BIN = no], [
+        AC_MSG_ERROR(!!! error: tcpkill feature enabled but libnet-config not found)
+    ])
 
-  SAVE_LIBS="$LIBS"
-  LIBS="$LIBS $EXTRA_LIBS"
-  AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
-  LIBS="$SAVE_LIBS"
+    EXTRA_OBJS="$EXTRA_OBJS tcpkill.o"
+    EXTRA_DEFINES="$EXTRA_DEFINES $($LIBNET_CONFIG_BIN --defines)"
+    EXTRA_INCLUDES="$EXTRA_INCLUDES $($LIBNET_CONFIG_BIN --cflags)"
+    EXTRA_LIBS="$EXTRA_LIBS $($LIBNET_CONFIG_BIN --libs)"
+
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $EXTRA_LIBS"
+    AC_CHECK_LIB(net, libnet_init,,echo !!! error: tcpkill feature enabled but no libnet found; exit)
+    LIBS="$SAVE_LIBS"
 ], [
-  USE_TCPKILL="0"
+    USE_TCPKILL="0"
 ])
 
 dnl
@@ -417,12 +446,30 @@ AS_IF([test "$USE_PCAP_RESTART" = "1"], [
 ])
 
 dnl
+dnl Check for wcwidth() for UTF-8 character width calculation
+dnl
+AC_CHECK_FUNCS([wcwidth], [
+    HAVE_WCWIDTH="1"
+], [
+    HAVE_WCWIDTH="0"
+    AC_MSG_WARN([wcwidth() not found - will use bundled implementation])
+])
+
+dnl
 dnl Next figure out which bpf header file to look at.
 dnl
 
-AC_MSG_CHECKING(for BPF include path)
-BPF=`/usr/bin/perl -ne '/include\s+<(.*bpf\.h)>/ && print "$1\n"' $pcap_base/pcap/pcap.h`
-AC_MSG_RESULT($BPF)
+PCAP_H="$pcap_base/$BASE_PCAP_H"
+AC_MSG_CHECKING(for BPF include path in $PCAP_H)
+dnl Use sed instead of grep -o for Solaris compatibility
+dnl All the @'s escape m4-sensitive characters
+BPF=`sed -n 's/.*<\(@<:@^>@:>@*bpf\.h\)>.*/\1/p' $PCAP_H | head -1 | tr -d '\n'`
+AS_IF([test -z "$BPF"], [
+    AC_MSG_RESULT(not found)
+    AC_MSG_ERROR(could not find where the BPF types are located)
+], [
+    AC_MSG_RESULT($BPF)
+])
 
 dnl
 dnl Check for DLT_* types that might not have existed in older

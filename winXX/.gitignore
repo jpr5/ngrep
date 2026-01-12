@@ -4,3 +4,4 @@
 *.vcxproj.*
 Debug/
 Release/
+build/

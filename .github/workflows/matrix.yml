@@ -1,0 +1,249 @@
+name: Build Matrix (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      create_artifacts:
+        description: 'Whether to create release artifacts'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  MAKEFLAGS: -j3
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [ ubuntu-latest-gcc, ubuntu-latest-gcc-arm64, ubuntu-latest-clang, macos-15-clang, macos-26-clang, freebsd-15-gcc, freebsd-15-clang, openbsd-7-gcc, openbsd-7-clang, netbsd-10-gcc, netbsd-10-clang, solaris-11-gcc, solaris-11-clang, windows-latest-msvc ]
+        include:
+          - name: ubuntu-latest-gcc
+            os: ubuntu-latest
+            cc: gcc
+            artifact_name: ngrep-linux-x86_64
+          - name: ubuntu-latest-gcc-arm64
+            os: ubuntu-latest
+            cc: gcc
+            arch: arm64
+            artifact_name: ngrep-linux-arm64
+          - name: ubuntu-latest-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: macos-15-clang
+            os: macos-15
+            cc: clang
+            artifact_name: ngrep-macos-15-arm64
+          - name: macos-26-clang
+            os: macos-26
+            cc: clang
+            artifact_name: ngrep-macos-26-arm64
+          - name: freebsd-15-gcc
+            os: ubuntu-latest
+            cc: gcc
+            artifact_name: ngrep-freebsd-15-x86_64
+          - name: freebsd-15-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: openbsd-7-gcc
+            os: ubuntu-latest
+            cc: egcc
+            artifact_name: ngrep-openbsd-7-x86_64
+          - name: openbsd-7-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: netbsd-10-gcc
+            os: ubuntu-latest
+            cc: gcc
+            artifact_name: ngrep-netbsd-10-x86_64
+          - name: netbsd-10-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: solaris-11-gcc
+            os: ubuntu-latest
+            cc: gcc
+            artifact_name: ngrep-solaris-11-x86_64
+          - name: solaris-11-clang
+            os: ubuntu-latest
+            cc: clang
+          - name: windows-latest-msvc
+            os: windows-latest
+            cc: msvc
+            artifact_name: ngrep-windows-x86_64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU for ARM64
+        if: matrix.arch == 'arm64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64
+
+      - name: Build Linux
+        if: startsWith(matrix.name,'ubuntu') && matrix.arch != 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang tree libpcap-dev libnet-dev libpcre2-dev
+          ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
+          make
+          mkdir -p _install
+          make install DESTDIR=$PWD/_install
+          tree $PWD/_install/usr
+
+      - name: Build Linux ARM64
+        if: startsWith(matrix.name,'ubuntu') && matrix.arch == 'arm64'
+        run: |
+          docker run --rm --platform linux/arm64 -v $PWD:/work -w /work ubuntu:latest bash -c "
+            apt-get update -q -y &&
+            apt-get install -q -y build-essential tree libpcap-dev libnet-dev libpcre2-dev &&
+            ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }} &&
+            make &&
+            mkdir -p /work/_install &&
+            make install DESTDIR=/work/_install &&
+            tree /work/_install/usr
+          "
+
+      - name: Build MacOS
+        if: startsWith(matrix.name,'macos')
+        run: |
+          brew update
+          brew install tree libpcap libnet
+          ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
+          make
+          mkdir -p _install
+          make install DESTDIR=$PWD/_install
+          tree $PWD/_install/usr
+
+      - name: Build FreeBSD
+        if: startsWith(matrix.name,'freebsd')
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: "15.0"
+          usesh: true
+          prepare: |
+            pkg install -y gcc llvm doxygen tree pkgconf libnet pcre2
+          run: |
+            ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
+            make
+            mkdir -p _install
+            make install DESTDIR=$PWD/_install
+            tree $PWD/_install/usr
+
+      - name: Build OpenBSD
+        if: startsWith(matrix.name,'openbsd')
+        uses: vmactions/openbsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            export PKG_PATH=https://cdn.openbsd.org/pub/OpenBSD/$(uname -r)/packages/$(uname -m)/
+            pkg_add -I gcc%11 llvm%19 doxygen tree pkgconf libnet%1.1 pcre2
+          run: |
+            ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
+            make
+            mkdir -p _install
+            make install DESTDIR=$PWD/_install
+            tree $PWD/_install/usr
+
+      - name: Build NetBSD
+        if: startsWith(matrix.name,'netbsd')
+        uses: vmactions/netbsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            export PATH=/usr/sbin:/usr/pkg/sbin:/usr/pkg/bin:$PATH
+            export PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/$(uname -r | cut -d_ -f1)/All"
+            pkg_add gcc13 clang pkgconf libpcap libnet
+          run: |
+            ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
+            make
+            mkdir -p _install
+            make install DESTDIR=$PWD/_install
+            tree $PWD/_install/usr
+
+      - name: Build Solaris
+        if: startsWith(matrix.name,'solaris')
+        uses: vmactions/solaris-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install gcc-c clang pcre2 libpcap libnet
+          run: |
+            ./configure --enable-ipv6 --enable-pcre2 --enable-tcpkill --prefix=/usr CC=${{ matrix.cc }}
+            make
+            mkdir -p _install
+            make install DESTDIR=$PWD/_install
+            tree $PWD/_install/usr
+
+      - name: Build Windows
+        if: startsWith(matrix.name,'windows')
+        shell: powershell
+        run: |
+          .\winXX\build.ps1
+
+      - name: Package Linux/BSD/Solaris/MacOS
+        if: inputs.create_artifacts && !startsWith(matrix.name,'windows') && matrix.artifact_name != ''
+        run: |
+          mkdir -p release
+          tar -czf release/${{ matrix.artifact_name }}.tar.gz -C _install/usr/bin ngrep
+          tar -czf release/${{ matrix.artifact_name }}-full.tar.gz -C _install usr
+
+      - name: Package Windows
+        if: inputs.create_artifacts && startsWith(matrix.name,'windows')
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path release/ngrep
+          $exePath = "./winXX/build/bin/Release/ngrep.exe"
+          if (Test-Path $exePath) {
+            Copy-Item $exePath -Destination release/ngrep/
+
+            # Find and copy PCRE2 DLL - check build directory first (ARM64), then vcpkg
+            $buildDir = "./winXX/build/bin/Release"
+            $pcre2DllBuild = "$buildDir/pcre2-8.dll"
+
+            if (Test-Path $pcre2DllBuild) {
+              Copy-Item $pcre2DllBuild -Destination release/ngrep/
+              Write-Host "Packaged with PCRE2 DLL from build directory: $pcre2DllBuild"
+            } else {
+              # Try vcpkg location (x64 typically uses pre-built binaries)
+              $vcpkgRoot = if ($env:VCPKG_ROOT) { $env:VCPKG_ROOT } else { "$env:USERPROFILE/vcpkg" }
+              $arch = $env:PROCESSOR_ARCHITECTURE
+              $triplet = if ($arch -eq "ARM64") { "arm64-windows" } else { "x64-windows" }
+              $pcre2Dll = "$vcpkgRoot/installed/$triplet/bin/pcre2-8.dll"
+
+              if (Test-Path $pcre2Dll) {
+                Copy-Item $pcre2Dll -Destination release/ngrep/
+                Write-Host "Packaged with PCRE2 DLL from vcpkg: $pcre2Dll"
+              } else {
+                Write-Host "Warning: PCRE2 DLL not found in build dir or vcpkg"
+              }
+            }
+
+            # Create README for the package
+            $readme = "ngrep for Windows`n`n"
+            $readme += "Requirements:`n"
+            $readme += "- Npcap: https://npcap.com/#download`n`n"
+            $readme += "Files included:`n"
+            $readme += "- ngrep.exe: Main executable`n"
+            $readme += "- pcre2-8.dll: PCRE2 regular expression library (if built with PCRE2)`n`n"
+            $readme += "Usage:`n"
+            $readme += "  ngrep.exe [options] <match expression> <bpf filter>`n`n"
+            $readme += "For help:`n"
+            $readme += "  ngrep.exe -h`n"
+            $readme | Out-File -FilePath release/ngrep/README.txt -Encoding utf8
+
+            Compress-Archive -Path release/ngrep/* -DestinationPath "release/${{ matrix.artifact_name }}.zip"
+          } else {
+            Write-Error "ngrep.exe not found at $exePath"
+            exit 1
+          }
+
+      - name: Upload artifacts
+        if: inputs.create_artifacts && matrix.artifact_name != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: release/*
+          retention-days: 5

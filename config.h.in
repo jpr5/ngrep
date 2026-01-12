@@ -39,6 +39,9 @@
 /* whether libpcap has `pcap_findalldevs' function */
 #undef HAVE_PCAP_FINDALLDEVS
 
+/* Define to 1 if you have the 'wcwidth' function. */
+#undef HAVE_WCWIDTH
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -81,3 +84,6 @@
 
 /* whether to automatically include VLAN frames (default on) */
 #undef USE_VLAN_HACK
+
+/* ngrep version */
+#undef VERSION

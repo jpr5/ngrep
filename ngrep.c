@@ -5,6 +5,11 @@
  *
  */
 
+/* Feature test macros must be defined before any system headers */
+#if defined(LINUX)
+#define _XOPEN_SOURCE 600  /* For wcwidth() and other POSIX functions */
+#endif
+
 #if defined(BSD) || defined(SOLARIS) || defined(MACOSX)
 #include <unistd.h>
 #include <ctype.h>
@@ -49,13 +54,19 @@
 #include <pwd.h>
 #endif
 
-#if defined(_WIN32)
-#include <io.h>
-#include <getopt.h>
+#if defined(_WIN32) || defined(_WIN64)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <types.h>
-#include <config.h>
+#include <windows.h>
+#include <io.h>
+#include <time.h>
+
+#include "getopt.h"
+#include "types.h"
+#include "wcwidth.h"
 
 #define strcasecmp stricmp
 #define strncasecmp strnicmp
@@ -74,19 +85,19 @@
 #include <string.h>
 #include <signal.h>
 #include <locale.h>
+#include <wchar.h>
+#include <wctype.h>
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
 #include <errno.h>
 #include <sys/ioctl.h>
 #endif
 
 #include <pcap.h>
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
-#if USE_IPv6 && !defined(_WIN32)
+#if USE_IPv6 && !defined(_WIN32) && !defined(_WIN64)
 #include <netinet/ip6.h>
 #include <netinet/icmp6.h>
 #endif
@@ -132,6 +143,8 @@ char *read_file = NULL, *dump_file = NULL;
 char *usedev = NULL;
 
 char nonprint_char = '.';
+
+uint8_t show_utf8 = 0;
 
 /*
  * ANSI color/hilite stuff.
@@ -211,7 +224,7 @@ int main(int argc, char **argv) {
     signal(SIGINT,   clean_exit);
     signal(SIGABRT,  clean_exit);
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
     signal(SIGQUIT,  clean_exit);
     signal(SIGPIPE,  clean_exit);
     signal(SIGWINCH, update_windowsize);
@@ -219,7 +232,20 @@ int main(int argc, char **argv) {
 
     setlocale(LC_ALL, "");
 
-#if !defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
+    /* On Windows, explicitly set UTF-8 locale and console code page for mbrtowc() to work */
+    /* Try multiple locale formats for compatibility across Windows versions */
+    if (setlocale(LC_CTYPE, ".UTF-8") == NULL) {
+        if (setlocale(LC_CTYPE, ".UTF8") == NULL) {
+            if (setlocale(LC_CTYPE, "en_US.UTF-8") == NULL) {
+                setlocale(LC_CTYPE, "C.UTF-8");
+            }
+        }
+    }
+    /* Also set console code page to UTF-8 (65001) */
+    SetConsoleOutputCP(65001);
+    SetConsoleCP(65001);
+#else
     {
         char const *locale = getenv("LANG");
         if (locale == NULL)
@@ -229,7 +255,7 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:u")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -246,6 +272,10 @@ int main(int argc, char **argv) {
                     usage();
                 }
             } break;
+
+            case 'u':
+                show_utf8 = 1;
+                break;
 
             case 'F':
                 filter_file = optarg;
@@ -268,16 +298,16 @@ int main(int argc, char **argv) {
                 if (match_after < UINT32_MAX)
                     match_after++;
                 break;
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
             case 'L':
-                win32_listdevices();
+                winXX_listdevices();
                 clean_exit(2);
             case 'd':
-                usedev = win32_usedevice(optarg);
+                usedev = winXX_usedevice(optarg);
                 break;
 #else
             case 'L':
-                perror("-L is a Win32-only option");
+                perror("-L is a WinXX-only option");
                 clean_exit(2);
             case 'd':
                 usedev = optarg;
@@ -312,7 +342,7 @@ int main(int argc, char **argv) {
                     memset(&prev_ts, 0, sizeof(prev_ts));
                 } else {
                     print_time = &print_time_diff;
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
                     prev_ts.tv_sec  = (uint32_t)time(NULL);
                     prev_ts.tv_usec = 0;
 #else
@@ -458,8 +488,8 @@ int main(int argc, char **argv) {
 
     update_windowsize(0);
 
-#if defined(_WIN32)
-    win32_initwinsock();
+#if defined(_WIN32) || defined(_WIN64)
+    winXX_initwinsock();
 #endif
 
 #if USE_CONTAINER_RESOLUTION
@@ -1149,6 +1179,66 @@ int8_t blank_match_func(unsigned char *data, uint32_t len, uint16_t *mindex, uin
     return 1;
 }
 
+/*
+ * Check if a UTF-8 character sequence is printable using standard library functions.
+ * Returns the number of bytes in the UTF-8 character if printable, 0 otherwise.
+ * Also returns the display width (1 or 2 columns) via the width_out parameter.
+ *
+ * This uses mbrtowc() to convert multi-byte UTF-8 to wide char, then iswprint()
+ * to check if it's printable, and wcwidth() to get the display width.
+ */
+static int is_utf8_printable(const unsigned char *s, size_t max_len, int *width_out) {
+    if (!s || max_len == 0) return 0;
+
+    mbstate_t state = {0};
+    wchar_t wc;
+
+    size_t len = mbrtowc(&wc, (const char *)s, max_len, &state);
+
+    /* Check for errors and incomplete sequences */
+    if (len == (size_t)-1) {
+        /* Encoding error */
+        return 0;
+    }
+
+    if (len == (size_t)-2) {
+        /* Incomplete multi-byte sequence (need more bytes) */
+        return 0;
+    }
+
+    if (len == 0) {
+        /* Null character */
+        return 0;
+    }
+
+    /* Check if the wide character is printable */
+#if defined(_WIN32) || defined(_WIN64)
+    /* Windows iswprint() is too conservative - be more permissive for UTF-8 */
+    /* Accept any valid UTF-8 character that's not a control character */
+    int is_printable = iswprint(wc) ||
+                       (wc >= 0x80 && wc < 0xD800) ||  /* Most of BMP except surrogates */
+                       (wc >= 0xE000 && wc < 0x110000); /* Private use + supplementary planes */
+
+    /* But exclude actual control characters */
+    if (wc < 0x20 || (wc >= 0x7F && wc < 0xA0)) {
+        is_printable = 0;
+    }
+#else
+    int is_printable = iswprint(wc);
+#endif
+
+    if (is_printable) {
+        /* Get display width (1 for normal chars, 2 for wide chars like CJK, 0 for combining) */
+        int w = wcwidth(wc);
+        if (w < 0) w = 1;  /* Treat non-printable/control as width 1 */
+        /* Note: wcwidth returns 0 for combining characters, which is correct */
+        if (width_out) *width_out = w;
+        return (int)len;
+    }
+
+    return 0;
+}
+
 void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
         const unsigned char *s      = data;
@@ -1160,10 +1250,26 @@ void dump_byline(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t ms
             if (should_hilite && s == hilite_start)
                 printf("%s", ANSI_hilite);
 
-            printf("%c", (*s == '\n' || isprint(*s)) ? *s : nonprint_char);
-            s++;
+            int utf8_len = show_utf8 ? is_utf8_printable(s, data + len - s, NULL) : 0;
 
-            if (should_hilite && s == hilite_end)
+            if (*s == '\n') {
+                printf("%c", *s);
+                s++;
+            } else if (utf8_len > 0) {
+                /* Print UTF-8 character */
+                for (int i = 0; i < utf8_len && s < data + len; i++) {
+                    printf("%c", *s);
+                    s++;
+                }
+            } else if (isprint(*s)) {
+                printf("%c", *s);
+                s++;
+            } else {
+                printf("%c", nonprint_char);
+                s++;
+            }
+
+            if (should_hilite && s >= hilite_end)
                 printf("%s", ANSI_off);
         }
 
@@ -1182,10 +1288,23 @@ void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
             if (should_hilite && s == hilite_start)
                 printf("%s", ANSI_hilite);
 
-            printf("%c", isprint(*s) ? *s : nonprint_char);
-            s++;
+            int utf8_len = show_utf8 ? is_utf8_printable(s, data + len - s, NULL) : 0;
 
-            if (should_hilite && s == hilite_end)
+            if (utf8_len > 0) {
+                /* Print UTF-8 character */
+                for (int i = 0; i < utf8_len && s < data + len; i++) {
+                    printf("%c", *s);
+                    s++;
+                }
+            } else if (isprint(*s)) {
+                printf("%c", *s);
+                s++;
+            } else {
+                printf("%c", nonprint_char);
+                s++;
+            }
+
+            if (should_hilite && s >= hilite_end)
                 printf("%s", ANSI_off);
         }
 
@@ -1193,14 +1312,21 @@ void dump_unwrapped(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
     }
 }
 
+/*
+ * NOTE: UTF-8 support using wcwidth() for proper character width calculation.
+ *       On Windows, we use a drop-in wcwidth() implementation (winXX/wcwidth.c)
+ *       based on Markus Kuhn's public domain code, which properly handles
+ *       combining characters (width 0) and wide characters (width 2).
+ */
 void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t msize) {
     if (len > 0) {
-        uint8_t should_hilite = (msize && enable_hilite);
-           unsigned char *str = data;
-             uint8_t hiliting = 0;
-                uint8_t width = show_hex ? 16 : (ws_col-5);
-                   uint32_t i = 0,
-                            j = 0;
+        uint8_t utf8_bytes_to_skip = 0;
+             uint8_t should_hilite = (msize && enable_hilite);
+                unsigned char *str = data;
+                  uint8_t hiliting = 0;
+                     uint8_t width = show_hex ? 16 : (ws_col-5);
+                        uint32_t i = 0,
+                                 j = 0;
 
         while (i < len) {
             printf("  ");
@@ -1226,24 +1352,61 @@ void dump_formatted(unsigned char *data, uint32_t len, uint16_t mindex, uint16_t
                 }
             }
 
-            for (j = 0; j < width; j++) {
-                if (should_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
-                    hiliting = 1;
-                    printf("%s", ANSI_hilite);
-                }
+            /* For text portion, handle UTF-8 */
+            j = utf8_bytes_to_skip;
+            uint32_t char_count = 0;  /* Track visual character positions */
+            while (char_count < width) {
+                if (i + j < len) {
+                    if (should_hilite && mindex <= (i+j) && (i+j) < mindex + msize) {
+                        hiliting = 1;
+                        printf("%s", ANSI_hilite);
+                    }
 
-                if (i + j < len)
-                    printf("%c", isprint(str[j]) ? str[j] : nonprint_char);
-                else printf(" ");
+                    int char_width = 1;
+                    int utf8_len = show_utf8 ? is_utf8_printable(&str[j], len - (i + j), &char_width) : 0;
 
-                if (hiliting) {
-                    hiliting = 0;
-                    printf("%s", ANSI_off);
+                    if (utf8_len > 0) {
+                        /* Check if char would exceed line width */
+                        if (char_width > 0 && char_count + char_width > width) {
+                            /* Pad remaining space and break - character will wrap to next line */
+                            while (char_count < width) {
+                                printf(" ");
+                                char_count++;
+                            }
+                            break;
+                        }
+                        /* Print UTF-8 character */
+                        for (int k = 0; k < utf8_len; k++) {
+                            printf("%c", str[j]);
+                            j++;
+                        }
+                        /* Add the display width (combining chars have width 0) */
+                        char_count += char_width;
+                    } else if (isprint(str[j])) {
+                        printf("%c", str[j]);
+                        j++;
+                        char_count++;
+                    } else {
+                        printf("%c", nonprint_char);
+                        j++;
+                        char_count++;
+                    }
+
+                    if (hiliting) {
+                        hiliting = 0;
+                        printf("%s", ANSI_off);
+                    }
+                } else {
+                    /* Pad remaining space when we've run out of data */
+                    printf(" ");
+                    char_count++;
                 }
             }
 
-            str += width;
+            /* Advance by the actual number of bytes consumed */
+            str += j;
             i   += j;
+            utf8_bytes_to_skip = 0;
 
             printf("\n");
         }
@@ -1327,7 +1490,8 @@ uint8_t strishex(char *str) {
 
 
 void print_time_absolute(struct pcap_pkthdr *h) {
-    struct tm *t = localtime((const time_t *)&h->ts.tv_sec);
+    time_t ts = (time_t)h->ts.tv_sec;
+    struct tm *t = localtime(&ts);
 
     printf("%02u/%02u/%02u %02u:%02u:%02u.%06u ",
            t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour,
@@ -1392,7 +1556,7 @@ void dump_delay_proc(struct pcap_pkthdr *h) {
         usecs = 1000000 - (prev_delay_ts.tv_usec - h->ts.tv_usec);
     }
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     Sleep(1000*secs + usecs/1000);
 #else
     sleep(secs);
@@ -1410,7 +1574,7 @@ void update_windowsize(int32_t e) {
 
     else if (!ws_col_forced) {
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
         struct winsize ws;
 
         if (!ioctl(0, TIOCGWINSZ, &ws)) {
@@ -1432,7 +1596,7 @@ void update_windowsize(int32_t e) {
     }
 }
 
-#if !defined(_WIN32) && USE_DROPPRIVS
+#if !defined(_WIN32) && !defined(_WIN64) && USE_DROPPRIVS
 void drop_privs(void) {
     struct passwd *pw;
     uid_t newuid;
@@ -1470,10 +1634,10 @@ void drop_privs(void) {
 
 void usage(void) {
     printf("usage: ngrep <-"
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
            "L"
 #endif
-           "hNXViwqpevxlDtTRM> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
+           "hNXViwqpevxlDtTRMCu> <-IO pcap_dump> <-n num> <-d dev> <-A num>\n"
            "             <-s snaplen> <-S limitlen> <-W normal|byline|single|none> <-c cols>\n"
            "             <-P char> <-F file>"
 #if USE_TCPKILL
@@ -1506,10 +1670,12 @@ void usage(void) {
            "   -S  is set the limitlen on matched packets\n"
            "   -W  is set the dump format (normal, byline, single, none)\n"
            "   -c  is force the column width to the specified size\n"
+           "   -C  is colorize matches in packet contents output\n"
+           "   -u  is show payload as UTF-8 characters\n"
            "   -P  is set the non-printable display char to what is specified\n"
            "   -F  is read the bpf filter from the specified file\n"
            "   -N  is show sub protocol number\n"
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
            "   -d  is use specified device (index or name) instead of the pcap default\n"
            "   -L  is show the winpcap device list index\n"
 #else
@@ -1533,7 +1699,7 @@ void version(void) {
 void clean_exit(int32_t sig) {
     signal(SIGINT,   SIG_IGN);
     signal(SIGABRT,  SIG_IGN);
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
     signal(SIGQUIT,  SIG_IGN);
     signal(SIGPIPE,  SIG_IGN);
     signal(SIGWINCH, SIG_IGN);
@@ -1560,7 +1726,7 @@ void clean_exit(int32_t sig) {
     if (pd_dumppcap)  pcap_close(pd_dumppcap);
     if (pd_dump)      pcap_dump_close(pd_dump);
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
     if (want_delay)   WSACleanup();
     if (usedev)       free(usedev);
 #endif
@@ -1568,8 +1734,8 @@ void clean_exit(int32_t sig) {
     exit(matches ? 0 : 1);
 }
 
-#if defined(_WIN32)
-int8_t win32_initwinsock(void) {
+#if defined(_WIN32) || defined(_WIN64)
+int8_t winXX_initwinsock(void) {
     WORD wVersionRequested = MAKEWORD(2, 0);
     WSADATA wsaData;
 
@@ -1589,7 +1755,7 @@ int8_t win32_initwinsock(void) {
     return 1;
 }
 
-void win32_listdevices(void) {
+void winXX_listdevices(void) {
     uint32_t i = 0;
     pcap_if_t *alldevs, *d;
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -1612,7 +1778,7 @@ void win32_listdevices(void) {
     pcap_freealldevs(alldevs);
 }
 
-char *win32_usedevice(const char *index_or_name) {
+char *winXX_usedevice(const char *index_or_name) {
     int32_t idx, i = 0;
     int     is_name = 0;
     int     found_it = 0;
@@ -1664,7 +1830,7 @@ char *win32_usedevice(const char *index_or_name) {
 #endif
 
 char *net_choosedevice(void) {
-    // static so we don't have to free, should be enough even for win32..
+    // static so we don't have to free, should be enough even for winXX..
     static char dev[128] = {0};
 
 #if HAVE_PCAP_FINDALLDEVS
@@ -1675,9 +1841,12 @@ char *net_choosedevice(void) {
         clean_exit(2);
     }
 
-    for (pcap_if_t *d = alldevs; d != NULL; d = d->next)
-        if ((d->addresses) && (d->addresses->addr))
+    for (pcap_if_t *d = alldevs; d != NULL; d = d->next) {
+        if ((d->addresses) && (d->addresses->addr)) {
             strncpy(dev, d->name, sizeof(dev)-1);
+            break;
+        }
+    }
 
     pcap_freealldevs(alldevs);
 #else
