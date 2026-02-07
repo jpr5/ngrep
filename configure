@@ -1347,8 +1347,8 @@ Optional Features:
   --disable-vlan-hack     disable automatic inclusion of VLAN frames (default
                           on)
 
-  --enable-container-resolution
-                          enable container name resolution (default off)
+  --disable-container-resolution
+                          disable container name resolution (default on)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -4052,7 +4052,7 @@ then :
   use_container_resolution="$enableval"
 
 else case e in #(
-  e) use_container_resolution="no" ;;
+  e)  use_container_resolution="yes"  ;;
 esac
 fi
 
@@ -4069,6 +4069,7 @@ else case e in #(
  ;;
 esac
 fi
+
 
 
 # Check whether --with-pcap-includes was given.
@@ -5390,6 +5391,7 @@ printf "%s\n" "#define USE_VLAN_HACK $USE_VLAN_HACK" >>confdefs.h
 
 
 printf "%s\n" "#define USE_CONTAINER_RESOLUTION $USE_CONTAINER_RESOLUTION" >>confdefs.h
+
 
 
 printf "%s\n" "#define USE_DROPPRIVS $USE_DROPPRIVS" >>confdefs.h

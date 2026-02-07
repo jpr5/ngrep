@@ -204,11 +204,11 @@ dnl Container name resolution support
 dnl
 
 AC_ARG_ENABLE([container-resolution], [
-AS_HELP_STRING([--enable-container-resolution], [enable container name resolution (default off)])],
+AS_HELP_STRING([--disable-container-resolution], [disable container name resolution (default on)])],
 [
   use_container_resolution="$enableval"
 ],
-[ use_container_resolution="no" ])
+[ use_container_resolution="yes" ])
 
 AS_IF([test $use_container_resolution = yes], [
   USE_CONTAINER_RESOLUTION="1"
