@@ -229,7 +229,7 @@ static int discover_containers_for_runtime(const char *runtime, uint32_t *cache_
         char *container_id = line;
         char *container_name = colon + 1;
 
-        if (strlen(container_name) > 0) {
+        if (strlen(container_name) > 0 && is_valid_container_id(container_id)) {
             /* For each container, get IP addresses */
             snprintf(cmd, sizeof(cmd),
                     "%s inspect %s --format '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' 2>/dev/null",
