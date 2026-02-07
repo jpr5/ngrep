@@ -81,6 +81,7 @@ static int add_container_by_id(const char *container_id);
 static void remove_container_by_id(const char *container_id);
 static char* extract_json_string(const char *json, const char *key);
 static int is_valid_container_id(const char *id);
+static void sanitize_container_name(char *name);
 
 /*
  * Public API Implementation
@@ -228,6 +229,7 @@ static int discover_containers_for_runtime(const char *runtime, uint32_t *cache_
         *colon = '\0';
         char *container_id = line;
         char *container_name = colon + 1;
+        sanitize_container_name(container_name);
 
         if (strlen(container_name) > 0 && is_valid_container_id(container_id)) {
             /* For each container, get IP addresses */
@@ -542,6 +544,24 @@ static int is_valid_container_id(const char *id) {
     return 1;
 }
 
+/* Sanitize container name for safe terminal display.
+ * Replaces any character outside [a-zA-Z0-9_.-] with underscore. */
+static void sanitize_container_name(char *name) {
+    size_t i;
+
+    if (!name) return;
+
+    for (i = 0; name[i] != '\0'; i++) {
+        char c = name[i];
+        if (!((c >= '0' && c <= '9') ||
+              (c >= 'A' && c <= 'Z') ||
+              (c >= 'a' && c <= 'z') ||
+              c == '_' || c == '-' || c == '.')) {
+            name[i] = '_';
+        }
+    }
+}
+
 static int add_container_by_id(const char *container_id) {
     char cmd[512];
     FILE *fp;
@@ -577,6 +597,7 @@ static int add_container_by_id(const char *container_id) {
     if (name[0] == '/') {
         memmove(name, name + 1, strlen(name));
     }
+    sanitize_container_name(name);
 
     if (strlen(name) == 0) {
         return -1;
