@@ -696,6 +696,7 @@ enable_pcap_restart
 enable_pcre2
 enable_tcpkill
 enable_vlan_hack
+enable_container_resolution
 with_pcap_includes
 with_pcre2_includes
 '
@@ -1345,6 +1346,9 @@ Optional Features:
 
   --disable-vlan-hack     disable automatic inclusion of VLAN frames (default
                           on)
+
+  --disable-container-resolution
+                          disable container name resolution (default on)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -4041,6 +4045,32 @@ esac
 fi
 
 
+# Check whether --enable-container-resolution was given.
+if test ${enable_container_resolution+y}
+then :
+  enableval=$enable_container_resolution;
+  use_container_resolution="$enableval"
+
+else case e in #(
+  e)  use_container_resolution="yes"  ;;
+esac
+fi
+
+
+if test $use_container_resolution = yes
+then :
+
+  USE_CONTAINER_RESOLUTION="1"
+  EXTRA_OBJS="$EXTRA_OBJS container-resolution.o"
+
+else case e in #(
+  e)
+  USE_CONTAINER_RESOLUTION="0"
+ ;;
+esac
+fi
+
+
 
 # Check whether --with-pcap-includes was given.
 if test ${with_pcap_includes+y}
@@ -5360,6 +5390,9 @@ printf "%s\n" "#define USE_TCPKILL $USE_TCPKILL" >>confdefs.h
 printf "%s\n" "#define USE_VLAN_HACK $USE_VLAN_HACK" >>confdefs.h
 
 
+printf "%s\n" "#define USE_CONTAINER_RESOLUTION $USE_CONTAINER_RESOLUTION" >>confdefs.h
+
+
 
 printf "%s\n" "#define USE_DROPPRIVS $USE_DROPPRIVS" >>confdefs.h
 
@@ -5474,6 +5507,20 @@ else case e in #(
   e)
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CONFIG: NOT automatically including VLAN frames" >&5
 printf "%s\n" "CONFIG: NOT automatically including VLAN frames" >&6; }
+ ;;
+esac
+fi
+
+if test "$USE_CONTAINER_RESOLUTION" = "1"
+then :
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CONFIG: container name resolution enabled" >&5
+printf "%s\n" "CONFIG: container name resolution enabled" >&6; }
+
+else case e in #(
+  e)
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CONFIG: container name resolution disabled" >&5
+printf "%s\n" "CONFIG: container name resolution disabled" >&6; }
  ;;
 esac
 fi

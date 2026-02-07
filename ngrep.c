@@ -115,6 +115,10 @@
 
 #include "ngrep.h"
 
+#if USE_CONTAINER_RESOLUTION
+#include "container-resolution.h"
+#endif
+
 
 /*
  * Configuration Options
@@ -126,6 +130,10 @@ uint32_t seen_frames = 0;
 
 #if USE_TCPKILL
 uint32_t tcpkill_active = 0;
+#endif
+
+#if USE_CONTAINER_RESOLUTION
+uint8_t resolve_containers = 0;
 #endif
 
 uint8_t  re_match_word = 0, re_ignore_case = 0, re_multiline_match = 1;
@@ -251,7 +259,7 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:u")) != EOF) {
+    while ((c = getopt(argc, argv, "LNhXViwqpevxlDtTRMK:Cs:n:c:d:A:I:O:S:P:F:W:ur")) != EOF) {
         switch (c) {
             case 'W': {
                 if (!strcasecmp(optarg, "normal"))
@@ -389,6 +397,11 @@ int main(int argc, char **argv) {
                 tcpkill_active = _atoui32(optarg);
                 break;
 #endif
+#if USE_CONTAINER_RESOLUTION
+            case 'r':
+                resolve_containers = 1;
+                break;
+#endif
             case 'h':
                 usage();
             default:
@@ -486,6 +499,17 @@ int main(int argc, char **argv) {
 
 #if defined(_WIN32) || defined(_WIN64)
     winXX_initwinsock();
+#endif
+
+#if USE_CONTAINER_RESOLUTION
+    /* Initialize container cache if -r was specified.
+     * Must be done BEFORE dropping privileges to access Docker socket. */
+    if (resolve_containers) {
+        int cache_result = container_resolution_init();
+        if (cache_result != 0 && !quiet)
+            fprintf(stderr, "warning: failed to initialize container cache\n");
+        atexit(container_cleanup);
+    }
 #endif
 
 #if !defined(_WIN32) && !defined(_WIN64) && USE_DROPPRIVS
@@ -1023,13 +1047,27 @@ void dump_packet(struct pcap_pkthdr *h, u_char *p, uint8_t proto, unsigned char 
     if (print_time)
         print_time(h);
 
-    if ((proto == IPPROTO_TCP || proto == IPPROTO_UDP) && (sport || dport) && (hdr_offset || frag_offset == 0))
-
+    if ((proto == IPPROTO_TCP || proto == IPPROTO_UDP) && (sport || dport) && (hdr_offset || frag_offset == 0)) {
+#if USE_CONTAINER_RESOLUTION
+        if (resolve_containers) {
+            char src_formatted[128], dst_formatted[128];
+            container_format_ip(ip_src, src_formatted, sizeof(src_formatted));
+            container_format_ip(ip_dst, dst_formatted, sizeof(dst_formatted));
+            printf("%s:%u -> %s:%u", src_formatted, sport, dst_formatted, dport);
+        } else
+#endif
         printf("%s:%u -> %s:%u", ip_src, sport, ip_dst, dport);
-
-    else
-
+    } else {
+#if USE_CONTAINER_RESOLUTION
+        if (resolve_containers) {
+            char src_formatted[128], dst_formatted[128];
+            container_format_ip(ip_src, src_formatted, sizeof(src_formatted));
+            container_format_ip(ip_dst, dst_formatted, sizeof(dst_formatted));
+            printf("%s -> %s", src_formatted, dst_formatted);
+        } else
+#endif
         printf("%s -> %s", ip_src, ip_dst);
+    }
 
     if (proto == IPPROTO_TCP && flags)
         printf(" [%s%s%s%s%s%s%s%s]",
@@ -1613,6 +1651,9 @@ void usage(void) {
 #if USE_TCPKILL
            "\n             <-K count>"
 #endif
+#if USE_CONTAINER_RESOLUTION
+           " <-r>"
+#endif
            "\n"
            "             <match expression> <bpf filter>\n"
            "   -h  is help/usage\n"
@@ -1653,6 +1694,9 @@ void usage(void) {
 #endif
 #if USE_TCPKILL
            "   -K  is send N packets to kill observed connections\n"
+#endif
+#if USE_CONTAINER_RESOLUTION
+           "   -r  is resolve container names for Docker/Podman IPs\n"
 #endif
            "");
 

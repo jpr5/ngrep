@@ -34,6 +34,7 @@ endif()
 if(USE_PCRE2)
     set(NGREP_SOURCES
         ../ngrep.c
+        ../container-resolution.c
         ./getopt.c
         ./inet_ntop.c
         ./wcwidth.c
@@ -41,6 +42,7 @@ if(USE_PCRE2)
 else()
     set(NGREP_SOURCES
         ../ngrep.c
+        ../container-resolution.c
         ../regex-0.12/regex.c
         ./getopt.c
         ./inet_ntop.c
@@ -51,6 +53,7 @@ endif()
 # Headers
 set(NGREP_HEADERS
     ../ngrep.h
+    ../container-resolution.h
     ../regex-0.12/regex.h
     ./config.h
     ./getopt.h

@@ -29,6 +29,7 @@
 #define DROPPRIVS_USER               "notused"
 
 #define USE_TCPKILL                  0
+#define USE_CONTAINER_RESOLUTION     1
 
 /* Windows doesn't have these */
 #define STDC_HEADERS                 1

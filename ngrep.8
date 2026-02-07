@@ -191,6 +191,18 @@ this option to force ngrep to listen on interface \fIdev\fP.
 .IP "-A num"
 Dump \fInum\fP packets of trailing context after matching a packet.
 
+.IP -r
+Resolve container IP addresses to their Docker or Podman container names.
+When enabled, IP addresses are displayed as
+.I container_name(ip_address)
+in packet output.  If the Docker or Podman socket is accessible, ngrep uses
+the Events API for real-time container tracking.  Otherwise, it falls back
+to CLI-based polling with a 30-second cache TTL.  This feature can be
+excluded at build time with
+.BR --disable-container-resolution .
+
+.SH MATCH AND FILTER EXPRESSIONS
+
 .IP "\fI match expression\fP"
 A match expression is either an extended regular expression, or if the
 \fI-X\fP option is specified, a string signifying a hexadecimal value.

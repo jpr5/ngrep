@@ -364,3 +364,95 @@ hexadecimal form.
 As it turns out, several other packets also matched this pattern, but this
 should give you a good idea of how to use hexadecimal patterns and the hex
 output mode.
+
+## Container name resolution (Docker / Podman)
+
+When running ngrep on a host that has Docker or Podman containers, raw IP
+addresses on a bridge network are essentially meaningless -- they're ephemeral
+and change on every `docker-compose up`.  Pass `-r` to resolve container IPs to
+their names, making the output immediately readable.
+
+Container resolution is compiled in by default (disable at build time with
+`--disable-container-resolution` if needed).
+
+If the Docker (or Podman) socket is accessible, ngrep uses the Events API for
+real-time tracking -- new containers show up the instant they start, and dead
+ones are purged immediately.  If the socket isn't available (e.g. rootless
+Podman, permission issues), it falls back to CLI-based polling with a
+30-second cache TTL.
+
+### Debugging microservice traffic
+
+Suppose you have a typical compose stack -- an API gateway, an auth service,
+and a Postgres database.  Without container resolution, you'd see something
+like:
+
+```
+# ngrep -d docker0 -W byline port 5432
+T 172.18.0.4:48120 -> 172.18.0.2:5432 [AP]
+...
+T 172.18.0.2:5432 -> 172.18.0.4:48120 [AP]
+...
+```
+
+With `-r`, the same capture becomes:
+
+```
+# ngrep -r -d docker0 -W byline port 5432
+container: using docker socket for real-time events
+T api_gateway(172.18.0.4):48120 -> postgres_db(172.18.0.2):5432 [AP]
+...
+T postgres_db(172.18.0.2):5432 -> api_gateway(172.18.0.4):48120 [AP]
+...
+```
+
+No more cross-referencing `docker inspect` output.
+
+### Watching HTTP traffic across a compose stack
+
+* `ngrep -r -d br-a1b2c3 -W byline -q 'GET|POST' port 80`
+
+Monitor all HTTP traffic on a Docker Compose bridge network.  Each request
+shows which container is talking to which, e.g.:
+
+```
+T frontend(172.20.0.3):39212 -> backend(172.20.0.5):80 [AP]
+GET /api/users HTTP/1.1.
+Host: backend:80.
+...
+```
+
+### Filtering to a specific container's traffic
+
+Container resolution annotates the display, but filtering still uses the
+underlying IP.  To watch traffic for a specific container, find its IP and
+use a BPF host filter:
+
+```
+% docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' auth_service
+172.20.0.4
+
+% ngrep -r -d br-a1b2c3 -q '' host 172.20.0.4
+T auth_service(172.20.0.4):8080 -> redis(172.20.0.6):6379 [AP]
+...
+T redis(172.20.0.6):6379 -> auth_service(172.20.0.4):8080 [AP]
+...
+```
+
+Even though the BPF filter uses the raw IP, the output still shows you
+container names on both sides of the conversation.
+
+### Monitoring DNS resolution between containers
+
+* `ngrep -r -d docker0 -q '' port 53`
+
+This is especially useful for catching misconfigured service discovery --
+you'll see which container is looking up which hostname, and what the
+embedded DNS server responds with:
+
+```
+U frontend(172.18.0.3):42371 -> 127.0.0.11:53
+  .............backend.mystack_default.....
+U 127.0.0.11:53 -> frontend(172.18.0.3):42371
+  .............backend.mystack_default..............172.18.0.5...
+```
