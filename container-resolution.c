@@ -21,6 +21,8 @@
 #define HAVE_UNIX_SOCKETS 1
 #else
 #define HAVE_UNIX_SOCKETS 0
+#define popen  _popen
+#define pclose _pclose
 #endif
 
 #include "container-resolution.h"
