@@ -65,6 +65,9 @@ static char event_buffer[4096];
 static size_t event_buffer_len = 0;
 /* Runtime used for socket/events + inspect commands ("docker" or "podman") */
 static const char *event_runtime = "docker";
+/* Polling state: detect failure after privilege drop */
+static int cr_init_succeeded = 0;
+static int cr_polling_disabled = 0;
 
 /* Forward declarations for internal functions */
 static const char* lookup_container_name(const char* ip_addr);
@@ -107,7 +110,10 @@ int container_resolution_init(void) {
     }
 
     /* Discover existing containers via Docker/Podman CLI commands */
-    return discover_containers_via_cli();
+    int result = discover_containers_via_cli();
+    if (result == 0)
+        cr_init_succeeded = 1;
+    return result;
 }
 
 int container_refresh_cache(void) {
@@ -123,6 +129,8 @@ void container_cleanup(void) {
 #endif
     using_realtime_events = 0;
     event_buffer_len = 0;
+    cr_init_succeeded = 0;
+    cr_polling_disabled = 0;
     memset(&g_container_cache, 0, sizeof(g_container_cache));
 }
 
@@ -165,8 +173,10 @@ static const char* lookup_container_name(const char* ip_addr) {
         process_docker_events();
     }
 
-    /* Check if cache needs refresh (only if not using real-time events) */
-    if (!using_realtime_events && (now - g_container_cache.last_refresh > cache_ttl)) {
+    /* Check if cache needs refresh (only if not using real-time events
+     * and polling hasn't been disabled due to privilege drop) */
+    if (!using_realtime_events && !cr_polling_disabled &&
+        (now - g_container_cache.last_refresh > cache_ttl)) {
         container_refresh_cache();
     }
 
@@ -283,7 +293,16 @@ static int discover_containers_via_cli(void) {
     }
 
     g_container_cache.count = cache_idx;
-    /* "No containers found" is not an error; leave cache empty. */
+
+    /* If this is a refresh (not first init) and we found nothing, assume
+     * we lost access after privilege drop. Disable further polling to avoid
+     * repeated silent failures. */
+    if (cr_init_succeeded && cache_idx == 0) {
+        cr_polling_disabled = 1;
+        if (!quiet)
+            fprintf(stderr, "container: CLI polling disabled (likely lost access after privilege drop)\n");
+    }
+
     return 0;
 }
 
