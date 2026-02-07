@@ -313,43 +313,82 @@ static int discover_containers_via_cli(void) {
 #if HAVE_UNIX_SOCKETS
 
 static int connect_to_docker_socket(void) {
-    int fd;
+    struct {
+        const char *path;
+        const char *runtime;
+    } candidates[6];
+    int num_candidates = 0;
+    char docker_host_path[256];
+    char home_docker_path[256];
+    char xdg_podman_path[256];
+    const char *env;
+    int i, fd;
     struct sockaddr_un addr;
-    const char *socket_path = DOCKER_SOCKET_PATH;
 
-    /* Try Docker socket first */
-    event_runtime = "docker";
-    fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (fd < 0) {
-        return -1;
-    }
-
-    memset(&addr, 0, sizeof(addr));
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
-
-    if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        close(fd);
-
-        /* Try Podman socket as fallback */
-        socket_path = PODMAN_SOCKET_PATH;
-        event_runtime = "podman";
-        fd = socket(AF_UNIX, SOCK_STREAM, 0);
-        if (fd < 0) {
+    /* 1. $DOCKER_HOST (unix:// only; skip socket approach for tcp://) */
+    env = getenv("DOCKER_HOST");
+    if (env) {
+        if (strncmp(env, "unix://", 7) == 0) {
+            strncpy(docker_host_path, env + 7, sizeof(docker_host_path) - 1);
+            docker_host_path[sizeof(docker_host_path) - 1] = '\0';
+            candidates[num_candidates].path = docker_host_path;
+            candidates[num_candidates].runtime = "docker";
+            num_candidates++;
+        } else if (strncmp(env, "tcp://", 6) == 0) {
+            /* TCP-based Docker host; socket events won't work */
             return -1;
         }
+    }
+
+    /* 2. Standard Docker socket */
+    candidates[num_candidates].path = DOCKER_SOCKET_PATH;
+    candidates[num_candidates].runtime = "docker";
+    num_candidates++;
+
+    /* 3. macOS Docker Desktop */
+    env = getenv("HOME");
+    if (env) {
+        snprintf(home_docker_path, sizeof(home_docker_path),
+                 "%s/.docker/run/docker.sock", env);
+        candidates[num_candidates].path = home_docker_path;
+        candidates[num_candidates].runtime = "docker";
+        num_candidates++;
+    }
+
+    /* 4. Standard Podman socket (rootful) */
+    candidates[num_candidates].path = PODMAN_SOCKET_PATH;
+    candidates[num_candidates].runtime = "podman";
+    num_candidates++;
+
+    /* 5. Rootless Podman via XDG_RUNTIME_DIR */
+    env = getenv("XDG_RUNTIME_DIR");
+    if (env) {
+        snprintf(xdg_podman_path, sizeof(xdg_podman_path),
+                 "%s/podman/podman.sock", env);
+        candidates[num_candidates].path = xdg_podman_path;
+        candidates[num_candidates].runtime = "podman";
+        num_candidates++;
+    }
+
+    /* Try each candidate in order */
+    for (i = 0; i < num_candidates; i++) {
+        fd = socket(AF_UNIX, SOCK_STREAM, 0);
+        if (fd < 0)
+            continue;
 
         memset(&addr, 0, sizeof(addr));
         addr.sun_family = AF_UNIX;
-        strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
+        strncpy(addr.sun_path, candidates[i].path, sizeof(addr.sun_path) - 1);
 
-        if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-            close(fd);
-            return -1;
+        if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+            event_runtime = candidates[i].runtime;
+            return fd;
         }
+
+        close(fd);
     }
 
-    return fd;
+    return -1;
 }
 
 static int setup_docker_events_stream(void) {
